@@ -203,7 +203,7 @@ class BundleManager
         @extension = extension
         @fileCount = 0
         @bundleCount = 0
-        @currentBundleText = ""
+        @currentBundleText = "#pragma clang diagnostic ignored \"-Wunknown-pragmas\"\n"
         @maxCount = max
         @extraFiles = []
         @currentDirectory = nil
@@ -241,7 +241,7 @@ class BundleManager
         @extraFiles << bundleFile if @maxCount and @bundleCount > @maxCount
 
         writeFile(bundleFile, @currentBundleText)
-        @currentBundleText = ""
+        @currentBundleText = "#pragma clang diagnostic ignored \"-Wunknown-pragmas\"\n"
         @fileCount = 0
     end
 
@@ -270,6 +270,8 @@ class BundleManager
             flush
         end
         @currentBundleText += "#include \"#{sourceFile}\"\n"
+        @currentBundleText += "#pragma clang diagnostic pop\n"
+        @currentBundleText += "#pragma clang diagnostic pop\n"
         @fileCount += 1
     end
 end
