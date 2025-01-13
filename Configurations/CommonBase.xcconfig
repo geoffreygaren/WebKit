@@ -44,7 +44,7 @@ WK_GCC_OPTIMIZATION_LEVEL_SANITIZER_OVERRIDE_NO = $(WK_DEFAULT_GCC_OPTIMIZATION_
 WK_GCC_OPTIMIZATION_LEVEL_SANITIZER_OVERRIDE_YES = $(WK_SANITIZER_GCC_OPTIMIZATION_LEVEL);
 
 WK_COMMON_OTHER_CFLAGS = $(WK_SANITIZER_OTHER_CFLAGS);
-OTHER_CFLAGS = $(inherited) $(WK_COMMON_OTHER_CFLAGS);
+OTHER_CFLAGS = $(inherited) $(WK_COMMON_OTHER_CFLAGS) -Wno-elaborated-enum-base;
 
 WK_COMMON_OTHER_CPLUSPLUSFLAGS = $(WK_LIBCPP_ASSERTIONS_CFLAGS) $(WK_SANITIZER_OTHER_CPLUSPLUSFLAGS);
 OTHER_CPLUSPLUSFLAGS = $(inherited) $(WK_COMMON_OTHER_CPLUSPLUSFLAGS);
@@ -64,7 +64,7 @@ GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 WK_COMMON_WARNING_CFLAGS = -Wall -Wc99-designator -Wconditional-uninitialized -Wextra -Wdeprecated-enum-enum-conversion -Wdeprecated-enum-float-conversion -Wenum-float-conversion -Wfinal-dtor-non-final-class -Wformat=2 -Wmisleading-indentation -Wreorder-init-list -Wundef -Wvla;
 WARNING_CFLAGS = $(inherited) $(WK_COMMON_WARNING_CFLAGS) $(WK_SANITIZER_WARNING_CFLAGS);
 
-WK_NO_UNSAFE_BUFFER_USAGE_IN_LIBC_CALL = -Wno-unknown-warning-option -Wno-unsafe-buffer-usage-in-libc-call;
+WK_NO_UNSAFE_BUFFER_USAGE_IN_LIBC_CALL = -Wno-unknown-warning-option -Wunsafe-buffer-usage-in-libc-call;
 WK_NO_UNSAFE_BUFFER_USAGE_IN_LIBC_CALL[sdk=macosx13*] = ;
 WK_NO_UNSAFE_BUFFER_USAGE_IN_LIBC_CALL[sdk=macosx14*] = ;
 WK_NO_UNSAFE_BUFFER_USAGE_IN_LIBC_CALL[sdk=macosx15.0*] = ;
