@@ -30,6 +30,7 @@
 #include "InitializeThreading.h"
 #include "JavaScript.h"
 #include "Options.h"
+#include <wtf/Print.h>
 
 using JSC::Options;
 
@@ -83,9 +84,7 @@ int testFunctionOverrides()
     JSC::Options::functionOverrides() = oldFunctionOverrides;
     JSC::FunctionOverrides::reinstallOverrides();
 
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
-    printf("%s: function override tests.\n", failed ? "FAIL" : "PASS");
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
+    print("{}: function override tests.\n", failed ? "FAIL" : "PASS");
 
     return failed;
 }

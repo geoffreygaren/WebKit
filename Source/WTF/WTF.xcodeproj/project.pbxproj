@@ -50,6 +50,7 @@
 		1470EAF32BD6F6D900E26254 /* WeakPtrImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = 1470EAF22BD6F6D900E26254 /* WeakPtrImpl.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1470EAF52BD6F8AF00E26254 /* WeakPtrFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = 1470EAF42BD6F8AF00E26254 /* WeakPtrFactory.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1470EAF72BD6FB3F00E26254 /* CanMakeWeakPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1470EAF62BD6FB3F00E26254 /* CanMakeWeakPtr.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		14E9EB432D3F09B3006D6706 /* Print.h in Headers */ = {isa = PBXBuildFile; fileRef = 14E9EB422D3F09B3006D6706 /* Print.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1A1D8B9E1731879800141DA4 /* FunctionDispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A1D8B9D1731879800141DA4 /* FunctionDispatcher.cpp */; };
 		1C08E3682985D8F300CAE594 /* IOReturnSPI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C08E3662985D7D300CAE594 /* IOReturnSPI.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1C08E3692985D8F800CAE594 /* IOTypesSPI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1C08E3672985D7D400CAE594 /* IOTypesSPI.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -1157,6 +1158,7 @@
 		1470EAF62BD6FB3F00E26254 /* CanMakeWeakPtr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CanMakeWeakPtr.h; sourceTree = "<group>"; };
 		149EF16216BBFE0D000A4331 /* TriState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TriState.h; sourceTree = "<group>"; };
 		14E785E71DFB330100209BD1 /* OrdinalNumber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OrdinalNumber.h; sourceTree = "<group>"; };
+		14E9EB422D3F09B3006D6706 /* Print.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Print.h; path = wtf/Print.h; sourceTree = "<group>"; };
 		14F3B0F615E45E4600210069 /* SaturatedArithmetic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SaturatedArithmetic.h; sourceTree = "<group>"; };
 		1A1D8B9B173186CE00141DA4 /* FunctionDispatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FunctionDispatcher.h; sourceTree = "<group>"; };
 		1A1D8B9D1731879800141DA4 /* FunctionDispatcher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FunctionDispatcher.cpp; sourceTree = "<group>"; };
@@ -2048,6 +2050,7 @@
 				1404B3E42CBC954D00A7471C /* AbstractRefCountedAndCanMakeWeakPtr.h */,
 				144EB7452CBC94B100926E1B /* AbstractRefCounted.h */,
 				140ECC352C9906DF00473E19 /* RefCountedAndCanMakeWeakPtr.h */,
+				14E9EB422D3F09B3006D6706 /* Print.h */,
 				5D247B6D14689C4700E78B76 /* Configurations */,
 				DDE9931F278D0FAA00F60D26 /* Frameworks */,
 				5D247B6314689B8600E78B76 /* Products */,
@@ -3548,6 +3551,7 @@
 				FFE39CAC2B1D7472004972B0 /* policy.h in Headers */,
 				FFE39CB22B1D7472004972B0 /* policy_holder.h in Headers */,
 				8AB05DFC2C99482E00738BDD /* PreciseSum.h in Headers */,
+				14E9EB432D3F09B3006D6706 /* Print.h in Headers */,
 				DD3DC93227A4BF8E007E5B61 /* PrintStream.h in Headers */,
 				DD3DC95027A4BF8E007E5B61 /* PriorityQueue.h in Headers */,
 				DD3DC89927A4BF8E007E5B61 /* ProcessID.h in Headers */,

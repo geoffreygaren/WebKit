@@ -229,6 +229,7 @@ set(WTF_PUBLIC_HEADERS
     PointerComparison.h
     PointerPreparations.h
     PreciseSum.h
+    Print.h
     PrintStream.h
     PriorityQueue.h
     ProcessID.h

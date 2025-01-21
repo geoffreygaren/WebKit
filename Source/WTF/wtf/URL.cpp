@@ -35,6 +35,7 @@
 #include <wtf/HashSet.h>
 #include <wtf/Lock.h>
 #include <wtf/NeverDestroyed.h>
+#include <wtf/Print.h>
 #include <wtf/PrintStream.h>
 #include <wtf/StdLibExtras.h>
 #include <wtf/UUID.h>
@@ -900,9 +901,7 @@ bool protocolIs(StringView string, ASCIILiteral protocol)
 
 void URL::print() const
 {
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
-    printf("%s\n", m_string.utf8().data());
-WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
+    WTF::print("{}\n", m_string.utf8().span());
 }
 
 #endif
