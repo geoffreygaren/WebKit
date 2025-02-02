@@ -35,9 +35,9 @@
 
 namespace WebKit {
 
-void startListeningForMachServiceConnections(const char* serviceName, ASCIILiteral entitlement, void(*connectionAdded)(xpc_connection_t), void(*connectionRemoved)(xpc_connection_t), void(*eventHandler)(xpc_object_t))
+void startListeningForMachServiceConnections(const CString& serviceName, ASCIILiteral entitlement, void(*connectionAdded)(xpc_connection_t), void(*connectionRemoved)(xpc_connection_t), void(*eventHandler)(xpc_object_t))
 {
-    static NeverDestroyed<RetainPtr<xpc_connection_t>> listener = xpc_connection_create_mach_service(serviceName, dispatch_get_main_queue(), XPC_CONNECTION_MACH_SERVICE_LISTENER);
+    static NeverDestroyed<RetainPtr<xpc_connection_t>> listener = xpc_connection_create_mach_service(serviceName.data(), dispatch_get_main_queue(), XPC_CONNECTION_MACH_SERVICE_LISTENER);
     xpc_connection_set_event_handler(listener.get().get(), ^(xpc_object_t peer) {
         if (xpc_get_type(peer) != XPC_TYPE_CONNECTION)
             return;
@@ -53,17 +53,17 @@ void startListeningForMachServiceConnections(const char* serviceName, ASCIILiter
         xpc_connection_set_event_handler(peer, ^(xpc_object_t event) {
             if (event == XPC_ERROR_CONNECTION_INVALID) {
 #if HAVE(XPC_CONNECTION_COPY_INVALIDATION_REASON)
-                auto reason = std::unique_ptr<char[]>(xpc_connection_copy_invalidation_reason(peer));
-                NSLog(@"Failed to start listening for connections to mach service %s, reason: %s", serviceName, reason.get());
+                auto reason = unsafeMakeCString(xpc_connection_copy_invalidation_reason(peer));
+                SAFE_PRINTF("Failed to start listening for connections to mach service %s, reason: %s", serviceName, reason);
 #else
-                NSLog(@"Failed to start listening for connections to mach service %s, likely because it is not registered with launchd", serviceName);
+                SAFE_PRINTF("Failed to start listening for connections to mach service %s, likely because it is not registered with launchd", serviceName);
 #endif
-                NSLog(@"Removing peer connection %p", peer);
+                SAFE_PRINTF("Removing peer connection %p", peer);
                 connectionRemoved(peer);
                 return;
             }
             if (event == XPC_ERROR_CONNECTION_INTERRUPTED) {
-                NSLog(@"Removing peer connection %p", peer);
+                SAFE_PRINTF("Removing peer connection %p", peer);
                 connectionRemoved(peer);
                 return;
             }
@@ -72,7 +72,7 @@ void startListeningForMachServiceConnections(const char* serviceName, ASCIILiter
         xpc_connection_set_target_queue(peer, dispatch_get_main_queue());
         xpc_connection_activate(peer);
 
-        NSLog(@"Adding peer connection %p", peer);
+        SAFE_PRINTF("Adding peer connection %p", peer);
         connectionAdded(peer);
     });
     xpc_connection_activate(listener.get().get());

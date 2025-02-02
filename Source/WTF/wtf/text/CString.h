@@ -66,7 +66,7 @@ class CString final {
     WTF_MAKE_FAST_ALLOCATED;
 public:
     CString() { }
-    WTF_EXPORT_PRIVATE CString(const char*);
+    WTF_EXPORT_PRIVATE CString(const char*); // FIXME: Remove this constructor and replace callers with unsafeMakeCString(char*).
     WTF_EXPORT_PRIVATE CString(std::span<const char>);
     CString(std::span<const LChar>);
     CString(std::span<const char8_t> characters) : CString(byteCast<LChar>(characters)) { }
@@ -105,6 +105,9 @@ private:
 
 WTF_EXPORT_PRIVATE bool operator==(const CString&, const CString&);
 WTF_EXPORT_PRIVATE bool operator<(const CString&, const CString&);
+
+WTF_EXPORT_PRIVATE bool operator==(const CString&, ASCIILiteral);
+WTF_EXPORT_PRIVATE bool operator!=(const CString&, ASCIILiteral);
 
 struct CStringHash {
     static unsigned hash(const CString& string) { return string.hash(); }
@@ -147,9 +150,16 @@ inline size_t CString::length() const
     return m_buffer ? m_buffer->length() : 0;
 }
 
+// Caller must ensure the argument is null terminated
+inline CString unsafeMakeCString(const char* nullTerminated)
+{
+    return nullTerminated;
+}
+
 // CString is null terminated
 inline const char* safePrintfType(const CString& cstring) { return cstring.data(); }
 
 } // namespace WTF
 
 using WTF::CString;
+using WTF::unsafeMakeCString;

@@ -162,7 +162,7 @@ void TextCodecICU::createICUConverter() const
     if (cachedConverter) {
         UErrorCode error = U_ZERO_ERROR;
         const char* cachedConverterName = ucnv_getName(cachedConverter.get(), &error);
-        if (U_SUCCESS(error) && m_canonicalConverterName == cachedConverterName) {
+        if (U_SUCCESS(error) && m_canonicalConverterName.characters() == cachedConverterName) {
             m_converter = WTFMove(cachedConverter);
             return;
         }

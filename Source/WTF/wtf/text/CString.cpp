@@ -133,6 +133,20 @@ bool operator==(const CString& a, const CString& b)
     return equal(a.span().data(), b.span());
 }
 
+bool operator==(const CString& a, ASCIILiteral b)
+{
+    if (a.isNull() != b.isNull())
+        return false;
+    if (a.length() != b.length())
+        return false;
+    return equal(a.span().data(), b.span8());
+}
+
+bool operator!=(const CString& a, ASCIILiteral b)
+{
+    return !(a == b);
+}
+
 unsigned CString::hash() const
 {
     if (isNull())

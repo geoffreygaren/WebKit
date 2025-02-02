@@ -124,14 +124,18 @@ static void connectionRemoved(xpc_connection_t connection)
 
 int PCMDaemonMain(int argc, const char** argv)
 {
-    auto arguments = unsafeMakeSpan(argv, argc);
-    if (arguments.size() < 5 || !equalSpans(unsafeSpan(arguments[1]), "--machServiceName"_span) || !equalSpans(unsafeSpan(arguments[3]), "--storageLocation"_span)) {
-        NSLog(@"Usage: %s --machServiceName <name> --storageLocation <location> [--startActivity]", arguments[0]);
+    auto argumentsSpan = unsafeMakeSpan(argv, argc);
+    auto arguments = WTF::map(argumentsSpan, [](const char* arg) {
+        return unsafeMakeCString(arg);
+    });
+
+    if (arguments.size() < 5 || arguments[1] != "--machServiceName"_s || arguments[3] != "--storageLocation"_s) {
+        SAFE_PRINTF("Usage: %s --machServiceName <name> --storageLocation <location> [--startActivity]", arguments[0]);
         return -1;
     }
-    const char* machServiceName = arguments[2];
-    const char* storageLocation = arguments[4];
-    bool startActivity = arguments.size() > 5 && equalSpans(unsafeSpan(arguments[5]), "--startActivity"_span);
+    auto machServiceName = arguments[2];
+    auto storageLocation = arguments[4];
+    bool startActivity = arguments.size() > 5 && arguments[5] == "--startActivity"_s;
 
     @autoreleasepool {
 #if ENABLE(CFPREFS_DIRECT_MODE)
@@ -145,7 +149,7 @@ int PCMDaemonMain(int argc, const char** argv)
         if (startActivity)
             registerScheduledActivityHandler();
         WTF::initializeMainThread();
-        PCM::initializePCMStorageInDirectory(FileSystem::stringFromFileSystemRepresentation(storageLocation));
+        PCM::initializePCMStorageInDirectory(FileSystem::stringFromFileSystemRepresentation(storageLocation.data()));
     }
     CFRunLoopRun();
     return 0;
