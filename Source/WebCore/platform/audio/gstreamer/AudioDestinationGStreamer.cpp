@@ -131,7 +131,7 @@ AudioDestinationGStreamer::AudioDestinationGStreamer(AudioIOCallback& callback, 
     }
 
     // Probe platform early on for a working audio output device in autoaudiosink.
-    auto nameView = StringView::fromLatin1(GST_OBJECT_NAME(audioSink.get()));
+    auto nameView = StringView(unsafeNullTerminated(GST_OBJECT_NAME(audioSink.get())));
     if (nameView.startsWith("autoaudiosink"_s)) {
         g_signal_connect(audioSink.get(), "child-added", G_CALLBACK(+[](GstChildProxy*, GObject* object, gchar*, gpointer) {
             if (GST_IS_AUDIO_BASE_SINK(object))

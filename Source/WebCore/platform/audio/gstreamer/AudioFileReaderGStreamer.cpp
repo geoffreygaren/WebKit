@@ -103,7 +103,7 @@ int decodebinAutoplugSelectCallback(GstElement*, GstPad*, GstCaps*, GstElementFa
         pluginsToSkip = GStreamerQuirksManager::singleton().disallowedWebAudioDecoders();
     });
 
-    auto factoryName = StringView::fromLatin1(gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory)));
+    auto factoryName = StringView(unsafeNullTerminated(gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory))));
     for (const auto& pluginToSkip : pluginsToSkip) {
         if (pluginToSkip == factoryName)
             return GST_AUTOPLUG_SELECT_SKIP;

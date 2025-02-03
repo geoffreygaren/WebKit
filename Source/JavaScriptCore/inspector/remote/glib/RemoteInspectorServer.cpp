@@ -57,7 +57,7 @@ static RemoteInspector::Client::SessionCapabilities processSessionCapabilities(G
         const char* host;
         const char* certificateFile;
         while (g_variant_iter_loop(&iter, "(&s&s)", &host, &certificateFile))
-            capabilities.certificates.append({ String::fromUTF8(host), String::fromUTF8(certificateFile) });
+            capabilities.certificates.append({ String::fromUTF8(host), String::fromUTF8(unsafeNullTerminated(certificateFile)) });
     }
 
     if (GRefPtr<GVariant> proxy = g_variant_lookup_value(sessionCapabilities, "proxy", G_VARIANT_TYPE("a{sv}"))) {
@@ -65,32 +65,32 @@ static RemoteInspector::Client::SessionCapabilities processSessionCapabilities(G
 
         const char* proxyType;
         g_variant_lookup(proxy.get(), "type", "&s", &proxyType);
-        capabilities.proxy->type = String::fromUTF8(proxyType);
+        capabilities.proxy->type = String::fromUTF8(unsafeNullTerminated(proxyType));
 
         const char* autoconfigURL;
         if (g_variant_lookup(proxy.get(), "autoconfigURL", "&s", &autoconfigURL))
-            capabilities.proxy->autoconfigURL = String::fromUTF8(autoconfigURL);
+            capabilities.proxy->autoconfigURL = String::fromUTF8(unsafeNullTerminated(autoconfigURL));
 
         const char* ftpURL;
         if (g_variant_lookup(proxy.get(), "ftpURL", "&s", &ftpURL))
-            capabilities.proxy->ftpURL = String::fromUTF8(ftpURL);
+            capabilities.proxy->ftpURL = String::fromUTF8(unsafeNullTerminated(ftpURL));
 
         const char* httpURL;
         if (g_variant_lookup(proxy.get(), "httpURL", "&s", &httpURL))
-            capabilities.proxy->httpURL = String::fromUTF8(httpURL);
+            capabilities.proxy->httpURL = String::fromUTF8(unsafeNullTerminated(httpURL));
 
         const char* httpsURL;
         if (g_variant_lookup(proxy.get(), "httpsURL", "&s", &httpsURL))
-            capabilities.proxy->httpsURL = String::fromUTF8(httpsURL);
+            capabilities.proxy->httpsURL = String::fromUTF8(unsafeNullTerminated(httpsURL));
 
         const char* socksURL;
         if (g_variant_lookup(proxy.get(), "socksURL", "&s", &socksURL))
-            capabilities.proxy->socksURL = String::fromUTF8(socksURL);
+            capabilities.proxy->socksURL = String::fromUTF8(unsafeNullTerminated(socksURL));
 
         if (GRefPtr<GVariant> ignoreAddressList = g_variant_lookup_value(proxy.get(), "ignoreAddressList", G_VARIANT_TYPE("as"))) {
             auto addresses = gVariantGetStrv(ignoreAddressList);
             for (const char* address : addresses.span())
-                capabilities.proxy->ignoreAddressList.append(String::fromUTF8(address));
+                capabilities.proxy->ignoreAddressList.append(String::fromUTF8(unsafeNullTerminated(address)));
         }
     }
 

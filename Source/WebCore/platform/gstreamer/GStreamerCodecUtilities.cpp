@@ -85,7 +85,7 @@ static std::pair<GRefPtr<GstCaps>, GRefPtr<GstCaps>> h264CapsFromCodecString(con
         gst_caps_set_simple(outputCaps.get(), "level", G_TYPE_STRING, level, nullptr);
 
     StringBuilder formatBuilder;
-    auto profile = StringView::fromLatin1(gstProfile);
+    auto profile = StringView(unsafeNullTerminated(gstProfile));
     auto isY444TenBits = profile.startsWithIgnoringASCIICase("high-4:4:4"_s);
     auto isY422TenBits = profile.findIgnoringASCIICase("high-4:2:2"_s) != notFound;
     auto isI420TenBits = profile.findIgnoringASCIICase("high-10"_s) != notFound;
@@ -153,7 +153,7 @@ static std::pair<GRefPtr<GstCaps>, GRefPtr<GstCaps>> h265CapsFromCodecString(con
         gst_caps_set_simple(outputCaps.get(), "profile", G_TYPE_STRING, gstProfile, nullptr);
 
     StringBuilder formatBuilder;
-    auto profile = StringView::fromLatin1(gstProfile);
+    auto profile = StringView(unsafeNullTerminated(gstProfile));
     auto isY444 = profile.findIgnoringASCIICase("-444"_s) != notFound;
     auto isY422 = profile.findIgnoringASCIICase("-422"_s) != notFound;
     if (isY444)

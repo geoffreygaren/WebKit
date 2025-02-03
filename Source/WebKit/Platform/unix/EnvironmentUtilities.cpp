@@ -54,15 +54,15 @@ String stripEntriesEndingWith(StringView input, StringView suffix)
     return output.toString();
 }
 
-void removeValuesEndingWith(const char* environmentVariable, const char* searchValue)
+void removeValuesEndingWith(ASCIILiteral environmentVariable, ASCIILiteral searchValue)
 {
-    const char* before = getenv(environmentVariable);
+    auto before = getenv(environmentVariable);
     if (!before)
         return;
 
-    auto after = stripEntriesEndingWith(StringView::fromLatin1(before), StringView::fromLatin1(searchValue));
+    auto after = stripEntriesEndingWith(StringView(unsafeNullTerminated(before)), StringView(searchValue));
     if (after.isEmpty()) {
-        unsetenv(environmentVariable);
+        unsetenv(environmentVariable.characters());
         return;
     }
 

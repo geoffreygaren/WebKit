@@ -473,8 +473,8 @@ public:
     TrackerAddressLookupInfo(WPNetworkAddressRange *range)
         : m_network { ipAddress(range.address).value() }
         , m_netMaskLength { static_cast<unsigned>(range.netMaskLength) }
-        , m_owner { range.owner.UTF8String }
-        , m_host { range.host.UTF8String }
+        , m_owner { unsafeNullTerminated(range.owner.UTF8String) }
+        , m_host { unsafeNullTerminated(range.host.UTF8String) }
         , m_canBlock { CanBlock::Yes } // FIXME: Grab this from WPNetworkAddressRange as well, once it's available.
     {
     }

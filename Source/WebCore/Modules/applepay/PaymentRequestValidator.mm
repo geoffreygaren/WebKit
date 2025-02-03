@@ -120,7 +120,7 @@ static ExceptionOr<void> validateCountryCode(const String& countryCode)
 
 WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
     for (auto* countryCodePtr = uloc_getISOCountries(); *countryCodePtr; ++countryCodePtr) {
-        if (countryCode == StringView::fromLatin1(*countryCodePtr))
+        if (countryCode == StringView(unsafeNullTerminated(*countryCodePtr)))
             return { };
     }
 WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
@@ -138,7 +138,7 @@ static ExceptionOr<void> validateCurrencyCode(const String& currencyCode)
 
     int32_t length;
     while (auto *currencyCodePtr = uenum_next(currencyCodes.get(), &length, &errorCode)) {
-        if (currencyCode == StringView::fromLatin1(currencyCodePtr))
+        if (currencyCode == StringView(unsafeNullTerminated(currencyCodePtr)))
             return { };
     }
 

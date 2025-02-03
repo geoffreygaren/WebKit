@@ -129,7 +129,7 @@ bool SQLiteDatabase::open(const String& filename, OpenMode openMode, OptionSet<O
             return;
 
         m_openingThread = nullptr;
-        m_openErrorMessage = sqlite3_errmsg(m_db);
+        m_openErrorMessage = unsafeNullTerminated(sqlite3_errmsg(m_db));
         m_openError = sqlite3_errcode(m_db);
         close();
     });

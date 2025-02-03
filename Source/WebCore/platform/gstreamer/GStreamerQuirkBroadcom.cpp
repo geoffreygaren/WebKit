@@ -39,7 +39,7 @@ GStreamerQuirkBroadcom::GStreamerQuirkBroadcom()
 
 void GStreamerQuirkBroadcom::configureElement(GstElement* element, const OptionSet<ElementRuntimeCharacteristics>& characteristics)
 {
-    auto view = StringView::fromLatin1(GST_ELEMENT_NAME(element));
+    auto view = StringView(unsafeNullTerminated(GST_ELEMENT_NAME(element)));
     if (!g_strcmp0(G_OBJECT_TYPE_NAME(element), "Gstbrcmaudiosink"))
         g_object_set(G_OBJECT(element), "async", TRUE, nullptr);
     else if (view.startsWith("brcmaudiodecoder"_s)) {
@@ -59,7 +59,7 @@ void GStreamerQuirkBroadcom::configureElement(GstElement* element, const OptionS
 
 std::optional<bool> GStreamerQuirkBroadcom::isHardwareAccelerated(GstElementFactory* factory)
 {
-    auto view = StringView::fromLatin1(GST_OBJECT_NAME(factory));
+    auto view = StringView(unsafeNullTerminated(GST_OBJECT_NAME(factory)));
     if (view.startsWith("brcm"_s))
         return true;
 

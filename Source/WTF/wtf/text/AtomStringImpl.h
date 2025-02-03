@@ -49,7 +49,7 @@ public:
     ALWAYS_INLINE static Ref<AtomStringImpl> add(ASCIILiteral);
 
     // Not using the add() naming to encourage developers to call add(ASCIILiteral) when they have a string literal.
-    ALWAYS_INLINE static RefPtr<AtomStringImpl> addCString(const char*);
+    ALWAYS_INLINE static RefPtr<AtomStringImpl> addCString(NullTerminated);
 
     // Returns null if the input data contains an invalid UTF-8 sequence.
     static RefPtr<AtomStringImpl> add(std::span<const char8_t>);
@@ -114,9 +114,9 @@ ALWAYS_INLINE Ref<AtomStringImpl> AtomStringImpl::add(ASCIILiteral literal)
     return addLiteral(literal.span8());
 }
 
-ALWAYS_INLINE RefPtr<AtomStringImpl> AtomStringImpl::addCString(const char* s)
+ALWAYS_INLINE RefPtr<AtomStringImpl> AtomStringImpl::addCString(NullTerminated s)
 {
-    return s ? add(unsafeSpan8(s)) : nullptr;
+    return s ? add(WTF::span8(s)) : nullptr;
 }
 
 template<typename StringTableProvider>

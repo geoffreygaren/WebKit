@@ -240,7 +240,7 @@ unsigned SkiaPaintingEngine::numberOfCPUPaintingThreads()
         numberOfThreads = std::max(1, std::min(8, WTF::numberOfProcessorCores() / 2)); // By default, use half the CPU cores, capped at 8.
 
         if (const char* envString = getenv("WEBKIT_SKIA_CPU_PAINTING_THREADS")) {
-            auto newValue = parseInteger<unsigned>(StringView::fromLatin1(envString));
+            auto newValue = parseInteger<unsigned>(StringView(unsafeNullTerminated(envString)));
             if (newValue && *newValue <= 8)
                 numberOfThreads = *newValue;
             else
@@ -264,7 +264,7 @@ unsigned SkiaPaintingEngine::numberOfGPUPaintingThreads()
         numberOfThreads = 1; // By default, use 1 GPU worker thread, if GPU painting is active.
 
         if (const char* envString = getenv("WEBKIT_SKIA_GPU_PAINTING_THREADS")) {
-            auto newValue = parseInteger<unsigned>(StringView::fromLatin1(envString));
+            auto newValue = parseInteger<unsigned>(StringView(unsafeNullTerminated(envString)));
             if (newValue && *newValue <= 4)
                 numberOfThreads = *newValue;
             else

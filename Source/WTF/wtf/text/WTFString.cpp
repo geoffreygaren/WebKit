@@ -57,8 +57,8 @@ String::String(std::span<const char> characters)
 }
 
 // Construct a string with Latin-1 data, from a null-terminated source.
-String::String(const char* nullTerminatedString)
-    : m_impl(nullTerminatedString ? RefPtr { StringImpl::createFromCString(nullTerminatedString) } : nullptr)
+String::String(NullTerminated string)
+    : m_impl(string ? RefPtr { StringImpl::createFromCString(string) } : nullptr)
 {
 }
 
@@ -603,7 +603,7 @@ void String::show() const
 String* string(const char* s)
 {
     // Intentionally leaks memory!
-    return new String(String::fromLatin1(s));
+    return new String(String(unsafeNullTerminated(s)));
 }
 
 Vector<char> asciiDebug(StringImpl* impl)

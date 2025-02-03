@@ -385,7 +385,7 @@ static bool checkChunks(const std::vector<String>& chunks, const char* const exp
     }
 
     for (size_t i = 0; i < chunks.size(); ++i) {
-        if (chunks[i] != StringView::fromLatin1(expectedChunks[i]))
+        if (chunks[i] != StringView(unsafeNullTerminated(expectedChunks[i])))
             return false;
     }
     return true;

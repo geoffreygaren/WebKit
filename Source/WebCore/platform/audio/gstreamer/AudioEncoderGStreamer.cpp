@@ -262,7 +262,7 @@ String GStreamerInternalAudioEncoder::initialize(const String& codecName, const 
     GST_DEBUG_OBJECT(m_harness->element(), "Initializing encoder for codec %s", codecName.ascii().data());
 
     GUniquePtr<char> name(gst_element_get_name(m_encoder.get()));
-    auto nameView = StringView::fromLatin1(name.get());
+    auto nameView = StringView(unsafeNullTerminated(name.get()));
     if (codecName.startsWith("mp4a"_s)) {
         const char* streamFormat = config.isAacADTS.value_or(false) ? "adts" : "raw";
         m_outputCaps = adoptGRef(gst_caps_new_simple("audio/mpeg", "mpegversion", G_TYPE_INT, 4, "stream-format", G_TYPE_STRING, streamFormat, nullptr));

@@ -133,10 +133,10 @@ void GStreamerRTPPacketizer::ensureMidExtension(const String& mid)
     g_object_get_property(G_OBJECT(m_payloader.get()), "extensions", &extensions);
     RELEASE_ASSERT(GST_VALUE_HOLDS_ARRAY(&extensions));
     auto totalExtensions = gst_value_array_get_size(&extensions);
-    auto midURI = StringView::fromLatin1(GST_RTP_HDREXT_BASE "sdes:mid");
+    auto midURI = StringView(unsafeNullTerminated(GST_RTP_HDREXT_BASE "sdes:mid"));
     for (unsigned i = 0; i < totalExtensions; i++) {
         const auto extension = GST_RTP_HEADER_EXTENSION_CAST(g_value_get_object(gst_value_array_get_value(&extensions, i)));
-        auto uri = StringView::fromLatin1(gst_rtp_header_extension_get_uri(extension));
+        auto uri = StringView(unsafeNullTerminated(gst_rtp_header_extension_get_uri(extension)));
         if (uri != midURI)
             continue;
 

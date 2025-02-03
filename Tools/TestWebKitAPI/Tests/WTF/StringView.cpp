@@ -32,7 +32,7 @@ namespace TestWebKitAPI {
 
 StringView stringViewFromLiteral(const char* characters)
 {
-    return StringView::fromLatin1(characters);
+    return StringView(unsafeNullTerminated(characters));
 }
 
 StringView stringViewFromUTF8(String& ref, const char* characters)

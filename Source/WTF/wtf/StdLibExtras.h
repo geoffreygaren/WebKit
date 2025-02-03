@@ -1497,6 +1497,36 @@ ALWAYS_INLINE void lazyInitialize(const std::unique_ptr<T>& ptr, std::unique_ptr
     const_cast<std::unique_ptr<T>&>(ptr) = std::move(obj);
 }
 
+class NullTerminated {
+public:
+    // Caller must ensure that 'string' is null terminated, or nullptr
+    static constexpr NullTerminated fromUnsafe(const char* string) { return string; }
+
+    constexpr NullTerminated()
+        : m_string(nullptr)
+    {
+    }
+
+    // Can be nullptr
+    constexpr operator const char*() const { return m_string; }
+
+    // Can be nullptr
+    constexpr const char* nullTerminated() const { return m_string; }
+
+private:
+    constexpr NullTerminated(const char* string)
+        : m_string(string)
+    {
+    }
+
+    const char* m_string;
+};
+
+inline NullTerminated unsafeNullTerminated(const char* string) { return NullTerminated::fromUnsafe(string); }
+
+// NullTerminated is null terminated
+inline const char* safePrintfType(NullTerminated nullTerminated) { return nullTerminated; }
+
 } // namespace WTF
 
 #define WTFMove(value) std::move<WTF::CheckMoveParameter>(value)
@@ -1563,11 +1593,13 @@ using WTF::spanReinterpretCast;
 using WTF::toTwosComplement;
 using WTF::tryBinarySearch;
 using WTF::unsafeMakeSpan;
+using WTF::unsafeNullTerminated;
 using WTF::valueOrCompute;
 using WTF::valueOrDefault;
 using WTF::zeroBytes;
 using WTF::zeroSpan;
 using WTF::Invocable;
+using WTF::NullTerminated;
 using WTF::VariantWrapper;
 using WTF::VariantOrSingle;
 

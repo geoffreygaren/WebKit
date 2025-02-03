@@ -554,7 +554,7 @@ static GRefPtr<JSCValue> jscClassCreateConstructor(JSCClass* jscClass, const cha
     JSC::JSGlobalObject* globalObject = toJS(priv->context);
     Ref vm = globalObject->vm();
     JSC::JSLockHolder locker(vm);
-    auto* functionObject = JSC::JSCCallbackFunction::create(vm, globalObject, String::fromUTF8(name),
+    auto* functionObject = JSC::JSCCallbackFunction::create(vm, globalObject, String::fromUTF8(unsafeNullTerminated(name)),
         JSC::JSCCallbackFunction::Type::Constructor, jscClass, WTFMove(closure), returnType, WTFMove(parameters));
     auto context = jscContextGetOrCreate(priv->context);
     auto constructor = jscContextGetOrCreateValue(context.get(), toRef(functionObject));
@@ -699,7 +699,7 @@ static void jscClassAddMethod(JSCClass* jscClass, const char* name, GCallback ca
     JSC::JSGlobalObject* globalObject = toJS(priv->context);
     Ref vm = globalObject->vm();
     JSC::JSLockHolder locker(vm);
-    auto* functionObject = toRef(JSC::JSCCallbackFunction::create(vm, globalObject, String::fromUTF8(name),
+    auto* functionObject = toRef(JSC::JSCCallbackFunction::create(vm, globalObject, String::fromUTF8(unsafeNullTerminated(name)),
         JSC::JSCCallbackFunction::Type::Method, jscClass, WTFMove(closure), returnType, WTFMove(parameters)));
     auto context = jscContextGetOrCreate(priv->context);
     auto method = jscContextGetOrCreateValue(context.get(), functionObject);

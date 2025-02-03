@@ -61,7 +61,7 @@ public:
     }
     bool shouldEmitLogMessage(const WTFLogChannel& channel) const final
     {
-        return StringView::fromLatin1(channel.name).startsWith("WebRTC"_s);
+        return StringView(unsafeNullTerminated(channel.name)).startsWith("WebRTC"_s);
     }
 };
 

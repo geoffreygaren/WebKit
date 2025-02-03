@@ -601,7 +601,7 @@ void WTFInitializeLogChannelStatesFromString(WTFLogChannel* channels[], size_t c
     }
 #endif
 
-    for (auto logLevelComponent : StringView::fromLatin1(logLevel).split(',')) {
+    for (auto logLevelComponent : StringView(unsafeNullTerminated(logLevel)).split(',')) {
         auto componentInfo = logLevelComponent.split('=');
         auto it = componentInfo.begin();
         if (it == componentInfo.end())

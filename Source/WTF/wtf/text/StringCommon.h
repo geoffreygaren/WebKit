@@ -50,11 +50,23 @@ inline std::span<const UChar> span(const UChar& character)
     return unsafeMakeSpan(&character, 1);
 }
 
-inline std::span<const LChar> unsafeSpan8(const char* string)
+inline std::span<const char> span(NullTerminated string)
 {
 WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
-    return unsafeMakeSpan(byteCast<LChar>(string), string ? strlen(string) : 0);
+    return unsafeMakeSpan(string.nullTerminated(), string ? strlen(string) : 0);
 WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
+}
+
+inline std::span<const LChar> span8(NullTerminated string)
+{
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
+    return unsafeMakeSpan(byteCast<LChar>(string.nullTerminated()), string ? strlen(string) : 0);
+WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
+}
+
+inline std::span<const LChar> unsafeSpan8(const char* string)
+{
+    return span8(unsafeNullTerminated(string));
 }
 
 inline std::span<const LChar> unsafeSpan8IncludingNullTerminator(const char* string)
@@ -563,9 +575,9 @@ bool equalIgnoringASCIICaseCommon(const StringClassA& a, const StringClassB& b)
     return equalIgnoringASCIICaseWithLength(a.span16(), b.span16(), b.length());
 }
 
-template<typename StringClassA> bool equalIgnoringASCIICaseCommon(const StringClassA& a, const char* b)
+template<typename StringClassA> bool equalIgnoringASCIICaseCommon(const StringClassA& a, NullTerminated b)
 {
-    auto bSpan = unsafeSpan8(b);
+    auto bSpan = span8(b);
     if (a.length() != bSpan.size())
         return false;
     if (a.is8Bit())

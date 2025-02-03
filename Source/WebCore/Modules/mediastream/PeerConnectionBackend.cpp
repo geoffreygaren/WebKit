@@ -193,7 +193,7 @@ PeerConnectionBackend::~PeerConnectionBackend()
 #if !RELEASE_LOG_DISABLED && (PLATFORM(WPE) || PLATFORM(GTK))
 void PeerConnectionBackend::handleLogMessage(const WTFLogChannel& channel, WTFLogLevel, Vector<JSONLogValue>&& values)
 {
-    auto name = StringView::fromLatin1(channel.name);
+    auto name = StringView(unsafeNullTerminated(channel.name));
     if (name != "WebRTC"_s)
         return;
 

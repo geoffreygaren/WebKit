@@ -78,7 +78,7 @@ private:
         CString url;
     };
 
-    void setBackendCommands(const char*);
+    void setBackendCommands(NullTerminated);
     void setTargetList(uint64_t connectionID, Vector<Target>&&);
     void sendMessageToFrontend(uint64_t connectionID, uint64_t targetID, const char*);
 

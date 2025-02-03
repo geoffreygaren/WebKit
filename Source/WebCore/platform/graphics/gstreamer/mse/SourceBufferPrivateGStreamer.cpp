@@ -409,7 +409,7 @@ size_t SourceBufferPrivateGStreamer::platformEvictionThreshold() const
     static size_t evictionThreshold = 0;
     static std::once_flag once;
     std::call_once(once, []() {
-        auto stringView = StringView::fromLatin1(std::getenv("MSE_BUFFER_SAMPLES_EVICTION_THRESHOLD"));
+        auto stringView = StringView(unsafeNullTerminated(std::getenv("MSE_BUFFER_SAMPLES_EVICTION_THRESHOLD")));
         if (!stringView.isEmpty())
             evictionThreshold = parseInteger<size_t>(stringView, 10).value_or(0);
     });

@@ -52,9 +52,9 @@ TEST(HTTPParsers, ParseCrossOriginResourcePolicyHeader)
     EXPECT_TRUE(parseCrossOriginResourcePolicyHeader("zameorigin"_s) == CrossOriginResourcePolicy::Invalid);
     EXPECT_TRUE(parseCrossOriginResourcePolicyHeader("samesite"_s) == CrossOriginResourcePolicy::Invalid);
     EXPECT_TRUE(parseCrossOriginResourcePolicyHeader("same site"_s) == CrossOriginResourcePolicy::Invalid);
-    EXPECT_TRUE(parseCrossOriginResourcePolicyHeader(StringView::fromLatin1("same–site")) == CrossOriginResourcePolicy::Invalid);
+    EXPECT_TRUE(parseCrossOriginResourcePolicyHeader(StringView("same–site"_s)) == CrossOriginResourcePolicy::Invalid);
     EXPECT_TRUE(parseCrossOriginResourcePolicyHeader("SAMESITE"_s) == CrossOriginResourcePolicy::Invalid);
-    EXPECT_TRUE(parseCrossOriginResourcePolicyHeader(StringView::fromLatin1("")) == CrossOriginResourcePolicy::Invalid);
+    EXPECT_TRUE(parseCrossOriginResourcePolicyHeader(StringView(""_s)) == CrossOriginResourcePolicy::Invalid);
 }
 
 #if USE(GLIB)

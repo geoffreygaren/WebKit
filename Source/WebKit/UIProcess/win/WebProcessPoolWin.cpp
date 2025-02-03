@@ -65,7 +65,7 @@ void WebProcessPool::platformInitialize(NeedsGlobalStaticInitialization)
 {
 #if ENABLE(REMOTE_INSPECTOR)
     if (const char* address = getenv("WEBKIT_INSPECTOR_SERVER"))
-        initializeRemoteInspectorServer(StringView::fromLatin1(address));
+        initializeRemoteInspectorServer(StringView(unsafeNullTerminated(address)));
 
     // Currently the socket port Remote Inspector can have only one client at most.
     // Therefore, if multiple process pools are created, the first one is targeted and the second and subsequent ones are ignored.

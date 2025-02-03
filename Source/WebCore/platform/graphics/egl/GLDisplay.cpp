@@ -67,7 +67,7 @@ GLDisplay::GLDisplay(EGLDisplay eglDisplay)
     m_version.minor = minorVersion;
 
     const char* extensionsString = eglQueryString(m_display, EGL_EXTENSIONS);
-    auto displayExtensions = StringView::fromLatin1(extensionsString).split(' ');
+    auto displayExtensions = StringView(unsafeNullTerminated(extensionsString)).split(' ');
     auto findExtension = [&](auto extensionName) {
         return std::any_of(displayExtensions.begin(), displayExtensions.end(), [&](auto extensionEntry) {
             return extensionEntry == extensionName;

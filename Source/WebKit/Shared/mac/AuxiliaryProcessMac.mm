@@ -476,7 +476,7 @@ static bool tryApplyCachedSandbox(const SandboxInfo& info)
         return false;
     if (!equalSpans(std::span { cachedSandboxHeader.sandboxBuildID }, unsafeSpanIncludingNullTerminator(SANDBOX_BUILD_ID)))
         return false;
-    if (StringView::fromLatin1(cachedSandboxHeader.osVersion.data()) != osVersion)
+    if (StringView(unsafeNullTerminated(cachedSandboxHeader.osVersion)) != osVersion)
         return false;
 
     const bool haveBuiltin = cachedSandboxHeader.builtinSize != std::numeric_limits<uint32_t>::max();

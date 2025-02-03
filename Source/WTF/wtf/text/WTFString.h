@@ -65,7 +65,9 @@ public:
     // Construct a string with Latin-1 data.
     WTF_EXPORT_PRIVATE String(std::span<const LChar> characters);
     WTF_EXPORT_PRIVATE String(std::span<const char> characters);
-    ALWAYS_INLINE static String fromLatin1(const char* characters) { return String { characters }; }
+    WTF_EXPORT_PRIVATE String(NullTerminated characters);
+
+    ALWAYS_INLINE static String fromLatin1(const char* characters) { return String { unsafeNullTerminated(characters) }; }
 
     // Construct a string referencing an existing StringImpl.
     String(StringImpl&);
@@ -268,6 +270,7 @@ public:
     WTF_EXPORT_PRIVATE static String fromUTF8(std::span<const char8_t>);
     static String fromUTF8(std::span<const LChar> characters) { return fromUTF8(byteCast<char8_t>(characters)); }
     static String fromUTF8(std::span<const char> characters) { return fromUTF8(byteCast<char8_t>(characters)); }
+    static String fromUTF8(NullTerminated string) { return fromUTF8(WTF::span8(string)); }
     static String fromUTF8(const char* string) { return fromUTF8(unsafeSpan8(string)); }
     static String fromUTF8ReplacingInvalidSequences(std::span<const char8_t>);
     static String fromUTF8ReplacingInvalidSequences(std::span<const LChar> characters) { return fromUTF8ReplacingInvalidSequences(byteCast<char8_t>(characters)); }
@@ -307,9 +310,6 @@ private:
     template<bool allowEmptyEntries> void splitInternal(UChar separator, const SplitFunctor&) const;
     template<bool allowEmptyEntries> Vector<String> splitInternal(UChar separator) const;
     template<bool allowEmptyEntries> Vector<String> splitInternal(StringView separator) const;
-
-    // This is intentionally private. Use fromLatin1() / fromUTF8() / String(ASCIILiteral) instead.
-    WTF_EXPORT_PRIVATE explicit String(const char* characters);
 
     RefPtr<StringImpl> m_impl;
 };

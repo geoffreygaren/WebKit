@@ -40,7 +40,7 @@ GDBusInterfaceVTable AccessibilityObjectAtspi::s_documentFunctions = {
         if (!g_strcmp0(methodName, "GetAttributeValue")) {
             const char* name;
             g_variant_get(parameters, "(&s)", &name);
-            g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", atspiObject->documentAttribute(String::fromUTF8(name)).utf8().data()));
+            g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", atspiObject->documentAttribute(String::fromUTF8(unsafeNullTerminated(name))).utf8().data()));
         } else if (!g_strcmp0(methodName, "GetAttributes")) {
             GVariantBuilder builder = G_VARIANT_BUILDER_INIT(G_VARIANT_TYPE("(a{ss})"));
             g_variant_builder_open(&builder, G_VARIANT_TYPE("a{ss}"));
