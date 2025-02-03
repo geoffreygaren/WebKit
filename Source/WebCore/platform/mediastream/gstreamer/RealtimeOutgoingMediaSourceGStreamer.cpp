@@ -570,10 +570,10 @@ RealtimeOutgoingMediaSourceGStreamer::ExtensionLookupResults RealtimeOutgoingMed
 
         StringView uri;
         if (G_VALUE_HOLDS_STRING(value))
-            uri = StringView::fromLatin1(g_value_get_string(value));
+            uri = StringView(unsafeNullTerminated(g_value_get_string(value)));
         else if (GST_VALUE_HOLDS_ARRAY(value)) {
             const auto uriValue = gst_value_array_get_value(value, 1);
-            uri = StringView::fromLatin1(g_value_get_string(uriValue));
+            uri = StringView(unsafeNullTerminated(g_value_get_string(uriValue)));
         } else
             return true;
 

@@ -57,6 +57,22 @@ CString::CString(const char* string)
     init(unsafeSpan(string));
 }
 
+CString::CString(ASCIILiteral string)
+{
+    if (!string)
+        return;
+
+    init(string.span());
+}
+
+CString::CString(NullTerminated string)
+{
+    if (!string)
+        return;
+
+    init(WTF::span(string));
+}
+
 CString::CString(std::span<const char> string)
 {
     if (!string.data()) {

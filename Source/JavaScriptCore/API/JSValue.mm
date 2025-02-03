@@ -1282,7 +1282,7 @@ static StructHandlers* createStructHandlerMap()
             return;
         {
             auto type = adoptSystem<char[]>(method_copyArgumentType(method, 2));
-            structHandlers->add(StringImpl::createFromCString(type.get()), (StructTagHandler) { selector, 0 });
+            structHandlers->add(StringImpl::createFromCString(unsafeNullTerminated(type.get())), (StructTagHandler) { selector, 0 });
         }
     });
 

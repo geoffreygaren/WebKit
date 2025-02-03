@@ -511,8 +511,8 @@ TEST_F(WTF_URLParser, Credentials)
     testUserPassword("%F%25"_s, "%F%"_s, "%F%25"_s);
     testUserPassword("%X%25"_s, "%X%"_s, "%X%25"_s);
     testUserPassword("%%25"_s, "%%"_s, "%%25"_s);
-    testUserPassword(StringView::fromLatin1("💩"), "%C3%B0%C2%9F%C2%92%C2%A9"_s);
-    testUserPassword(StringView::fromLatin1("%💩"), "%%C3%B0%C2%9F%C2%92%C2%A9"_s);
+    testUserPassword(StringView("💩"_s), "%C3%B0%C2%9F%C2%92%C2%A9"_s);
+    testUserPassword(StringView("%💩"_s), "%%C3%B0%C2%9F%C2%92%C2%A9"_s);
     testUserPassword(validSurrogate, "%F0%90%85%95"_s);
     testUserPassword(replacementA, "%EF%BF%BDA"_s);
     testUserPassword(invalidSurrogate, replacementA, "%EF%BF%BDA"_s);
@@ -737,10 +737,10 @@ TEST_F(WTF_URLParser, ParserDifferences)
         { ""_s, ""_s, ""_s, ""_s, 0, ""_s, ""_s, ""_s, "http://abcdefg%"_s });
     checkURLDifferences("http://abcd%7Xefg"_s,
         { ""_s, ""_s, ""_s, ""_s, 0, ""_s, ""_s, ""_s, "http://abcd%7Xefg"_s });
-    checkURL(StringView::fromLatin1("ws://äAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"), { "ws"_s, ""_s, ""_s, "xn--aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-rsb254a"_s, 0, "/"_s, ""_s, ""_s, "ws://xn--aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-rsb254a/"_s }, TestTabs::No);
-    checkURL(StringView::fromLatin1("ws://äAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"), { "ws"_s, ""_s, ""_s, "xn--aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-stb515a"_s, 0, "/"_s, ""_s, ""_s, "ws://xn--aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-stb515a/"_s }, TestTabs::No);
-    checkURL(StringView::fromLatin1("ws://&äAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"), { "ws"_s, ""_s, ""_s, "xn--&aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-ssb254a"_s, 0, "/"_s, ""_s, ""_s, "ws://xn--&aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-ssb254a/"_s }, TestTabs::No);
-    checkURL(StringView::fromLatin1("ws://&äAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"), { "ws"_s, ""_s, ""_s, "xn--&aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-ttb515a"_s, 0, "/"_s, ""_s, ""_s, "ws://xn--&aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-ttb515a/"_s }, TestTabs::No);
+    checkURL(StringView("ws://äAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"_s), { "ws"_s, ""_s, ""_s, "xn--aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-rsb254a"_s, 0, "/"_s, ""_s, ""_s, "ws://xn--aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-rsb254a/"_s }, TestTabs::No);
+    checkURL(StringView("ws://äAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"_s), { "ws"_s, ""_s, ""_s, "xn--aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-stb515a"_s, 0, "/"_s, ""_s, ""_s, "ws://xn--aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-stb515a/"_s }, TestTabs::No);
+    checkURL(StringView("ws://&äAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"_s), { "ws"_s, ""_s, ""_s, "xn--&aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-ssb254a"_s, 0, "/"_s, ""_s, ""_s, "ws://xn--&aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-ssb254a/"_s }, TestTabs::No);
+    checkURL(StringView("ws://&äAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"_s), { "ws"_s, ""_s, ""_s, "xn--&aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-ttb515a"_s, 0, "/"_s, ""_s, ""_s, "ws://xn--&aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-ttb515a/"_s }, TestTabs::No);
 
     // URLParser matches Chrome and the spec, but not URL::parse or Firefox.
     checkURLDifferences(utf16String(u"http://０Ｘｃ０．０２５０．０１"),
@@ -925,11 +925,11 @@ TEST_F(WTF_URLParser, ParserDifferences)
     checkURL("a://A"_s, { "a"_s, ""_s, ""_s, "A"_s, 0, ""_s, ""_s, ""_s, "a://A"_s });
     checkURL("a://A:2"_s, { "a"_s, ""_s, ""_s, "A"_s, 2, ""_s, ""_s, ""_s, "a://A:2"_s });
     checkURL("a://A:2/"_s, { "a"_s, ""_s, ""_s, "A"_s, 2, "/"_s, ""_s, ""_s, "a://A:2/"_s });
-    checkURLDifferences(StringView::fromLatin1(reinterpret_cast<const char*>(u8"asd://ß")),
+    checkURLDifferences(StringView(unsafeNullTerminated(reinterpret_cast<const char*>(u8"asd://ß"))),
         { "asd"_s, ""_s, ""_s, "%C3%83%C2%9F"_s, 0, ""_s, ""_s, ""_s, "asd://%C3%83%C2%9F"_s }, TestTabs::No);
-    checkURLDifferences(StringView::fromLatin1(reinterpret_cast<const char*>(u8"asd://ß:4")),
+    checkURLDifferences(StringView(unsafeNullTerminated(reinterpret_cast<const char*>(u8"asd://ß:4"))),
         { "asd"_s, ""_s, ""_s, "%C3%83%C2%9F"_s, 4, ""_s, ""_s, ""_s, "asd://%C3%83%C2%9F:4"_s }, TestTabs::No);
-    checkURLDifferences(StringView::fromLatin1(reinterpret_cast<const char*>(u8"asd://ß:4/")),
+    checkURLDifferences(StringView(unsafeNullTerminated(reinterpret_cast<const char*>(u8"asd://ß:4/"))),
         { "asd"_s, ""_s, ""_s, "%C3%83%C2%9F"_s, 4, "/"_s, ""_s, ""_s, "asd://%C3%83%C2%9F:4/"_s }, TestTabs::No);
     checkURLDifferences("a://[A::b]:4"_s,
         { "a"_s, ""_s, ""_s, "[a::b]"_s, 4, ""_s, ""_s, ""_s, "a://[a::b]:4"_s });
@@ -1091,7 +1091,7 @@ TEST_F(WTF_URLParser, ParserFailures)
     shouldFail("http://[1234::ab@]"_s);
     shouldFail("http://[1234::ab~]"_s);
     shouldFail("http://[2001::1"_s);
-    shouldFail(StringView::fromLatin1("http://4:b\xE1"));
+    shouldFail(StringView("http://4:b\xE1"_s));
     shouldFail("http://[1:2:3:4:5:6:7:8~]/"_s);
     shouldFail("http://[a:b:c:d:e:f:g:127.0.0.1]"_s);
     shouldFail("http://[a:b:c:d:e:f:g:h:127.0.0.1]"_s);

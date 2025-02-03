@@ -142,7 +142,7 @@ public:
     }
     bool shouldEmitLogMessage(const WTFLogChannel& channel) const final
     {
-        auto name = StringView::fromLatin1(channel.name);
+        auto name = StringView(unsafeNullTerminated(channel.name));
         return name.startsWith("Media"_s);
     }
 };
@@ -1745,7 +1745,7 @@ void MediaPlayerPrivateGStreamer::handleStreamCollectionMessage(GstMessage* mess
     // WebKitMediaSrc) parsebin and decodebin3 emit their own stream-collection messages, but late,
     // and sometimes with duplicated streams. Let's only listen for stream-collection messages from
     // the source to avoid these issues.
-    auto sourceName = StringView::fromLatin1(GST_OBJECT_NAME(m_source.get()));
+    auto sourceName = StringView(unsafeNullTerminated(GST_OBJECT_NAME(m_source.get())));
     if (!(sourceName.startsWith("filesrc"_s) || WEBKIT_IS_WEB_SRC(m_source.get())) && GST_MESSAGE_SRC(message) != GST_OBJECT(m_source.get())) {
         GST_DEBUG_OBJECT(pipeline(), "Ignoring redundant STREAM_COLLECTION from %" GST_PTR_FORMAT, message->src);
         return;
@@ -2462,7 +2462,7 @@ void MediaPlayerPrivateGStreamer::configureElement(GstElement* element)
     // is not an issue in 1.22. Streams parsing is not needed for MediaStream cases because we do it
     // upfront for incoming WebRTC MediaStreams. It is however needed for MSE, otherwise decodebin3
     // might not auto-plug hardware decoders.
-    auto nameView = StringView::fromLatin1(elementName.get());
+    auto nameView = StringView(unsafeNullTerminated(elementName.get()));
     if (webkitGstCheckVersion(1, 22, 0) && nameView.startsWith("urisourcebin"_s) && (isMediaSource() || isMediaStreamPlayer()))
         g_object_set(element, "use-buffering", FALSE, "parse-streams", !isMediaStreamPlayer(), nullptr);
 
@@ -2520,16 +2520,16 @@ void MediaPlayerPrivateGStreamer::configureElementPlatformQuirks(GstElement* ele
 void MediaPlayerPrivateGStreamer::configureDownloadBuffer(GstElement* element)
 {
     GUniquePtr<char> elementName(gst_element_get_name(element));
-    auto nameView = StringView::fromLatin1(elementName.get());
+    auto nameView = StringView(unsafeNullTerminated(elementName.get()));
     RELEASE_ASSERT(nameView.startsWith("downloadbuffer"_s));
 
     m_downloadBuffer = element;
     g_signal_connect_swapped(element, "notify::temp-location", G_CALLBACK(downloadBufferFileCreatedCallback), this);
 
     // Set the GstDownloadBuffer size to our preferred value controls the thresholds for buffering events.
-    auto cacheSizeBytesStr = StringView::fromLatin1(std::getenv("WPE_SHELL_MEDIA_DISK_CACHE_SIZE_BYTES"));
+    auto cacheSizeBytesStr = StringView(unsafeNullTerminated(std::getenv("WPE_SHELL_MEDIA_DISK_CACHE_SIZE_BYTES")));
     auto cacheSizeBytes = parseInteger<unsigned long>(cacheSizeBytesStr).value_or(100 * KB);
-    auto cacheSizeNSecStr = StringView::fromLatin1(std::getenv("WPE_SHELL_MEDIA_DISK_CACHE_SIZE_NSEC"));
+    auto cacheSizeNSecStr = StringView(unsafeNullTerminated(std::getenv("WPE_SHELL_MEDIA_DISK_CACHE_SIZE_NSEC")));
     auto cacheSizeNSec = parseInteger<unsigned long long>(cacheSizeNSecStr).value_or(5000000000);
     g_object_set(element, "max-size-bytes", cacheSizeBytes, "max-size-time", cacheSizeNSec, nullptr);
 
@@ -3019,7 +3019,7 @@ bool isMediaDiskCacheDisabled()
 #if PLATFORM(WPE)
     static std::once_flag once;
     std::call_once(once, []() {
-        auto shouldDisableMediaDiskCache = StringView::fromLatin1(std::getenv("WPE_SHELL_DISABLE_MEDIA_DISK_CACHE"));
+        auto shouldDisableMediaDiskCache = StringView(unsafeNullTerminated(std::getenv("WPE_SHELL_DISABLE_MEDIA_DISK_CACHE")));
         if (!shouldDisableMediaDiskCache.isEmpty()) {
             result = shouldDisableMediaDiskCache == "1"_s || equalLettersIgnoringASCIICase(shouldDisableMediaDiskCache, "true"_s)
                 || equalLettersIgnoringASCIICase(shouldDisableMediaDiskCache, "t"_s);
@@ -3290,7 +3290,7 @@ void MediaPlayerPrivateGStreamer::configureAudioDecoder(GstElement* decoder)
 void MediaPlayerPrivateGStreamer::configureVideoDecoder(GstElement* decoder)
 {
     GUniquePtr<char> name(gst_element_get_name(decoder));
-    auto nameView = StringView::fromLatin1(name.get());
+    auto nameView = StringView(unsafeNullTerminated(name.get()));
     if (nameView.startsWith("v4l2"_s))
         m_videoDecoderPlatform = GstVideoDecoderPlatform::Video4Linux;
     else if (nameView.startsWith("imxvpudec"_s))

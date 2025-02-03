@@ -32,8 +32,7 @@ public:
     AtomString();
     AtomString(std::span<const LChar>);
     AtomString(std::span<const UChar>);
-
-    ALWAYS_INLINE static AtomString fromLatin1(const char* characters) { return AtomString(characters); }
+    AtomString(NullTerminated);
 
     AtomString(AtomStringImpl*);
     AtomString(RefPtr<AtomStringImpl>&&);
@@ -135,8 +134,6 @@ public:
 #endif
 
 private:
-    explicit AtomString(const char*);
-
     enum class CaseConvertType { Upper, Lower };
     template<CaseConvertType> AtomString convertASCIICase() const;
 
@@ -169,7 +166,7 @@ inline AtomString::AtomString()
 {
 }
 
-inline AtomString::AtomString(const char* string)
+inline AtomString::AtomString(NullTerminated string)
     : m_string(AtomStringImpl::addCString(string))
 {
 }

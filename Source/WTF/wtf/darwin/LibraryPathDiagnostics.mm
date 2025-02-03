@@ -63,7 +63,7 @@ static String uuidToString(const uuid_t& uuid)
 {
     uuid_string_t uuid_string = { };
     uuid_unparse(uuid, uuid_string);
-    return String::fromUTF8(uuid_string);
+    return String::fromUTF8(unsafeNullTerminated(uuid_string));
 }
 
 class LibraryPathDiagnosticsLogger final {

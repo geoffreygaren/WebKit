@@ -2531,7 +2531,7 @@ static String accessibleNameForNode(Node& node, Node* labelledbyNode)
             StringBuilder passwordValue;
             passwordValue.reserveCapacity(inputValue.length());
             for (size_t i = 0; i < inputValue.length(); i++)
-                passwordValue.append(String::fromUTF8("•"));
+                passwordValue.append(String::fromUTF8("•"_s));
             return passwordValue.toString();
         }
         return inputValue;

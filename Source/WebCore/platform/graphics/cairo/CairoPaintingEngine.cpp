@@ -52,7 +52,7 @@ std::unique_ptr<PaintingEngine> PaintingEngine::create()
     if (!numThreadsEnv)
         numThreadsEnv = getenv("WEBKIT_NICOSIA_PAINTING_THREADS");
     if (numThreadsEnv) {
-        auto newValue = parseInteger<unsigned>(StringView::fromLatin1(numThreadsEnv));
+        auto newValue = parseInteger<unsigned>(StringView(unsafeNullTerminated(numThreadsEnv)));
         if (newValue && *newValue <= 8)
             numThreads = *newValue;
         else

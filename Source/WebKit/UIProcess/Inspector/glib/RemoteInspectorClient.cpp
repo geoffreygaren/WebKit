@@ -207,14 +207,14 @@ void RemoteInspectorClient::setupConnection(Ref<SocketConnection>&& connection)
     m_socketConnection->sendMessage("SetupInspectorClient", g_variant_new("(@ay)", g_variant_new_bytestring(Inspector::backendCommandsHash().data())));
 }
 
-void RemoteInspectorClient::setBackendCommands(const char* backendCommands)
+void RemoteInspectorClient::setBackendCommands(NullTerminated backendCommands)
 {
     if (!backendCommands || !backendCommands[0]) {
         m_backendCommandsURL = { };
         return;
     }
 
-    m_backendCommandsURL = makeString("data:text/javascript;base64,"_s, base64Encoded(unsafeSpan8(backendCommands)));
+    m_backendCommandsURL = makeString("data:text/javascript;base64,"_s, base64Encoded(span8(backendCommands)));
 }
 
 void RemoteInspectorClient::connectionDidClose()

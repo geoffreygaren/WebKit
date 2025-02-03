@@ -77,7 +77,7 @@ String Value::generateCompilerConstructionSite()
     stackTrace.forEach([&] (unsigned, void*, const char* cName) {
         if (printed > 10)
             return;
-        auto name = String::fromUTF8(cName);
+        auto name = String::fromUTF8(unsafeNullTerminated(cName));
         if (name.contains("JSC::Wasm::OMGIRGenerator::emit"_s)
             || name.contains("JSC::Wasm::OMGIRGenerator::add"_s)
             || name.contains("JSC::Wasm::OMGIRGenerator::create"_s)

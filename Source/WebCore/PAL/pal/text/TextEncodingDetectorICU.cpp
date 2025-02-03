@@ -91,7 +91,7 @@ bool detectTextEncoding(std::span<const uint8_t> data, ASCIILiteral hintEncoding
                 status = U_ZERO_ERROR;
                 continue;
             }
-            if (TextEncoding(StringView::fromLatin1(matchEncoding)) == hintEncoding) {
+            if (TextEncoding(StringView(unsafeNullTerminated(matchEncoding))) == hintEncoding) {
                 encoding = hintEncodingName;
                 break;
             }
@@ -104,7 +104,7 @@ bool detectTextEncoding(std::span<const uint8_t> data, ASCIILiteral hintEncoding
     if (!encoding && !matches.empty())
         encoding = ucsdet_getName(matches[0], &status);
     if (U_SUCCESS(status)) {
-        *detectedEncoding = TextEncoding(StringView::fromLatin1(encoding));
+        *detectedEncoding = TextEncoding(StringView(unsafeNullTerminated(encoding)));
         ucsdet_close(detector);
         return true;
     }    

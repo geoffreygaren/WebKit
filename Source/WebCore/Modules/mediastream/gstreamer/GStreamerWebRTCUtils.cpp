@@ -666,7 +666,7 @@ GRefPtr<GstCaps> capsFromSDPMedia(const GstSDPMedia* media)
             GST_DEBUG("Skipping media format without rtpmap");
             continue;
         }
-        auto rtpMap = StringView::fromLatin1(rtpMapValue);
+        auto rtpMap = StringView(unsafeNullTerminated(rtpMapValue));
         auto components = rtpMap.split(' ');
         auto payloadType = parseInteger<int>(*components.begin());
         if (!payloadType) {

@@ -53,7 +53,7 @@ GStreamerQuirkWesteros::GStreamerQuirkWesteros()
 
 void GStreamerQuirkWesteros::configureElement(GstElement* element, const OptionSet<ElementRuntimeCharacteristics>& characteristics)
 {
-    auto view = StringView::fromLatin1(GST_ELEMENT_NAME(element));
+    auto view = StringView(unsafeNullTerminated(GST_ELEMENT_NAME(element)));
     if (view.startsWith("uridecodebin3"_s)) {
         GRefPtr<GstCaps> defaultCaps;
         g_object_get(element, "caps", &defaultCaps.outPtr(), nullptr);
@@ -74,7 +74,7 @@ void GStreamerQuirkWesteros::configureElement(GstElement* element, const OptionS
 
 std::optional<bool> GStreamerQuirkWesteros::isHardwareAccelerated(GstElementFactory* factory)
 {
-    auto view = StringView::fromLatin1(GST_OBJECT_NAME(factory));
+    auto view = StringView(unsafeNullTerminated(GST_OBJECT_NAME(factory)));
     if (view.startsWith("westeros"_s))
         return true;
 

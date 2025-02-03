@@ -39,7 +39,7 @@ struct GMarkupParseContextUserData {
 static void markupStartElement(GMarkupParseContext*, const gchar* elementName, const gchar**, const gchar**, gpointer userDataPtr, GError**)
 {
     GMarkupParseContextUserData* userData = static_cast<GMarkupParseContextUserData*>(userDataPtr);
-    auto nameView = StringView::fromLatin1(elementName);
+    auto nameView = StringView(unsafeNullTerminated(elementName));
     if (nameView.endsWith("pssh"_s))
         userData->isParsingPssh = true;
 }
@@ -47,7 +47,7 @@ static void markupStartElement(GMarkupParseContext*, const gchar* elementName, c
 static void markupEndElement(GMarkupParseContext*, const gchar* elementName, gpointer userDataPtr, GError**)
 {
     GMarkupParseContextUserData* userData = static_cast<GMarkupParseContextUserData*>(userDataPtr);
-    auto nameView = StringView::fromLatin1(elementName);
+    auto nameView = StringView(unsafeNullTerminated(elementName));
     if (nameView.endsWith("pssh"_s)) {
         ASSERT(userData->isParsingPssh);
         userData->isParsingPssh = false;

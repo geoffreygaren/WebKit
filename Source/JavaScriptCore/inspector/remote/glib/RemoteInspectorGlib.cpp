@@ -256,7 +256,7 @@ void RemoteInspector::receivedDataMessage(TargetID targetIdentifier, const char*
         if (!connectionToTarget)
             return;
     }
-    connectionToTarget->sendMessageToTarget(String::fromUTF8(message));
+    connectionToTarget->sendMessageToTarget(String::fromUTF8(unsafeNullTerminated(message)));
 }
 
 void RemoteInspector::receivedCloseMessage(TargetID targetIdentifier)
@@ -302,7 +302,7 @@ void RemoteInspector::setup(TargetID targetIdentifier)
 void RemoteInspector::sendMessageToTarget(TargetID targetIdentifier, const char* message)
 {
     if (RefPtr connectionToTarget = m_targetConnectionMap.get(targetIdentifier))
-        connectionToTarget->sendMessageToTarget(String::fromUTF8(message));
+        connectionToTarget->sendMessageToTarget(String::fromUTF8(unsafeNullTerminated(message)));
 }
 
 void RemoteInspector::requestAutomationSession(const char* sessionID, const Client::SessionCapabilities& capabilities)
@@ -316,7 +316,7 @@ void RemoteInspector::requestAutomationSession(const char* sessionID, const Clie
     if (!sessionID || !sessionID[0])
         return;
 
-    m_client->requestAutomationSession(String::fromUTF8(sessionID), capabilities);
+    m_client->requestAutomationSession(String::fromUTF8(unsafeNullTerminated(sessionID)), capabilities);
     updateClientCapabilities();
 }
 

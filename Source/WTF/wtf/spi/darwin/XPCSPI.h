@@ -273,5 +273,5 @@ inline String xpc_dictionary_get_wtfstring(xpc_object_t xdict, ASCIILiteral key)
     auto* cstring = xpc_dictionary_get_string(xdict, key.characters()); // NOLINT
     if (!cstring)
         return { };
-    return String::fromUTF8(cstring);
+    return String::fromUTF8(unsafeNullTerminated(cstring));
 }

@@ -71,8 +71,7 @@ public:
     StringView(std::span<const char> span LIFETIME_BOUND); // FIXME: Consider dropping this overload. Callers should pass LChars/UChars instead.
     StringView(const void* string LIFETIME_BOUND, unsigned length, bool is8bit);
     StringView(ASCIILiteral);
-
-    ALWAYS_INLINE static StringView fromLatin1(const char* characters) { return StringView { characters }; }
+    StringView(NullTerminated);
 
     unsigned length() const;
     bool isEmpty() const;
@@ -202,9 +201,6 @@ public:
 #endif
 
 private:
-    // Clients should use StringView(ASCIILiteral) or StringView::fromLatin1() instead.
-    explicit StringView(const char*);
-
     friend bool equal(StringView, StringView);
     friend bool equal(StringView, StringView, unsigned length);
     friend WTF_EXPORT_PRIVATE bool equalRespectingNullity(StringView, StringView);
@@ -402,9 +398,9 @@ inline StringView::StringView(std::span<const UChar> characters)
     initialize(characters);
 }
 
-inline StringView::StringView(const char* characters)
+inline StringView::StringView(NullTerminated characters)
 {
-    initialize(unsafeSpan8(characters));
+    initialize(WTF::span8(characters));
 }
 
 inline StringView::StringView(std::span<const char> characters)
@@ -786,7 +782,7 @@ inline bool equalIgnoringASCIICase(StringView a, StringView b)
 
 inline bool equalIgnoringASCIICase(StringView a, ASCIILiteral b)
 {
-    return equalIgnoringASCIICaseCommon(a, b.characters());
+    return equalIgnoringASCIICaseCommon(a, b.nullTerminated());
 }
 
 class StringView::SplitResult {

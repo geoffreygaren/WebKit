@@ -66,7 +66,9 @@ class CString final {
     WTF_MAKE_FAST_ALLOCATED;
 public:
     CString() { }
-    WTF_EXPORT_PRIVATE CString(const char*);
+    WTF_EXPORT_PRIVATE CString(const char*) WTF_UNSAFE_BUFFER_USAGE;
+    WTF_EXPORT_PRIVATE CString(ASCIILiteral);
+    WTF_EXPORT_PRIVATE CString(NullTerminated);
     WTF_EXPORT_PRIVATE CString(std::span<const char>);
     CString(std::span<const LChar>);
     CString(std::span<const char8_t> characters) : CString(byteCast<LChar>(characters)) { }
@@ -75,6 +77,7 @@ public:
     CString(HashTableDeletedValueType) : m_buffer(HashTableDeletedValue) { }
 
     const char* data() const LIFETIME_BOUND;
+    NullTerminated nullTerminated() const LIFETIME_BOUND;
 
     std::string toStdString() const { return m_buffer ? std::string(m_buffer->spanIncludingNullTerminator().data()) : std::string(); }
 
@@ -126,6 +129,11 @@ inline CString::CString(std::span<const LChar> bytes)
 inline const char* CString::data() const
 {
     return m_buffer ? m_buffer->spanIncludingNullTerminator().data() : nullptr;
+}
+
+inline NullTerminated CString::nullTerminated() const
+{
+    return unsafeNullTerminated(data());
 }
 
 inline std::span<const LChar> CString::span() const

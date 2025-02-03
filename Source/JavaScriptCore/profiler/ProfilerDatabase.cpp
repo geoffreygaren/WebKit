@@ -129,7 +129,7 @@ bool Database::save(const char* filename) const
 
 void Database::registerToSaveAtExit(const char* filename)
 {
-    m_atExitSaveFilename = filename;
+    m_atExitSaveFilename = unsafeNullTerminated(filename);
     
     if (m_shouldSaveAtExit)
         return;

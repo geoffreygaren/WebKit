@@ -51,14 +51,14 @@ OpaqueJSClass::OpaqueJSClass(const JSClassDefinition* definition, OpaqueJSClass*
     , callAsConstructor(definition->callAsConstructor)
     , hasInstance(definition->hasInstance)
     , convertToType(definition->convertToType)
-    , m_className(String::fromUTF8(definition->className))
+    , m_className(String::fromUTF8(unsafeNullTerminated(definition->className)))
 {
     JSC::initialize();
 
     if (const JSStaticValue* staticValue = definition->staticValues) {
         m_staticValues = makeUnique<OpaqueJSClassStaticValuesTable>();
         while (staticValue->name) {
-            String valueName = String::fromUTF8(staticValue->name);
+            String valueName = String::fromUTF8(unsafeNullTerminated(staticValue->name));
             if (!valueName.isNull())
                 m_staticValues->set(valueName.impl(), makeUnique<StaticValueEntry>(staticValue->getProperty, staticValue->setProperty, staticValue->attributes, valueName));
             ++staticValue;
@@ -68,7 +68,7 @@ OpaqueJSClass::OpaqueJSClass(const JSClassDefinition* definition, OpaqueJSClass*
     if (const JSStaticFunction* staticFunction = definition->staticFunctions) {
         m_staticFunctions = makeUnique<OpaqueJSClassStaticFunctionsTable>();
         while (staticFunction->name) {
-            String functionName = String::fromUTF8(staticFunction->name);
+            String functionName = String::fromUTF8(unsafeNullTerminated(staticFunction->name));
             if (!functionName.isNull())
                 m_staticFunctions->set(functionName.impl(), makeUnique<StaticFunctionEntry>(staticFunction->callAsFunction, staticFunction->attributes));
             ++staticFunction;

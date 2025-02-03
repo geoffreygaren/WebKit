@@ -252,7 +252,7 @@ void RemoteInspector::setup(TargetID targetIdentifier)
 void RemoteInspector::sendMessageToTarget(TargetID targetIdentifier, const char* message)
 {
     if (auto connectionToTarget = m_targetConnectionMap.get(targetIdentifier))
-        connectionToTarget->sendMessageToTarget(String::fromUTF8(message));
+        connectionToTarget->sendMessageToTarget(String::fromUTF8(unsafeNullTerminated(message)));
 }
 
 String RemoteInspector::backendCommands() const

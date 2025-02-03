@@ -413,7 +413,7 @@ static void webkitWebContextSetProperty(GObject* object, guint propID, const GVa
     }
     case PROP_TIME_ZONE_OVERRIDE: {
         const auto* timeZone = g_value_get_string(value);
-        if (isTimeZoneValid(StringView::fromLatin1(timeZone)))
+        if (isTimeZoneValid(StringView(unsafeNullTerminated(timeZone))))
             context->priv->timeZoneOverride = timeZone;
         break;
     }
@@ -1373,7 +1373,7 @@ void webkit_web_context_register_uri_scheme(WebKitWebContext* context, const cha
     g_return_if_fail(scheme);
     g_return_if_fail(callback);
 
-    auto canonicalizedScheme = WTF::URLParser::maybeCanonicalizeScheme(StringView::fromLatin1(scheme));
+    auto canonicalizedScheme = WTF::URLParser::maybeCanonicalizeScheme(StringView(unsafeNullTerminated(scheme)));
     if (!canonicalizedScheme) {
         g_critical("Cannot register invalid URI scheme %s", scheme);
         return;

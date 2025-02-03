@@ -1069,7 +1069,7 @@ void jsc_value_object_define_property_data(JSCValue* value, const char* property
         return;
     }
 
-    auto name = OpaqueJSString::tryCreate(String::fromUTF8(propertyName));
+    auto name = OpaqueJSString::tryCreate(String::fromUTF8(unsafeNullTerminated(propertyName)));
     if (!name)
         return;
 
@@ -1102,7 +1102,7 @@ static void jscValueObjectDefinePropertyAccessor(JSCValue* value, const char* pr
         return;
     }
 
-    auto name = OpaqueJSString::tryCreate(String::fromUTF8(propertyName));
+    auto name = OpaqueJSString::tryCreate(String::fromUTF8(unsafeNullTerminated(propertyName)));
     if (!name)
         return;
 
@@ -1182,7 +1182,7 @@ static GRefPtr<JSCValue> jscValueFunctionCreate(JSCContext* context, const char*
     JSC::JSGlobalObject* globalObject = toJS(jscContextGetJSContext(context));
     Ref vm = globalObject->vm();
     JSC::JSLockHolder locker(vm);
-    auto* functionObject = toRef(JSC::JSCCallbackFunction::create(vm, globalObject, name ? String::fromUTF8(name) : "anonymous"_s,
+    auto* functionObject = toRef(JSC::JSCCallbackFunction::create(vm, globalObject, name ? String::fromUTF8(unsafeNullTerminated(name)) : "anonymous"_s,
         JSC::JSCCallbackFunction::Type::Function, nullptr, WTFMove(closure), returnType, WTFMove(parameters)));
     return jscContextGetOrCreateValue(context, functionObject);
 }
@@ -2091,7 +2091,7 @@ JSCValue* jsc_value_new_from_json(JSCContext* context, const char* json)
 
     JSValueRef exception = nullptr;
     JSC::JSValue jsValue;
-    String jsonString = String::fromUTF8(json);
+    String jsonString = String::fromUTF8(unsafeNullTerminated(json));
     if (jsonString.is8Bit()) {
         JSC::LiteralParser<LChar, JSC::JSONReviverMode::Disabled> jsonParser(globalObject, jsonString.span8(), JSC::StrictJSON);
         jsValue = jsonParser.tryLiteralParse();

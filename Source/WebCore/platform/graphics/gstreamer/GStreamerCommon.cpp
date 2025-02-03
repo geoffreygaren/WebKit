@@ -246,7 +246,7 @@ std::optional<TrackID> getStreamIdFromPad(const GRefPtr<GstPad>& pad)
         return std::nullopt;
     }
 
-    std::optional<TrackID> streamId(parseStreamId(StringView::fromLatin1(streamIdAsCharacters.get())));
+    std::optional<TrackID> streamId(parseStreamId(StringView(unsafeNullTerminated(streamIdAsCharacters.get()))));
     if (!streamId)
         GST_WARNING_OBJECT(pad.get(), "Got invalid stream-id from pad: %s", streamIdAsCharacters.get());
 
@@ -261,7 +261,7 @@ std::optional<TrackID> getStreamIdFromStream(const GRefPtr<GstStream>& stream)
         return std::nullopt;
     }
 
-    std::optional<TrackID> streamId(parseStreamId(StringView::fromLatin1(streamIdAsCharacters)));
+    std::optional<TrackID> streamId(parseStreamId(StringView(unsafeNullTerminated(streamIdAsCharacters))));
     if (!streamId)
         GST_WARNING_OBJECT(stream.get(), "Got invalid stream-id from stream: %s", streamIdAsCharacters);
 
@@ -1166,7 +1166,7 @@ StringView gstStructureGetString(const GstStructure* structure, StringView key)
     }
 
     auto utf8String = key.utf8();
-    return StringView::fromLatin1(gst_structure_get_string(structure, utf8String.data()));
+    return StringView(unsafeNullTerminated(gst_structure_get_string(structure, utf8String.data())));
 }
 
 StringView gstStructureGetName(const GstStructure* structure)
@@ -1176,7 +1176,7 @@ StringView gstStructureGetName(const GstStructure* structure)
         return { };
     }
 
-    return StringView::fromLatin1(gst_structure_get_name(structure));
+    return StringView(unsafeNullTerminated(gst_structure_get_name(structure)));
 }
 
 template<typename T>
@@ -1725,9 +1725,9 @@ bool gstStructureMapInPlace(GstStructure* structure, Function<bool(GstId, GValue
 StringView gstIdToString(GstId id)
 {
 #if GST_CHECK_VERSION(1, 25, 0)
-    return StringView::fromLatin1(gst_id_str_as_str(id));
+    return StringView(unsafeNullTerminated(gst_id_str_as_str(id)));
 #else
-    return StringView::fromLatin1(g_quark_to_string(id));
+    return StringView(unsafeNullTerminated(g_quark_to_string(id)));
 #endif
 }
 
@@ -1792,7 +1792,7 @@ GRefPtr<GstCaps> buildDMABufCaps()
 
     static const char* formats = g_getenv("WEBKIT_GST_DMABUF_FORMATS");
     if (formats && *formats) {
-        auto formatsString = StringView::fromLatin1(formats);
+        auto formatsString = StringView(unsafeNullTerminated(formats));
         GValue drmSupportedFormats = G_VALUE_INIT;
         g_value_init(&drmSupportedFormats, GST_TYPE_LIST);
         for (auto token : formatsString.split(',')) {

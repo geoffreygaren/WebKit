@@ -97,7 +97,7 @@ GStreamerMediaEndpoint::~GStreamerMediaEndpoint()
 GStreamerMediaEndpoint::NetSimOptions GStreamerMediaEndpoint::netSimOptionsFromEnvironment(ASCIILiteral optionsEnvVarName)
 {
     NetSimOptions options;
-    auto tokens = StringView::fromLatin1(g_getenv(optionsEnvVarName));
+    auto tokens = StringView(unsafeNullTerminated(g_getenv(optionsEnvVarName)));
     for (auto it : tokens.split(',')) {
         auto option = it.toString();
         auto keyValue = option.split('=');
@@ -173,7 +173,7 @@ bool GStreamerMediaEndpoint::initializePipeline()
         if (auto factory = adoptGRef(gst_element_factory_find("netsim"))) {
             g_signal_connect_swapped(m_webrtcBin.get(), "deep-element-added", G_CALLBACK(+[](GStreamerMediaEndpoint* self, GstBin* bin, GstElement* element) {
                 GUniquePtr<char> elementName(gst_element_get_name(element));
-                auto view = StringView::fromLatin1(elementName.get());
+                auto view = StringView(unsafeNullTerminated(elementName.get()));
                 if (view.startsWith("nice"_s))
                     self->maybeInsertNetSimForElement(bin, element);
             }), this);
@@ -604,7 +604,7 @@ void GStreamerMediaEndpoint::linkOutgoingSources(GstSDPMessage* sdpMessage)
 #endif
     for (unsigned i = 0; i < totalMedias; i++) {
         const auto media = gst_sdp_message_get_media(sdpMessage, i);
-        auto mediaType = StringView::fromLatin1(gst_sdp_media_get_media(media));
+        auto mediaType = StringView(unsafeNullTerminated(gst_sdp_media_get_media(media)));
         RealtimeMediaSource::Type sourceType;
         if (mediaType == "audio"_s)
             sourceType = RealtimeMediaSource::Type::Audio;
@@ -1016,7 +1016,7 @@ void GStreamerMediaEndpoint::processSDPMessage(const GstSDPMessage* message, Fun
             continue;
         }
 
-        mediaCallback(mediaIndex, StringView::fromLatin1(mid), media);
+        mediaCallback(mediaIndex, StringView(unsafeNullTerminated(mid)), media);
     }
 }
 

@@ -85,8 +85,8 @@ AccessibilityObjectAtspi::CollectionMatchRule::CollectionMatchRule(GVariant* rul
     const char* attributeName;
     const char* attributeValue;
     while (g_variant_iter_next(attributesIter.get(), "{&s&s}", &attributeName, &attributeValue)) {
-        auto addResult = attributes.value.add(String::fromUTF8(attributeName), Vector<String> { });
-        String value = String::fromUTF8(attributeValue);
+        auto addResult = attributes.value.add(String::fromUTF8(unsafeNullTerminated(attributeName)), Vector<String> { });
+        String value = String::fromUTF8(unsafeNullTerminated(attributeValue));
         unsigned currentPos = 0;
         unsigned startPos = 0;
         size_t endPos;
@@ -122,7 +122,7 @@ AccessibilityObjectAtspi::CollectionMatchRule::CollectionMatchRule(GVariant* rul
 
     const char* interface;
     while (g_variant_iter_next(interfacesIter.get(), "&s", &interface))
-        interfaces.value.append(String::fromUTF8(interface));
+        interfaces.value.append(String::fromUTF8(unsafeNullTerminated(interface)));
     interfaces.type = static_cast<Atspi::CollectionMatchType>(interfacesMatchType);
 }
 

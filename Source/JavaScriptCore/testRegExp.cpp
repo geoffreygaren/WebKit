@@ -302,7 +302,7 @@ static RegExp* parseRegExpLine(VM& vm, char* line, int lineLength, const char** 
 
     ++i;
 
-    auto flags = Yarr::parseFlags(StringView::fromLatin1(line + i));
+    auto flags = Yarr::parseFlags(StringView(unsafeNullTerminated(line + i)));
     if (!flags) {
         *regexpError = Yarr::errorMessage(Yarr::ErrorCode::InvalidRegularExpressionFlags);
         return nullptr;

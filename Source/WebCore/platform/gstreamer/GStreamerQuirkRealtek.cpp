@@ -73,7 +73,7 @@ void GStreamerQuirkRealtek::configureElement(GstElement* element, const OptionSe
 
 std::optional<bool> GStreamerQuirkRealtek::isHardwareAccelerated(GstElementFactory* factory)
 {
-    auto view = StringView::fromLatin1(GST_OBJECT_NAME(factory));
+    auto view = StringView(unsafeNullTerminated(GST_OBJECT_NAME(factory)));
     if (view.startsWith("omx"_s))
         return true;
 

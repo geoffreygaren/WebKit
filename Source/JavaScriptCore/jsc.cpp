@@ -1023,7 +1023,7 @@ static URL currentWorkingDirectory()
     Vector<char> buffer(PATH_MAX);
     if (!getcwd(buffer.data(), PATH_MAX))
         return { };
-    String directoryString = String::fromUTF8(buffer.data());
+    String directoryString = String::fromUTF8(unsafeNullTerminated(buffer.data()));
 #endif
     if (directoryString.isEmpty())
         return { };
@@ -1349,9 +1349,9 @@ private:
     {
         if (!cacheEnabled())
             return { };
-        const char* cachePath = Options::diskCachePath();
+        auto cachePath = unsafeNullTerminated(Options::diskCachePath());
         String filename = FileSystem::encodeForFileName(FileSystem::lastComponentOfPathIgnoringTrailingSlash(sourceOrigin().url().fileSystemPath()));
-        return FileSystem::pathByAppendingComponent(StringView::fromLatin1(cachePath), makeString(source().hash(), '-', filename, ".bytecode-cache"_s));
+        return FileSystem::pathByAppendingComponent(StringView(cachePath), makeString(source().hash(), '-', filename, ".bytecode-cache"_s));
     }
 
     void loadBytecode() const
@@ -3855,11 +3855,11 @@ static void runInteractive(GlobalObject* globalObject)
         String source;
         do {
             error = ParserError();
-            char* line = readline(source.isEmpty() ? interactivePrompt : "... ");
+            auto line = readline(source.isEmpty() ? interactivePrompt : "... ");
             shouldQuit = !line;
             if (!line)
                 break;
-            source = makeString(source, String::fromUTF8(line), '\n');
+            source = makeString(source, String::fromUTF8(unsafeNullTerminated(line)), '\n');
             checkSyntax(vm, jscSource(source, sourceOrigin), error);
             if (!line[0]) {
                 free(line);
@@ -3907,9 +3907,9 @@ static void runInteractive(GlobalObject* globalObject)
         if (utf8)
             result = utf8.value();
         else if (utf8.error() == UTF8ConversionError::OutOfMemory)
-            result = "OutOfMemory while processing string";
+            result = "OutOfMemory while processing string"_s;
         else
-            result = "Error while processing string";
+            result = "Error while processing string"_s;
         fwrite(result.data(), sizeof(char), result.length(), stdout);
         putchar('\n');
 
@@ -4422,8 +4422,8 @@ int jscmain(int argc, char** argv)
 
 #if OS(WINDOWS)
     // Needed for complex.yaml tests.
-    if (char* tz = getenv("TZ"))
-        setTimeZoneOverride(StringView::fromLatin1(tz));
+    if (auto tz = unsafeNullTerminated(getenv("TZ")))
+        setTimeZoneOverride(StringView(tz));
 #endif
 
     {
