@@ -421,7 +421,7 @@ ALWAYS_INLINE std::optional<uint8_t> findFirstNonZeroIndex(simde_uint16x8_t valu
     // includes multiple found characters. We perform [0, 1, 2, 3, 4, 5, 6, 7] OR-NOT with this value,
     // to assign the index to found characters.
     // Find the smallest value. Because of [0, 1, 2, 3, 4, 5, 6, 7], the value should be index in this vector.
-    // If the index less than length, it is within the requested pointer. Otherwise, nullptr.
+    // If the index less than length, it is within the requested pointer. Otherwise, nullPtr().
     //
     // Example
     //     value       |0|0|0|X|0|X|0|0| (X is all-one)

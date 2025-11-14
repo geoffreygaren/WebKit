@@ -114,7 +114,7 @@ private:
 };
 static LazyNeverDestroyed<Semaphore> globalSemaphoreForSuspendResume;
 
-static std::atomic<Thread*> targetThread { nullptr };
+static std::atomic<Thread*> targetThread { nullPtr() };
 
 void Thread::signalHandlerSuspendResume(int, siginfo_t*, void* ucontext)
 {
@@ -139,7 +139,7 @@ void Thread::signalHandlerSuspendResume(int, siginfo_t*, void* ucontext)
         // 3. A nested signal handler is executed.
         // 4. The stack pointer saved in the machine context will be pointing to the alternative signal stack.
         // In this case, we back off the suspension and retry a bit later.
-        thread->m_platformRegisters = nullptr;
+        thread->m_platformRegisters = nullPtr();
         globalSemaphoreForSuspendResume->post();
         return;
     }
@@ -168,7 +168,7 @@ void Thread::signalHandlerSuspendResume(int, siginfo_t*, void* ucontext)
     sigdelset(&blockedSignalSet, g_wtfConfig.sigThreadSuspendResume);
     sigsuspend(&blockedSignalSet);
 
-    thread->m_platformRegisters = nullptr;
+    thread->m_platformRegisters = nullPtr();
 
     // Allow resume caller to see that this thread is resumed.
     globalSemaphoreForSuspendResume->post();
@@ -209,7 +209,7 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
         // initialization which also installs specific signals. If this is the problem, applications should
         // change how to initialize things.
         struct sigaction oldAction;
-        if (sigaction(signal, nullptr, &oldAction))
+        if (sigaction(signal, nullPtr(), &oldAction))
             return false;
         // It has signal already.
         if (oldAction.sa_handler != SIG_DFL || std::bit_cast<void*>(oldAction.sa_sigaction) != std::bit_cast<void*>(SIG_DFL))
@@ -243,7 +243,7 @@ void Thread::initializeCurrentThreadEvenIfNonWTFCreated()
 static void* wtfThreadEntryPoint(void* context)
 {
     Thread::entryPoint(reinterpret_cast<Thread::NewThreadContext*>(context));
-    return nullptr;
+    return nullPtr();
 }
 
 #if HAVE(QOS_CLASSES)
@@ -351,7 +351,7 @@ void Thread::initializeCurrentThreadInternal(const char* threadName)
 #if HAVE(PTHREAD_SETNAME_NP)
     pthread_setname_np(normalizeThreadName(threadName));
 #elif OS(HAIKU)
-    rename_thread(find_thread(nullptr), normalizeThreadName(threadName));
+    rename_thread(find_thread(nullPtr()), normalizeThreadName(threadName));
 #elif OS(LINUX)
     prctl(PR_SET_NAME, normalizeThreadName(threadName));
 #else
@@ -612,7 +612,7 @@ void Thread::destructTLS(void* data)
     // Destructor of ClientData can rely on Thread::currentSingleton() (e.g. AtomStringTable).
     // We destroy it after re-setting Thread::currentSingleton() so that we can ensure destruction
     // can still access to it.
-    thread->m_clientData = nullptr;
+    thread->m_clientData = nullPtr();
 }
 
 Mutex::~Mutex()

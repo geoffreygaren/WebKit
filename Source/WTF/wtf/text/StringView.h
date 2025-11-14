@@ -243,12 +243,12 @@ private:
 
     void clear();
 
-    const void* m_characters { nullptr };
+    const void* m_characters { nullPtr() };
     unsigned m_length { 0 };
     bool m_is8Bit { true };
 
 #if CHECK_STRINGVIEW_LIFETIME
-    UnderlyingString* m_underlyingString { nullptr };
+    UnderlyingString* m_underlyingString { nullPtr() };
 #endif
 };
 
@@ -327,7 +327,7 @@ inline AtomString StringViewWithUnderlyingString::toAtomString() const
 
 inline StringView::~StringView()
 {
-    setUnderlyingString(nullptr);
+    setUnderlyingString(nullPtr());
 }
 
 inline StringView::StringView(StringView&& other)
@@ -340,7 +340,7 @@ inline StringView::StringView(StringView&& other)
     other.clear();
 
     setUnderlyingString(other);
-    other.setUnderlyingString(nullptr);
+    other.setUnderlyingString(nullPtr());
 }
 
 inline StringView::StringView(const StringView& other)
@@ -364,7 +364,7 @@ inline StringView& StringView::operator=(StringView&& other)
     other.clear();
 
     setUnderlyingString(other);
-    other.setUnderlyingString(nullptr);
+    other.setUnderlyingString(nullPtr());
 
     return *this;
 }
@@ -472,7 +472,7 @@ inline StringView::StringView(const AtomString& atomString)
 
 inline void StringView::clear()
 {
-    m_characters = nullptr;
+    m_characters = nullPtr();
     m_length = 0;
     m_is8Bit = true;
 }

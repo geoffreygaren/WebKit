@@ -964,7 +964,7 @@ String userVisibleURL(const CString& url)
 
     if (mayNeedHostNameDecoding) {
         // FIXME: Is it good to ignore the failure of mapHostNames and keep result intact?
-        auto mappedResult = mapHostNames(result, nullptr);
+        auto mappedResult = mapHostNames(result, nullPtr());
         if (!!mappedResult)
             result = mappedResult;
     }

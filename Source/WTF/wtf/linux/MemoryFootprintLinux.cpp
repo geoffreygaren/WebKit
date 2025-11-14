@@ -38,7 +38,7 @@ static const Seconds s_memoryFootprintUpdateInterval = 1_s;
 template<typename Functor>
 static void forEachLine(FILE* file, Functor functor)
 {
-    char* buffer = nullptr;
+    char* buffer = nullPtr();
     size_t size = 0;
     while (getline(&buffer, &size, file) != -1) {
         functor(buffer);

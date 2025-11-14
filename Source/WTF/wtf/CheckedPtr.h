@@ -44,11 +44,11 @@ class CheckedPtr {
 public:
 
     constexpr CheckedPtr()
-        : m_ptr(nullptr)
+        : m_ptr(nullPtr())
     { }
 
     constexpr CheckedPtr(std::nullptr_t)
-        : m_ptr(nullptr)
+        : m_ptr(nullPtr())
     { }
 
     ALWAYS_INLINE CheckedPtr(T* ptr)
@@ -64,7 +64,7 @@ public:
     }
 
     ALWAYS_INLINE CheckedPtr(CheckedPtr&& other)
-        : m_ptr { PtrTraits::exchange(other.m_ptr, nullptr) }
+        : m_ptr { PtrTraits::exchange(other.m_ptr, nullPtr()) }
     {
     }
 
@@ -78,7 +78,7 @@ public:
     { }
 
     template<typename OtherType, typename OtherPtrTraits> CheckedPtr(CheckedPtr<OtherType, OtherPtrTraits>&& other)
-        : m_ptr { OtherPtrTraits::exchange(other.m_ptr, nullptr) }
+        : m_ptr { OtherPtrTraits::exchange(other.m_ptr, nullPtr()) }
     {
     }
 
@@ -118,7 +118,7 @@ public:
     CheckedRef<T> releaseNonNull()
     {
         RELEASE_ASSERT(m_ptr);
-        auto& ptr = *PtrTraits::unwrap(std::exchange(m_ptr, nullptr));
+        auto& ptr = *PtrTraits::unwrap(std::exchange(m_ptr, nullPtr()));
         return CheckedRef { ptr, CheckedRef<T>::Adopt };
     }
 
@@ -133,7 +133,7 @@ public:
     CheckedPtr& operator=(std::nullptr_t)
     {
         derefIfNotNull();
-        m_ptr = nullptr;
+        m_ptr = nullPtr();
         return *this;
     }
 
@@ -216,7 +216,7 @@ inline bool is(const CheckedPtr<ArgType, ArgPtrTraits>& source)
 }
 
 template<typename P> struct HashTraits<CheckedPtr<P>> : SimpleClassHashTraits<CheckedPtr<P>> {
-    static P* emptyValue() { return nullptr; }
+    static P* emptyValue() { return nullPtr(); }
     static bool isEmptyValue(const CheckedPtr<P>& value) { return !value; }
 
     typedef P* PeekType;

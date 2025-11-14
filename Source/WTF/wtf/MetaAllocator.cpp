@@ -159,7 +159,7 @@ MetaAllocator::MetaAllocator(Lock& lock, size_t allocationGranule, size_t pageSi
 RefPtr<MetaAllocatorHandle> MetaAllocator::allocate(const Locker<Lock>&, size_t sizeInBytes)
 {
     if (!sizeInBytes)
-        return nullptr;
+        return nullPtr();
     
     sizeInBytes = roundUp(sizeInBytes);
 
@@ -170,7 +170,7 @@ RefPtr<MetaAllocatorHandle> MetaAllocator::allocate(const Locker<Lock>&, size_t 
         
         start = allocateNewSpace(numberOfPages);
         if (!start)
-            return nullptr;
+            return nullPtr();
         
         ASSERT(numberOfPages >= requestedNumberOfPages);
         
@@ -214,7 +214,7 @@ MetaAllocator::FreeSpacePtr MetaAllocator::findAndRemoveFreeSpace(size_t sizeInB
     FreeSpaceNode* node = m_freeSpaceSizeMap.findLeastGreaterThanOrEqual(sizeInBytes);
     
     if (!node)
-        return nullptr;
+        return nullPtr();
     
     size_t nodeSizeInBytes = node->sizeInBytes();
     RELEASE_ASSERT(nodeSizeInBytes >= sizeInBytes);

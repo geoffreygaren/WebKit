@@ -228,7 +228,7 @@ public:
         }
 
         size_t sizeToAllocate = newCapacity * sizeof(T);
-        T* newBuffer = nullptr;
+        T* newBuffer = nullPtr();
         if constexpr (action == FailureAction::Crash)
             newBuffer = static_cast<T*>(Malloc::malloc(sizeToAllocate));
         else {
@@ -265,7 +265,7 @@ public:
             return;
         
         if (m_buffer == bufferToDeallocate) {
-            m_buffer = nullptr;
+            m_buffer = nullPtr();
             m_capacity = 0;
         }
 
@@ -283,12 +283,12 @@ public:
     MallocSpan<T, Malloc> releaseBuffer()
     {
         m_capacity = 0;
-        return adoptMallocSpan<T, Malloc>(unsafeMakeSpan(std::exchange(m_buffer, nullptr), std::exchange(m_size, 0)));
+        return adoptMallocSpan<T, Malloc>(unsafeMakeSpan(std::exchange(m_buffer, nullPtr()), std::exchange(m_size, 0)));
     }
 
 protected:
     VectorBufferBase()
-        : m_buffer(nullptr)
+        : m_buffer(nullPtr())
         , m_capacity(0)
         , m_size(0)
     {
@@ -369,7 +369,7 @@ protected:
 
     VectorBuffer(VectorBuffer<T, 0, Malloc>&& other)
     {
-        m_buffer = std::exchange(other.m_buffer, nullptr);
+        m_buffer = std::exchange(other.m_buffer, nullPtr());
         m_capacity = std::exchange(other.m_capacity, 0);
         m_size = std::exchange(other.m_size, 0);
     }
@@ -377,7 +377,7 @@ protected:
     void adopt(VectorBuffer&& other)
     {
         deallocateBuffer(buffer());
-        m_buffer = std::exchange(other.m_buffer, nullptr);
+        m_buffer = std::exchange(other.m_buffer, nullPtr());
         m_capacity = std::exchange(other.m_capacity, 0);
         m_size = std::exchange(other.m_size, 0);
     }
@@ -1161,7 +1161,7 @@ NEVER_INLINE T* Vector<T, inlineCapacity, OverflowHandler, minCapacity, Malloc>:
         bool success = expandCapacity<action>(newMinCapacity);
         if constexpr (action == FailureAction::Report) {
             if (!success) [[unlikely]]
-                return nullptr;
+                return nullPtr();
         }
         UNUSED_PARAM(success);
         return ptr;
@@ -1170,7 +1170,7 @@ NEVER_INLINE T* Vector<T, inlineCapacity, OverflowHandler, minCapacity, Malloc>:
     bool success = expandCapacity<action>(newMinCapacity);
     if constexpr (action == FailureAction::Report) {
         if (!success) [[unlikely]]
-            return nullptr;
+            return nullPtr();
     }
     UNUSED_PARAM(success);
     return begin() + index;
@@ -1184,7 +1184,7 @@ inline U* Vector<T, inlineCapacity, OverflowHandler, minCapacity, Malloc>::expan
     bool success = expandCapacity<action>(newMinCapacity);
     if constexpr (action == FailureAction::Report) {
         if (!success) [[unlikely]]
-            return nullptr;
+            return nullPtr();
     }
     UNUSED_PARAM(success);
     return ptr;

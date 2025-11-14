@@ -83,7 +83,7 @@ void listenForLanguageChangeNotifications()
 #if PLATFORM(MAC)
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        CFNotificationCenterAddObserver(CFNotificationCenterGetDistributedCenterSingleton(), nullptr, &languagePreferencesDidChange, CFSTR("AppleLanguagePreferencesChangedNotification"), nullptr, CFNotificationSuspensionBehaviorCoalesce);
+        CFNotificationCenterAddObserver(CFNotificationCenterGetDistributedCenterSingleton(), nullPtr(), &languagePreferencesDidChange, CFSTR("AppleLanguagePreferencesChangedNotification"), nullPtr(), CFNotificationSuspensionBehaviorCoalesce);
     });
 #endif
 }

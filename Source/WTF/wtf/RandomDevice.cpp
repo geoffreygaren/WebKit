@@ -109,7 +109,7 @@ void RandomDevice::cryptographicallyRandomValues(std::span<uint8_t> buffer)
     // FIXME: We cannot ensure that Cryptographic Service Provider context and CryptGenRandom are safe across threads.
     // If it is safe, we can acquire context per RandomDevice.
     HCRYPTPROV hCryptProv = 0;
-    if (!CryptAcquireContext(&hCryptProv, nullptr, MS_DEF_PROV, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
+    if (!CryptAcquireContext(&hCryptProv, nullPtr(), MS_DEF_PROV, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
         CRASH();
     if (!CryptGenRandom(hCryptProv, buffer.size(), buffer.data()))
         CRASH();

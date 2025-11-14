@@ -112,7 +112,7 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
 
 StackBounds StackBounds::newThreadStackBounds(PlatformThreadHandle thread)
 {
-    void* bound = nullptr;
+    void* bound = nullPtr();
     size_t stackSize = 0;
 
     pthread_attr_t sattr;

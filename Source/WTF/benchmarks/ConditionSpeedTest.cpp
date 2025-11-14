@@ -60,14 +60,14 @@ unsigned numMessagesPerProducer;
     exit(1);
 }
 
-template<typename Functor, typename ConditionType, typename LockType, typename std::enable_if<!std::is_same<ConditionType, std::condition_variable>::value>::type* = nullptr>
+template<typename Functor, typename ConditionType, typename LockType, typename std::enable_if<!std::is_same<ConditionType, std::condition_variable>::value>::type* = nullPtr()>
 void wait(ConditionType& condition, LockType& lock, std::unique_lock<LockType>&, const Functor& predicate)
 {
     while (!predicate())
         condition.wait(lock);
 }
 
-template<typename Functor, typename ConditionType, typename LockType, typename std::enable_if<std::is_same<ConditionType, std::condition_variable>::value>::type* = nullptr>
+template<typename Functor, typename ConditionType, typename LockType, typename std::enable_if<std::is_same<ConditionType, std::condition_variable>::value>::type* = nullPtr()>
 void wait(ConditionType& condition, LockType&, std::unique_lock<LockType>& locker, const Functor& predicate)
 {
     while (!predicate())

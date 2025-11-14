@@ -214,7 +214,7 @@ template<typename CharacterType> inline Expected<Ref<StringImpl>, UTF8Conversion
     ASSERT(originalString->bufferOwnership() == BufferInternal);
 
     if (!length) {
-        data = nullptr;
+        data = nullPtr();
         return Ref<StringImpl>(*empty());
     }
 
@@ -282,7 +282,7 @@ RefPtr<StringImpl> StringImpl::create(std::span<const char8_t> codeUnits)
     RELEASE_ASSERT(codeUnits.size() <= String::MaxLength);
 
     if (!codeUnits.data())
-        return nullptr;
+        return nullPtr();
     if (codeUnits.empty())
         return empty();
 
@@ -293,7 +293,7 @@ RefPtr<StringImpl> StringImpl::create(std::span<const char8_t> codeUnits)
 
     auto result = Unicode::convert(codeUnits, buffer.mutableSpan());
     if (result.code != Unicode::ConversionResultCode::Success)
-        return nullptr;
+        return nullPtr();
 
     RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(result.buffer.size() <= codeUnits.size());
     return create(result.buffer);

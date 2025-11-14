@@ -171,7 +171,7 @@ public:
                 if (RefPtr strongReference = pair.first->template makeStrongReferenceIfPossible<T>(pair.second))
                     return strongReference;
                 hasNullReferences = true;
-                return nullptr;
+                return nullPtr();
             });
             if (hasNullReferences)
                 m_set.removeIf([](auto& pair) { return pair.first->objectHasStartedDeletion(); });

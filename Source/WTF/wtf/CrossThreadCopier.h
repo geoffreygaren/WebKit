@@ -317,7 +317,7 @@ template<typename T, typename U> struct CrossThreadCopierBase<false, false, Mark
 
 template<> struct CrossThreadCopierBase<false, false, std::nullptr_t> {
     static constexpr bool IsNeeded = false;
-    static std::nullptr_t copy(std::nullptr_t) { return nullptr; }
+    static std::nullptr_t copy(std::nullptr_t) { return nullPtr(); }
 };
 
 // Default specialization for Variant of CrossThreadCopyable classes.

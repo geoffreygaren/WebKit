@@ -69,7 +69,7 @@ public:
         auto localeObject = adoptCF(CFLocaleCreate(kCFAllocatorDefault, locale.string().createCFString().get()));
         m_stringTokenizer = adoptCF(CFStringTokenizerCreate(kCFAllocatorDefault, stringObject.get(), CFRangeMake(0, m_stringLength + m_priorContextLength), options, localeObject.get()));
         if (!m_stringTokenizer)
-            m_stringTokenizer = adoptCF(CFStringTokenizerCreate(kCFAllocatorDefault, stringObject.get(), CFRangeMake(0, m_stringLength + m_priorContextLength), options, nullptr));
+            m_stringTokenizer = adoptCF(CFStringTokenizerCreate(kCFAllocatorDefault, stringObject.get(), CFRangeMake(0, m_stringLength + m_priorContextLength), options, nullPtr()));
         ASSERT(m_stringTokenizer);
     }
 

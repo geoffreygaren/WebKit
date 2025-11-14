@@ -155,7 +155,7 @@ void* tryMallocArray(Kind kind, size_t numElements, size_t elementSize)
     CheckedSize checkedSize = elementSize;
     checkedSize *= numElements;
     if (checkedSize.hasOverflowed())
-        return nullptr;
+        return nullPtr();
     return tryMalloc(kind, checkedSize);
 }
 

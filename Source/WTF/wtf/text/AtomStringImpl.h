@@ -81,7 +81,7 @@ private:
 inline RefPtr<AtomStringImpl> AtomStringImpl::lookUp(StringImpl* string)
 {
     if (!string)
-        return nullptr;
+        return nullPtr();
     if (auto* atom = dynamicDowncast<AtomStringImpl>(*string))
         return atom;
     return lookUpSlowCase(*string);
@@ -95,14 +95,14 @@ ALWAYS_INLINE RefPtr<AtomStringImpl> AtomStringImpl::add(std::span<const char> c
 ALWAYS_INLINE RefPtr<AtomStringImpl> AtomStringImpl::add(StringImpl* string)
 {
     if (!string)
-        return nullptr;
+        return nullPtr();
     return add(*string);
 }
 
 ALWAYS_INLINE RefPtr<AtomStringImpl> AtomStringImpl::add(RefPtr<StringImpl>&& string)
 {
     if (!string)
-        return nullptr;
+        return nullPtr();
     return add(string.releaseNonNull());
 }
 
@@ -115,7 +115,7 @@ template<typename StringTableProvider>
 ALWAYS_INLINE RefPtr<AtomStringImpl> AtomStringImpl::addWithStringTableProvider(StringTableProvider& stringTableProvider, StringImpl* string)
 {
     if (!string)
-        return nullptr;
+        return nullPtr();
     return add(*stringTableProvider.atomStringTable(), *string);
 }
 

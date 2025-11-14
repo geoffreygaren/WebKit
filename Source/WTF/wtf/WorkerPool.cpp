@@ -57,7 +57,7 @@ public:
     WorkResult work() final
     {
         m_task();
-        m_task = nullptr;
+        m_task = nullPtr();
         return WorkResult::Continue;
     }
 
@@ -103,7 +103,7 @@ WorkerPool::~WorkerPool()
     {
         Locker locker { *m_lock };
         for (unsigned i = m_workers.size(); i--;)
-            m_tasks.append(nullptr); // Use null task to indicate that we want the thread to terminate.
+            m_tasks.append(nullPtr()); // Use null task to indicate that we want the thread to terminate.
         m_condition->notifyAll(locker);
     }
     for (auto& worker : m_workers)

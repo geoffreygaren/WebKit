@@ -67,7 +67,7 @@ void* OSAllocator::tryReserveUncommittedAligned(size_t bytes, size_t alignment, 
         addressReqs.Alignment = alignment;
         param.Type = MemExtendedParameterAddressRequirements;
         param.Pointer = &addressReqs;
-        void* result = VirtualAlloc2Ptr()(nullptr, address, bytes, MEM_RESERVE, protection(writable, executable), &param, 1);
+        void* result = VirtualAlloc2Ptr()(nullPtr(), address, bytes, MEM_RESERVE, protection(writable, executable), &param, 1);
         return result;
     }
 

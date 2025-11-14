@@ -96,7 +96,7 @@ private:
     bool m_is64Bit { false };
 #endif
     union {
-        const void* m_ptr { nullptr };
+        const void* m_ptr { nullPtr() };
 #if !CPU(ADDRESS64)
         uint64_t m_u64;
 #endif

@@ -53,8 +53,8 @@ public:
     T* last() const { return m_last; }
     
 private:
-    T* m_first { nullptr };
-    T* m_last { nullptr };
+    T* m_first { nullPtr() };
+    T* m_last { nullPtr() };
 };
 
 } // namespace WTF

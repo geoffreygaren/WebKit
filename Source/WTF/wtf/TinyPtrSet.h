@@ -317,7 +317,7 @@ public:
     class iterator {
     public:
         iterator()
-            : m_set(nullptr)
+            : m_set(nullPtr())
             , m_index(0)
         {
         }

@@ -173,7 +173,7 @@ public:
             WTF_DEPRECATED_MAKE_FAST_ALLOCATED(iterator);
         public:
             iterator()
-                : m_liveness(nullptr)
+                : m_liveness(nullPtr())
                 , m_iter()
             {
             }

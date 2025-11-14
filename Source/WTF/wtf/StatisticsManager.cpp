@@ -35,7 +35,7 @@ namespace WTF {
 StatisticsManager& StatisticsManager::singleton()
 {
     static std::once_flag onceFlag;
-    static StatisticsManager* instance = nullptr;
+    static StatisticsManager* instance = nullPtr();
     std::call_once(onceFlag, [] {
         instance = new StatisticsManager();
     });

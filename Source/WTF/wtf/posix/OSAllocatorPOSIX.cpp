@@ -185,7 +185,7 @@ void* OSAllocator::tryReserveUncommittedAligned(size_t bytes, size_t alignment, 
 
     void* result = mmap(address, bytes, protection, MAP_NORESERVE | MAP_PRIVATE | MAP_ANON | MAP_ALIGNED(getLSBSet(alignment)), -1, 0);
     if (result == MAP_FAILED)
-        return nullptr;
+        return nullPtr();
     if (result)
         while (madvise(result, bytes, MADV_DONTNEED) == -1 && errno == EAGAIN) { }
     return result;
@@ -195,7 +195,7 @@ void* OSAllocator::tryReserveUncommittedAligned(size_t bytes, size_t alignment, 
     size_t mappedSize = bytes + alignment;
     auto* rawMapped = reinterpret_cast<uint8_t*>(tryReserveUncommitted(mappedSize, usage, address, writable, executable, jitCageEnabled, numGuardPagesToAddOnEachEnd));
     if (!rawMapped)
-        return nullptr;
+        return nullPtr();
     auto mappedSpan = unsafeMakeSpan(rawMapped, mappedSize);
 
     auto* rawAligned = reinterpret_cast<uint8_t*>(roundUpToMultipleOf(alignment, reinterpret_cast<uintptr_t>(mappedSpan.data())));

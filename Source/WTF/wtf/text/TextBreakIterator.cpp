@@ -70,7 +70,7 @@ TextBreakIterator::TextBreakIterator(StringView string, std::span<const char16_t
 static UBreakIterator* initializeIterator(UBreakIteratorType type, const char* locale = currentTextBreakLocaleID())
 {
     UErrorCode openStatus = U_ZERO_ERROR;
-    UBreakIterator* iterator = ubrk_open(type, locale, nullptr, 0, &openStatus);
+    UBreakIterator* iterator = ubrk_open(type, locale, nullPtr(), 0, &openStatus);
     ASSERT_WITH_MESSAGE(U_SUCCESS(openStatus), "ICU could not open a break iterator: %s (%d)", u_errorName(openStatus), openStatus);
     return iterator;
 }
@@ -89,14 +89,14 @@ static UBreakIterator* setTextForIterator(UBreakIterator& iterator, StringView s
         UText* text = openLatin1UTextProvider(&textLocal, string.span8(), &openStatus);
         if (U_FAILURE(openStatus)) {
             LOG_ERROR("uTextOpenLatin1 failed with status %d", openStatus);
-            return nullptr;
+            return nullPtr();
         }
 
         UErrorCode setTextStatus = U_ZERO_ERROR;
         ubrk_setUText(&iterator, text, &setTextStatus);
         if (U_FAILURE(setTextStatus)) {
             LOG_ERROR("ubrk_setUText failed with status %d", setTextStatus);
-            return nullptr;
+            return nullPtr();
         }
 
         utext_close(text);
@@ -105,7 +105,7 @@ static UBreakIterator* setTextForIterator(UBreakIterator& iterator, StringView s
         auto characters = string.span16();
         ubrk_setText(&iterator, characters.data(), characters.size(), &setTextStatus);
         if (U_FAILURE(setTextStatus))
-            return nullptr;
+            return nullPtr();
     }
 
     return &iterator;
@@ -118,7 +118,7 @@ UBreakIterator* wordBreakIterator(StringView string)
 {
     static UBreakIterator* staticWordBreakIterator = initializeIterator(UBRK_WORD);
     if (!staticWordBreakIterator)
-        return nullptr;
+        return nullPtr();
 
     return setTextForIterator(*staticWordBreakIterator, string);
 }
@@ -128,18 +128,18 @@ UBreakIterator* sentenceBreakIterator(StringView string)
 {
     static UBreakIterator* staticSentenceBreakIterator = initializeIterator(UBRK_SENTENCE);
     if (!staticSentenceBreakIterator)
-        return nullptr;
+        return nullPtr();
 
     return setTextForIterator(*staticSentenceBreakIterator, string);
 }
 
 ALLOW_DEPRECATED_PRAGMA_BEGIN
-static std::atomic<UBreakIterator*> nonSharedCharacterBreakIterator = ATOMIC_VAR_INIT(nullptr);
+static std::atomic<UBreakIterator*> nonSharedCharacterBreakIterator;
 ALLOW_DEPRECATED_PRAGMA_END
 
 static inline UBreakIterator* getNonSharedCharacterBreakIterator()
 {
-    if (auto *res = nonSharedCharacterBreakIterator.exchange(nullptr, std::memory_order_acquire))
+    if (auto *res = nonSharedCharacterBreakIterator.exchange(nullPtr(), std::memory_order_acquire))
         return res;
     return initializeIterator(UBRK_CHARACTER);
 }
@@ -163,7 +163,7 @@ NonSharedCharacterBreakIterator::~NonSharedCharacterBreakIterator()
 }
 
 NonSharedCharacterBreakIterator::NonSharedCharacterBreakIterator(NonSharedCharacterBreakIterator&& other)
-    : m_iterator(nullptr)
+    : m_iterator(nullPtr())
 {
     std::swap(m_iterator, other.m_iterator);
 }

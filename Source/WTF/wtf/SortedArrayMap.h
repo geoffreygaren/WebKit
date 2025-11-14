@@ -178,20 +178,20 @@ template<typename ArrayType> template<typename KeyArgument> inline auto SortedAr
     using KeyType = typename ElementType::first_type;
     auto parsedKey = SortedArrayKeyTraits<KeyType>::parse(key);
     if (!parsedKey)
-        return nullptr;
+        return nullPtr();
     decltype(std::begin(m_array)) iterator;
     if (std::size(m_array) < binarySearchThreshold) {
         iterator = std::find_if(std::begin(m_array), std::end(m_array), [&parsedKey](auto& pair) {
             return pair.first == *parsedKey;
         });
         if (iterator == std::end(m_array))
-            return nullptr;
+            return nullPtr();
     } else {
         iterator = std::lower_bound(std::begin(m_array), std::end(m_array), *parsedKey, [](auto& pair, auto& value) {
             return pair.first < value;
         });
         if (iterator == std::end(m_array) || !(iterator->first == *parsedKey))
-            return nullptr;
+            return nullPtr();
     }
     return &iterator->second;
 }

@@ -102,7 +102,7 @@ public:
     {
         auto result = std::unique_ptr<EmbeddedFixedVector> { new (NotNull, Malloc::malloc(Base::allocationSize(size))) EmbeddedFixedVector(typename Base::Failable { }, size, std::forward<FailableGenerator>(generator)) };
         if (result->size() != size)
-            return nullptr;
+            return nullPtr();
         return result;
     }
 

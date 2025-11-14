@@ -161,7 +161,7 @@ struct HashedUTF8CharactersTranslator {
 RefPtr<AtomStringImpl> AtomStringImpl::add(std::span<const char16_t> characters)
 {
     if (!characters.data())
-        return nullptr;
+        return nullPtr();
 
     if (characters.empty())
         return uncheckedDowncast<AtomStringImpl>(StringImpl::empty());
@@ -173,7 +173,7 @@ RefPtr<AtomStringImpl> AtomStringImpl::add(std::span<const char16_t> characters)
 RefPtr<AtomStringImpl> AtomStringImpl::add(HashTranslatorCharBuffer<char16_t>& buffer)
 {
     if (!buffer.characters.data())
-        return nullptr;
+        return nullPtr();
 
     if (buffer.characters.empty())
         return uncheckedDowncast<AtomStringImpl>(StringImpl::empty());
@@ -224,7 +224,7 @@ struct SubstringTranslator16 : SubstringTranslator {
 RefPtr<AtomStringImpl> AtomStringImpl::add(StringImpl* baseString, unsigned start, unsigned length)
 {
     if (!baseString)
-        return nullptr;
+        return nullPtr();
 
     if (!length || start >= baseString->length())
         return uncheckedDowncast<AtomStringImpl>(StringImpl::empty());
@@ -288,7 +288,7 @@ struct BufferFromStaticDataTranslator {
 RefPtr<AtomStringImpl> AtomStringImpl::add(HashTranslatorCharBuffer<Latin1Character>& buffer)
 {
     if (!buffer.characters.data())
-        return nullptr;
+        return nullPtr();
 
     if (buffer.characters.empty())
         return uncheckedDowncast<AtomStringImpl>(StringImpl::empty());
@@ -299,7 +299,7 @@ RefPtr<AtomStringImpl> AtomStringImpl::add(HashTranslatorCharBuffer<Latin1Charac
 RefPtr<AtomStringImpl> AtomStringImpl::add(std::span<const Latin1Character> characters)
 {
     if (!characters.data())
-        return nullptr;
+        return nullPtr();
 
     if (characters.empty())
         return uncheckedDowncast<AtomStringImpl>(StringImpl::empty());
@@ -471,14 +471,14 @@ RefPtr<AtomStringImpl> AtomStringImpl::lookUpSlowCase(StringImpl& string)
     auto iterator = atomStringTable.find(&string);
     if (iterator != atomStringTable.end())
         return uncheckedDowncast<AtomStringImpl>(iterator->get());
-    return nullptr;
+    return nullPtr();
 }
 
 RefPtr<AtomStringImpl> AtomStringImpl::add(std::span<const char8_t> characters)
 {
     HashedUTF8Characters buffer { characters, computeUTF16LengthWithHash(characters) };
     if (!buffer.length.hash)
-        return nullptr;
+        return nullPtr();
     return addToStringTable<HashedUTF8Characters, HashedUTF8CharactersTranslator>(buffer);
 }
 
@@ -491,7 +491,7 @@ RefPtr<AtomStringImpl> AtomStringImpl::lookUp(std::span<const Latin1Character> c
     auto iterator = table.find<Latin1BufferTranslator>(buffer);
     if (iterator != table.end())
         return uncheckedDowncast<AtomStringImpl>(iterator->get());
-    return nullptr;
+    return nullPtr();
 }
 
 RefPtr<AtomStringImpl> AtomStringImpl::lookUp(std::span<const char16_t> characters)
@@ -503,7 +503,7 @@ RefPtr<AtomStringImpl> AtomStringImpl::lookUp(std::span<const char16_t> characte
     auto iterator = table.find<UTF16BufferTranslator>(buffer);
     if (iterator != table.end())
         return uncheckedDowncast<AtomStringImpl>(iterator->get());
-    return nullptr;
+    return nullPtr();
 }
 
 #if ASSERT_ENABLED

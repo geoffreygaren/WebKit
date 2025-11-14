@@ -44,8 +44,8 @@ public:
 
     static constexpr bool isRefPtr = true;
 
-    ALWAYS_INLINE constexpr RefPtr() : m_ptr(nullptr) { }
-    ALWAYS_INLINE constexpr RefPtr(std::nullptr_t) : m_ptr(nullptr) { }
+    ALWAYS_INLINE constexpr RefPtr() : m_ptr(nullPtr()) { }
+    ALWAYS_INLINE constexpr RefPtr(std::nullptr_t) : m_ptr(nullPtr()) { }
     ALWAYS_INLINE RefPtr(T* ptr) : m_ptr(RefDerefTraits::refIfNotNull(ptr)) { }
     ALWAYS_INLINE RefPtr(T& ptr) : m_ptr(&RefDerefTraits::ref(ptr)) { }
     ALWAYS_INLINE RefPtr(const RefPtr& o) : m_ptr(RefDerefTraits::refIfNotNull(PtrTraits::unwrap(o.m_ptr))) { }
@@ -59,12 +59,12 @@ public:
     RefPtr(HashTableDeletedValueType) : m_ptr(PtrTraits::hashTableDeletedValue()) { }
     bool isHashTableDeletedValue() const { return PtrTraits::isHashTableDeletedValue(m_ptr); }
 
-    ALWAYS_INLINE ~RefPtr() { RefDerefTraits::derefIfNotNull(PtrTraits::exchange(m_ptr, nullptr)); }
+    ALWAYS_INLINE ~RefPtr() { RefDerefTraits::derefIfNotNull(PtrTraits::exchange(m_ptr, nullPtr())); }
 
     T* get() const LIFETIME_BOUND { return PtrTraits::unwrap(m_ptr); }
     T* unsafeGet() const { return PtrTraits::unwrap(m_ptr); } // FIXME: Replace with get() then remove.
 
-    Ref<T> releaseNonNull() { ASSERT(m_ptr); Ref<T> tmp(adoptRef(*m_ptr)); m_ptr = nullptr; return tmp; }
+    Ref<T> releaseNonNull() { ASSERT(m_ptr); Ref<T> tmp(adoptRef(*m_ptr)); m_ptr = nullPtr(); return tmp; }
 
     T* leakRef() WARN_UNUSED_RETURN;
 
@@ -75,7 +75,7 @@ public:
 
     // This conversion operator allows implicit conversion to bool but not to other integer types.
     using UnspecifiedBoolType = void (RefPtr::*)() const;
-    operator UnspecifiedBoolType() const { return m_ptr ? &RefPtr::unspecifiedBoolTypeInstance : nullptr; }
+    operator UnspecifiedBoolType() const { return m_ptr ? &RefPtr::unspecifiedBoolTypeInstance : nullPtr(); }
 
     explicit operator bool() const { return !!m_ptr; }
     
@@ -122,7 +122,7 @@ inline RefPtr<T, U, V>::RefPtr(Ref<X, Y>&& reference)
 template<typename T, typename U, typename V>
 inline T* RefPtr<T, U, V>::leakRef()
 {
-    return U::exchange(m_ptr, nullptr);
+    return U::exchange(m_ptr, nullPtr());
 }
 
 template<typename T, typename U, typename V>
@@ -153,7 +153,7 @@ inline RefPtr<T, U, V>& RefPtr<T, U, V>::operator=(T* optr)
 template<typename T, typename U, typename V>
 inline RefPtr<T, U, V>& RefPtr<T, U, V>::operator=(std::nullptr_t)
 {
-    V::derefIfNotNull(U::exchange(m_ptr, nullptr));
+    V::derefIfNotNull(U::exchange(m_ptr, nullPtr()));
     return *this;
 }
 
@@ -284,7 +284,7 @@ inline RefPtr<match_constness_t<Source, Target>, TargetPtrTraits, TargetRefDeref
     static_assert(!std::same_as<Source, Target>, "Unnecessary cast to same type");
     static_assert(std::derived_from<Target, Source>, "Should be a downcast");
     if (!is<Target>(source))
-        return nullptr;
+        return nullPtr();
     return unsafeRefPtrDowncast<match_constness_t<Source, Target>, TargetPtrTraits, TargetRefDerefTraits>(WTFMove(source));
 }
 

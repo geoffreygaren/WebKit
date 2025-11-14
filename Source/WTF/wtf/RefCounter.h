@@ -65,7 +65,7 @@ public:
     using Token = RefPtr<Count>;
     using ValueChangeFunction = WTF::Function<void (RefCounterEvent)>;
 
-    RefCounter(ValueChangeFunction&& = nullptr);
+    RefCounter(ValueChangeFunction&& = nullPtr());
     ~RefCounter();
 
     Token count() const
@@ -121,7 +121,7 @@ inline void RefCounter<T>::Count::refCounterWasDeleted()
     // If the reference count of the Count is already zero then delete it now, otherwise
     // clear its m_refCounter pointer.
 
-    m_refCounter = nullptr;
+    m_refCounter = nullPtr();
 
     if (m_inValueDidChange)
         return;

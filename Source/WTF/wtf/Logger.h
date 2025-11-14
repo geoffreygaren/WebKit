@@ -85,7 +85,7 @@ class HasToJSONString {
     template <class T> static std::false_type test(...);
 
 public:
-    static constexpr bool value = decltype(test<C>(nullptr))::value;
+    static constexpr bool value = decltype(test<C>(nullPtr()))::value;
 };
 
 template<typename Argument, bool hasJSON = HasToJSONString<Argument>::value>
@@ -322,7 +322,7 @@ public:
         WTF_EXPORT_PRIVATE String toString() const;
 
         ASCIILiteral className;
-        const char* methodName { nullptr };
+        const char* methodName { nullPtr() };
         const uint64_t objectIdentifier { 0 };
     };
 
@@ -376,7 +376,7 @@ private:
 #elif OS(ANDROID)
         __android_log_print(ANDROID_LOG_VERBOSE, LOG_CHANNEL_WEBKIT_SUBSYSTEM, "[%s] %s", channel.name, logMessage.utf8().data());
 #elif ENABLE(JOURNALD_LOG)
-        sd_journal_send("WEBKIT_SUBSYSTEM=" LOG_CHANNEL_WEBKIT_SUBSYSTEM, "WEBKIT_CHANNEL=%s", channel.name, "MESSAGE=%s", logMessage.utf8().data(), nullptr);
+        sd_journal_send("WEBKIT_SUBSYSTEM=" LOG_CHANNEL_WEBKIT_SUBSYSTEM, "WEBKIT_CHANNEL=%s", channel.name, "MESSAGE=%s", logMessage.utf8().data(), nullPtr());
 #else
         fprintf(stderr, "[" LOG_CHANNEL_WEBKIT_SUBSYSTEM ":%s:-] %s\n", channel.name, logMessage.utf8().data());
 #endif
@@ -415,7 +415,7 @@ private:
 #elif ENABLE(JOURNALD_LOG)
         auto fileString = makeString("CODE_FILE="_s, unsafeSpan(file));
         auto lineString = makeString("CODE_LINE="_s, line);
-        sd_journal_send_with_location(fileString.utf8().data(), lineString.utf8().data(), function, "WEBKIT_SUBSYSTEM=" LOG_CHANNEL_WEBKIT_SUBSYSTEM, "WEBKIT_CHANNEL=%s", channel.name, "MESSAGE=%s", logMessage.utf8().data(), nullptr);
+        sd_journal_send_with_location(fileString.utf8().data(), lineString.utf8().data(), function, "WEBKIT_SUBSYSTEM=" LOG_CHANNEL_WEBKIT_SUBSYSTEM, "WEBKIT_CHANNEL=%s", channel.name, "MESSAGE=%s", logMessage.utf8().data(), nullPtr());
 #else
         fprintf(stderr, "[" LOG_CHANNEL_WEBKIT_SUBSYSTEM ":%s:-] %s FILE=%s:%d %s\n", channel.name, logMessage.utf8().data(), file, line, function);
 #endif

@@ -34,7 +34,7 @@ namespace WTF {
 // needs to be inlinable in order to be correct.
 ALWAYS_INLINE void* currentStackPointer()
 {
-    void* stackPointer = nullptr;
+    void* stackPointer = nullPtr();
 #if CPU(X86_64)
     __asm__ volatile ("movq %%rsp, %0" : "=r"(stackPointer) ::);
 #elif CPU(X86)

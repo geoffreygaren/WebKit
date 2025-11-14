@@ -46,7 +46,7 @@ public:
     };
 
     LocklessBag()
-        : m_head(nullptr)
+        : m_head(nullPtr())
     {
     }
 
@@ -89,7 +89,7 @@ public:
 
     void consumeAllWithNode(NOESCAPE const Invocable<void(T&&, Node*)> auto& func)
     {
-        Node* node = m_head.exchange(nullptr);
+        Node* node = m_head.exchange(nullPtr());
         while (node) {
             Node* oldNode = node;
             node = node->next;

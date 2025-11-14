@@ -33,7 +33,7 @@ void RefTracker::reportLive(void* id)
     RELEASE_ASSERT(id);
     Locker locker(lock);
 
-    std::unique_ptr<StackShot> stack = nullptr;
+    std::unique_ptr<StackShot> stack = nullPtr();
     if (!loggingDisabledDepth.load())
         stack = makeUnique<StackShot>(16);
     RELEASE_ASSERT(map.add(id, WTFMove(stack)).isNewEntry);

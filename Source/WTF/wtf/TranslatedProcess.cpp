@@ -40,7 +40,7 @@ bool isX86BinaryRunningOnARM()
     std::call_once(onceFlag, [&] {
         int value = 0;
         size_t size = sizeof(value);
-        if (sysctlbyname("sysctl.proc_translated", &value, &size, nullptr, 0) < 0)
+        if (sysctlbyname("sysctl.proc_translated", &value, &size, nullPtr(), 0) < 0)
             return;
         result = !!value;        
     });

@@ -59,7 +59,7 @@ public:
 private:
     std::span<const uint32_t> words() const { return unsafeMakeSpan(m_words, fastBitVectorArrayLength(m_numBits)); }
 
-    const uint32_t* m_words { nullptr };
+    const uint32_t* m_words { nullPtr() };
     size_t m_numBits { 0 };
 };
 
@@ -71,7 +71,7 @@ public:
     FastBitVectorWordOwner() = default;
     
     FastBitVectorWordOwner(FastBitVectorWordOwner&& other)
-        : m_words(std::exchange(other.m_words, nullptr))
+        : m_words(std::exchange(other.m_words, nullPtr()))
         , m_numBits(std::exchange(other.m_numBits, 0))
     {
     }
@@ -144,7 +144,7 @@ private:
     WTF_EXPORT_PRIVATE void setEqualsSlow(const FastBitVectorWordOwner& other);
     WTF_EXPORT_PRIVATE void resizeSlow(size_t numBits);
     
-    uint32_t* m_words { nullptr };
+    uint32_t* m_words { nullPtr() };
     size_t m_numBits { 0 };
 };
 
@@ -443,7 +443,7 @@ public:
     FastBitReference& operator&=(bool value) { return value ? *this : *this = value; }
 
 private:
-    uint32_t* m_word { nullptr };
+    uint32_t* m_word { nullPtr() };
     uint32_t m_mask { 0 };
 };
 

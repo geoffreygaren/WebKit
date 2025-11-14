@@ -89,7 +89,7 @@ public:
         return m_committed;
     }
 
-    static PageReservation reserve(size_t size, OSAllocator::Usage usage = OSAllocator::UnknownUsage, void* addressHint = nullptr, bool writable = true, bool executable = false, bool commit = false, bool jitCageEnabled = false)
+    static PageReservation reserve(size_t size, OSAllocator::Usage usage = OSAllocator::UnknownUsage, void* addressHint = nullPtr(), bool writable = true, bool executable = false, bool commit = false, bool jitCageEnabled = false)
     {
         ASSERT(isPageAligned(size));
         ASSERT(isPageAligned(addressHint));
@@ -98,7 +98,7 @@ public:
         return PageReservation(OSAllocator::reserveUncommitted(size, usage, addressHint, writable, executable, jitCageEnabled), size, writable, executable, jitCageEnabled);
     }
 
-    static PageReservation tryReserve(size_t size, OSAllocator::Usage usage = OSAllocator::UnknownUsage, void* addressHint = nullptr, bool writable = true, bool executable = false, bool commit = false, bool jitCageEnabled = false)
+    static PageReservation tryReserve(size_t size, OSAllocator::Usage usage = OSAllocator::UnknownUsage, void* addressHint = nullPtr(), bool writable = true, bool executable = false, bool commit = false, bool jitCageEnabled = false)
     {
         ASSERT(isPageAligned(size));
         ASSERT(isPageAligned(addressHint));
@@ -107,7 +107,7 @@ public:
         return PageReservation(OSAllocator::tryReserveUncommitted(size, usage, addressHint, writable, executable, jitCageEnabled), size, writable, executable, jitCageEnabled);
     }
 
-    static PageReservation reserveWithGuardPages(size_t size, OSAllocator::Usage usage = OSAllocator::UnknownUsage, void* addressHint = nullptr, bool writable = true, bool executable = false, bool commit = false, bool jitCageEnabled = false)
+    static PageReservation reserveWithGuardPages(size_t size, OSAllocator::Usage usage = OSAllocator::UnknownUsage, void* addressHint = nullPtr(), bool writable = true, bool executable = false, bool commit = false, bool jitCageEnabled = false)
     {
         ASSERT(isPageAligned(size));
         ASSERT(isPageAligned(addressHint));
@@ -116,7 +116,7 @@ public:
         return PageReservation(OSAllocator::reserveUncommitted(size, usage, addressHint, writable, executable, jitCageEnabled, 1), size, writable, executable, jitCageEnabled, 1);
     }
 
-    static PageReservation tryReserveWithGuardPages(size_t size, OSAllocator::Usage usage = OSAllocator::UnknownUsage, void* addressHint = nullptr, bool writable = true, bool executable = false, bool commit = false, bool jitCageEnabled = false)
+    static PageReservation tryReserveWithGuardPages(size_t size, OSAllocator::Usage usage = OSAllocator::UnknownUsage, void* addressHint = nullPtr(), bool writable = true, bool executable = false, bool commit = false, bool jitCageEnabled = false)
     {
         ASSERT(isPageAligned(size));
         ASSERT(isPageAligned(addressHint));

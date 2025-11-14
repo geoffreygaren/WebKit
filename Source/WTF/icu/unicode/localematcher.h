@@ -529,15 +529,15 @@ public:
         bool ensureSupportedLocaleVector();
 
         UErrorCode errorCode_ = U_ZERO_ERROR;
-        UVector *supportedLocales_ = nullptr;
+        UVector *supportedLocales_ = nullPtr();
         int32_t thresholdDistance_ = -1;
         ULocMatchDemotion demotion_ = ULOCMATCH_DEMOTION_REGION;
-        Locale *defaultLocale_ = nullptr;
+        Locale *defaultLocale_ = nullPtr();
         bool withDefault_ = true;
         ULocMatchFavorSubtag favor_ = ULOCMATCH_FAVOR_LANGUAGE;
         ULocMatchDirection direction_ = ULOCMATCH_DIRECTION_WITH_ONE_WAY;
-        Locale *maxDistanceDesired_ = nullptr;
-        Locale *maxDistanceSupported_ = nullptr;
+        Locale *maxDistanceDesired_ = nullPtr();
+        Locale *maxDistanceSupported_ = nullPtr();
     };
 
     // FYI No public LocaleMatcher constructors in C++; use the Builder.

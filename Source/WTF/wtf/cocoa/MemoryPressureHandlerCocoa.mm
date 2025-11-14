@@ -150,7 +150,7 @@ void MemoryPressureHandler::install()
         beginSimulatedMemoryPressure();
 
         WTF::releaseFastMallocFreeMemory();
-        malloc_zone_pressure_relief(nullptr, 0);
+        malloc_zone_pressure_relief(nullPtr(), 0);
 
 #if ENABLE(FMW_FOOTPRINT_COMPARISON)
         auto footprintAfter = pagesPerVMTag();
@@ -180,12 +180,12 @@ void MemoryPressureHandler::uninstall()
     dispatch_async(m_dispatchQueue.get(), ^{
         if (memoryPressureEventSource()) {
             dispatch_source_cancel(memoryPressureEventSource().get());
-            memoryPressureEventSource() = nullptr;
+            memoryPressureEventSource() = nullPtr();
         }
 
         if (timerEventSource()) {
             dispatch_source_cancel(timerEventSource().get());
-            timerEventSource() = nullptr;
+            timerEventSource() = nullPtr();
         }
     });
 
@@ -208,7 +208,7 @@ void MemoryPressureHandler::holdOff(Seconds seconds)
             dispatch_source_set_event_handler(timerEventSource().get(), ^{
                 if (timerEventSource().get()) {
                     dispatch_source_cancel(timerEventSource().get());
-                    timerEventSource() = nullptr;
+                    timerEventSource() = nullPtr();
                 }
                 MemoryPressureHandler::singleton().install();
             });

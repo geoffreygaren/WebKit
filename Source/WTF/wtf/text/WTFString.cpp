@@ -41,13 +41,13 @@ namespace WTF {
 
 // Construct a string with UTF-16 data.
 String::String(std::span<const char16_t> characters)
-    : m_impl(characters.data() ? RefPtr { StringImpl::create(characters) } : nullptr)
+    : m_impl(characters.data() ? RefPtr { StringImpl::create(characters) } : nullPtr())
 {
 }
 
 // Construct a string with latin1 data.
 String::String(std::span<const Latin1Character> characters)
-    : m_impl(characters.data() ? RefPtr { StringImpl::create(characters) } : nullptr)
+    : m_impl(characters.data() ? RefPtr { StringImpl::create(characters) } : nullPtr())
 {
 }
 
@@ -59,13 +59,13 @@ String::String(std::span<const char8_t> characters)
 
 // Construct a string with Latin-1 data.
 String::String(std::span<const char> characters)
-    : m_impl(characters.data() ? RefPtr { StringImpl::create(byteCast<Latin1Character>(characters)) } : nullptr)
+    : m_impl(characters.data() ? RefPtr { StringImpl::create(byteCast<Latin1Character>(characters)) } : nullPtr())
 {
 }
 
 // Construct a string with Latin-1 data, from a null-terminated source.
 String::String(const char* nullTerminatedString)
-    : m_impl(nullTerminatedString ? RefPtr { StringImpl::createFromCString(nullTerminatedString) } : nullptr)
+    : m_impl(nullTerminatedString ? RefPtr { StringImpl::createFromCString(nullTerminatedString) } : nullPtr())
 {
 }
 
@@ -572,13 +572,13 @@ float charactersToFloat(std::span<const char16_t> data, bool* ok)
 float charactersToFloat(std::span<const Latin1Character> data, size_t& parsedLength)
 {
     // FIXME: This will return ok even when the string fits into a double but not a float.
-    return static_cast<float>(toDoubleType<Latin1Character, TrailingJunkPolicy::Allow>(data, nullptr, parsedLength));
+    return static_cast<float>(toDoubleType<Latin1Character, TrailingJunkPolicy::Allow>(data, nullPtr(), parsedLength));
 }
 
 float charactersToFloat(std::span<const char16_t> data, size_t& parsedLength)
 {
     // FIXME: This will return ok even when the string fits into a double but not a float.
-    return static_cast<float>(toDoubleType<char16_t, TrailingJunkPolicy::Allow>(data, nullptr, parsedLength));
+    return static_cast<float>(toDoubleType<char16_t, TrailingJunkPolicy::Allow>(data, nullPtr(), parsedLength));
 }
 
 const StaticString nullStringData { nullptr };

@@ -47,12 +47,12 @@ void* OSAllocator::tryReserveAndCommit(size_t bytes, Usage usage, void* address,
 
     void* result = memory_extra::vss::reserve(bytes);
     if (!result)
-        return nullptr;
+        return nullPtr();
 
     bool success = memory_extra::vss::commit(result, bytes, writable, usage);
     if (!success) {
         memory_extra::vss::release(result, bytes);
-        return nullptr;
+        return nullPtr();
     }
 
     return result;
@@ -69,7 +69,7 @@ void* OSAllocator::tryReserveUncommitted(size_t bytes, Usage usage, void* addres
 
     void* result = memory_extra::vss::reserve(bytes);
     if (!result)
-        return nullptr;
+        return nullPtr();
 
     return result;
 }
@@ -93,7 +93,7 @@ void* OSAllocator::tryReserveUncommittedAligned(size_t bytes, size_t alignment, 
 
     void* result = memory_extra::vss::reserve(bytes, alignment);
     if (!result)
-        return nullptr;
+        return nullPtr();
 
     return result;
 }

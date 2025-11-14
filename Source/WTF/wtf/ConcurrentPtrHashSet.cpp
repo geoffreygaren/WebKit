@@ -74,7 +74,7 @@ bool ConcurrentPtrHashSet::addSlow(Table* table, unsigned mask, unsigned startIn
         return resizeAndAdd(ptr);
     
     for (;;) {
-        void* oldEntry = table->at(index).compareExchangeStrong(nullptr, ptr);
+        void* oldEntry = table->at(index).compareExchangeStrong(nullPtr(), ptr);
         if (!oldEntry) {
             if (m_table.load() != table) {
                 // We added an entry to an old table! We need to reexecute the add on the new table.
@@ -189,7 +189,7 @@ std::unique_ptr<ConcurrentPtrHashSet::Table> ConcurrentPtrHashSet::Table::create
     result->mask = size - 1;
     result->load.storeRelaxed(0);
     for (unsigned i = 0; i < size; ++i)
-        result->at(i).storeRelaxed(nullptr);
+        result->at(i).storeRelaxed(nullPtr());
     return result;
 }
 
@@ -206,7 +206,7 @@ std::unique_ptr<ConcurrentPtrHashSet::Table> ConcurrentPtrHashSet::Table::create
     result->size = 0;
     result->mask = 0;
     result->load.storeRelaxed(stubDefaultLoadValue);
-    result->at(0).storeRelaxed(nullptr);
+    result->at(0).storeRelaxed(nullPtr());
     return result;
 }
 

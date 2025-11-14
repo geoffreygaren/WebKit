@@ -126,7 +126,7 @@ static size_t processMemoryUsage()
     mib[2] = KERN_PROC_PID;
     mib[3] = getpid();
 
-    if (sysctl(mib, 4, &info, &infolen, nullptr, 0))
+    if (sysctl(mib, 4, &info, &infolen, nullPtr(), 0))
         return 0;
 
     return static_cast<size_t>(info.ki_rssize - info.ki_tsize) * pageSize;
@@ -136,7 +136,7 @@ static size_t processMemoryUsage()
         return 0;
 
     procfs_asinfo info;
-    int rc = devctl(fd, DCMD_PROC_ASINFO, &info, sizeof(info), nullptr);
+    int rc = devctl(fd, DCMD_PROC_ASINFO, &info, sizeof(info), nullPtr());
     close(fd);
 
     if (rc)

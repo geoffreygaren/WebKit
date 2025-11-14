@@ -94,7 +94,7 @@ void loadIDNAllowedScriptList()
     
 static String decodePercentEscapes(const String& string)
 {
-    auto substring = adoptCF(CFURLCreateStringByReplacingPercentEscapes(nullptr, string.createCFString().get(), CFSTR("")));
+    auto substring = adoptCF(CFURLCreateStringByReplacingPercentEscapes(nullPtr(), string.createCFString().get(), CFSTR("")));
     if (!substring)
         return string;
     return substring.get();
@@ -102,7 +102,7 @@ static String decodePercentEscapes(const String& string)
 
 NSString *decodeHostName(NSString *string)
 {
-    std::optional<String> host = URLHelpers::mapHostName(string, nullptr);
+    std::optional<String> host = URLHelpers::mapHostName(string, nullPtr());
     if (!host)
         return nil;
     if (!*host)
@@ -132,15 +132,15 @@ NSURL *URLByTruncatingOneCharacterBeforeComponent(NSURL *URL, CFURLComponentType
     if (!URL)
         return nil;
     
-    CFRange range = CFURLGetByteRangeForComponent(bridge_cast(URL), component, nullptr);
+    CFRange range = CFURLGetByteRangeForComponent(bridge_cast(URL), component, nullPtr());
     if (range.location == kCFNotFound)
         return URL;
 
     auto bytes = bytesAsVector(bridge_cast(URL));
 
-    auto result = adoptCF(CFURLCreateWithBytes(nullptr, bytes.span().data(), range.location - 1, kCFStringEncodingUTF8, nullptr));
+    auto result = adoptCF(CFURLCreateWithBytes(nullPtr(), bytes.span().data(), range.location - 1, kCFStringEncodingUTF8, nullPtr()));
     if (!result)
-        result = adoptCF(CFURLCreateWithBytes(nullptr, bytes.span().data(), range.location - 1, kCFStringEncodingISOLatin1, nullptr));
+        result = adoptCF(CFURLCreateWithBytes(nullPtr(), bytes.span().data(), range.location - 1, kCFStringEncodingISOLatin1, nullPtr()));
 
     return result ? result.bridgingAutorelease() : URL;
 }
@@ -165,9 +165,9 @@ NSURL *URLWithData(NSData *data, NSURL *baseURL)
         // (e.g calls to NSURL -path). However, this function is not tolerant of illegal UTF-8 sequences, which
         // could either be a malformed string or bytes in a different encoding, like shift-jis, so we fall back
         // onto using ISO Latin 1 in those cases.
-        auto result = adoptCF(CFURLCreateAbsoluteURLWithBytes(nullptr, bytes, length, kCFStringEncodingUTF8, (__bridge CFURLRef)baseURL, YES));
+        auto result = adoptCF(CFURLCreateAbsoluteURLWithBytes(nullPtr(), bytes, length, kCFStringEncodingUTF8, (__bridge CFURLRef)baseURL, YES));
         if (!result)
-            result = adoptCF(CFURLCreateAbsoluteURLWithBytes(nullptr, bytes, length, kCFStringEncodingISOLatin1, (__bridge CFURLRef)baseURL, YES));
+            result = adoptCF(CFURLCreateAbsoluteURLWithBytes(nullPtr(), bytes, length, kCFStringEncodingISOLatin1, (__bridge CFURLRef)baseURL, YES));
         return result.bridgingAutorelease();
     }
     return [NSURL URLWithString:@""];
@@ -250,7 +250,7 @@ static bool hasQuestionMarkOnlyQueryString(NSURL *URL)
 
 NSData *dataForURLComponentType(NSURL *URL, CFURLComponentType componentType)
 {
-    CFRange range = CFURLGetByteRangeForComponent(bridge_cast(URL), componentType, nullptr);
+    CFRange range = CFURLGetByteRangeForComponent(bridge_cast(URL), componentType, nullPtr());
     if (range.location == kCFNotFound)
         return nil;
 
@@ -298,9 +298,9 @@ static NSURL *URLByRemovingComponentAndSubsequentCharacter(NSURL *URL, CFURLComp
 
     memmoveSpan(urlBytes.subspan(range.location), urlBytes.subspan(range.location + range.length));
 
-    auto result = adoptCF(CFURLCreateWithBytes(nullptr, urlBytes.data(), numBytes - range.length, kCFStringEncodingUTF8, nullptr));
+    auto result = adoptCF(CFURLCreateWithBytes(nullPtr(), urlBytes.data(), numBytes - range.length, kCFStringEncodingUTF8, nullPtr()));
     if (!result)
-        result = adoptCF(CFURLCreateWithBytes(nullptr, urlBytes.data(), numBytes - range.length, kCFStringEncodingISOLatin1, nullptr));
+        result = adoptCF(CFURLCreateWithBytes(nullPtr(), urlBytes.data(), numBytes - range.length, kCFStringEncodingISOLatin1, nullPtr()));
 
     return result ? result.bridgingAutorelease() : URL;
 }

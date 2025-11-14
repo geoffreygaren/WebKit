@@ -39,8 +39,8 @@ class NaturalLoop {
     WTF_DEPRECATED_MAKE_FAST_ALLOCATED(NaturalLoop);
 public:
     NaturalLoop()
-        : m_graph(nullptr)
-        , m_header(nullptr)
+        : m_graph(nullPtr())
+        , m_header(nullPtr())
         , m_outerLoopIndex(UINT_MAX)
         , m_innerLoopIndex(UINT_MAX)
     {
@@ -288,28 +288,28 @@ public:
     {
         const NaturalLoop<Graph>* loop = innerMostLoopOf(block);
         if (!loop)
-            return nullptr;
+            return nullPtr();
         if (loop->header() == block)
             return loop;
 #if ASSERT_ENABLED
         for (; loop; loop = innerMostOuterLoop(*loop))
             ASSERT(loop->header() != block);
 #endif
-        return nullptr;
+        return nullPtr();
     }
     
     const NaturalLoop<Graph>* innerMostLoopOf(typename Graph::Node block) const
     {
         unsigned index = m_innerMostLoopIndices[block][0];
         if (index == UINT_MAX)
-            return nullptr;
+            return nullPtr();
         return &m_loops[index];
     }
     
     const NaturalLoop<Graph>* innerMostOuterLoop(const NaturalLoop<Graph>& loop) const
     {
         if (loop.m_outerLoopIndex == UINT_MAX)
-            return nullptr;
+            return nullPtr();
         return &m_loops[loop.m_outerLoopIndex];
     }
     

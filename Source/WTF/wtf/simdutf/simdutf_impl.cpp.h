@@ -8918,7 +8918,7 @@ template <typename T> struct base32 {
     return vec_xst(this->value, 0, reinterpret_cast<vector_type *>(dst));
 #endif // defined(__clang__)
   }
-  void dump(const char *name = nullptr) const {
+  void dump(const char *name = nullPtr()) const {
 #ifdef SIMDUTF_LOGGING
     if (name != nullptr) {
       printf("%-10s = ", name);
@@ -18258,11 +18258,11 @@ public:
     return 0;
   }
   const char *find(const char *, const char *, char) const noexcept override {
-    return nullptr;
+    return nullPtr();
   }
   const char16_t *find(const char16_t *, const char16_t *,
                        char16_t) const noexcept override {
-    return nullptr;
+    return nullPtr();
   }
 #endif // SIMDUTF_FEATURE_BASE64
 
@@ -19885,7 +19885,7 @@ const char16_t *arm_validate_utf16(const char16_t *input, size_t size) {
         // one, 2) reject sole high surrogate.
         input += 15;
       } else {
-        return nullptr;
+        return nullPtr();
       }
     }
   }
@@ -19907,7 +19907,7 @@ const char16_t *arm_validate_utf16_as_ascii(const char16_t *input,
     uint16x8_t cmp = vcgtq_u16(inor, vdupq_n_u16(0x7f));
     uint64_t mask = vget_lane_u64(vreinterpret_u64_u8(vshrn_n_u16(cmp, 4)), 0);
     if (mask) {
-      return nullptr;
+      return nullPtr();
     }
     input += 16;
   }
@@ -20011,13 +20011,13 @@ const char32_t *arm_validate_utf32le(const char32_t *input, size_t size) {
   uint32x4_t is_zero =
       veorq_u32(vmaxq_u32(currentmax, standardmax), standardmax);
   if (vmaxvq_u32(is_zero) != 0) {
-    return nullptr;
+    return nullPtr();
   }
 
   is_zero = veorq_u32(vmaxq_u32(currentoffsetmax, standardoffsetmax),
                       standardoffsetmax);
   if (vmaxvq_u32(is_zero) != 0) {
-    return nullptr;
+    return nullPtr();
   }
 
   return input;
@@ -20786,7 +20786,7 @@ arm_convert_utf16_to_latin1(const char16_t *buf, size_t len,
       buf += 8;
       latin1_output += 8;
     } else {
-      return std::make_pair(nullptr, reinterpret_cast<char *>(latin1_output));
+      return std::make_pair(nullPtr(), reinterpret_cast<char *>(latin1_output));
     }
   } // while
   return std::make_pair(buf, latin1_output);
@@ -20935,7 +20935,7 @@ arm_convert_utf16_to_utf32(const char16_t *buf, size_t len,
           k++;
           uint16_t diff2 = uint16_t(next_word - 0xDC00);
           if ((diff | diff2) > 0x3FF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char32_t *>(utf32_output));
           }
           uint32_t value = (diff << 10) + diff2 + 0x10000;
@@ -21321,7 +21321,7 @@ arm_convert_utf16_to_utf8(const char16_t *buf, size_t len, char *utf8_out) {
           k++;
           uint16_t diff2 = uint16_t(next_word - 0xDC00);
           if ((diff | diff2) > 0x3FF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char *>(utf8_output));
           }
           uint32_t value = (diff << 10) + diff2 + 0x10000;
@@ -22683,7 +22683,7 @@ arm_convert_utf32_to_latin1(const char32_t *buf, size_t len,
       buf += 8;
       latin1_output += 8;
     } else {
-      return std::make_pair(nullptr, reinterpret_cast<char *>(latin1_output));
+      return std::make_pair(nullPtr(), reinterpret_cast<char *>(latin1_output));
     }
   } // while
   return std::make_pair(buf, latin1_output);
@@ -22829,7 +22829,7 @@ arm_convert_utf32_to_utf16(const char32_t *buf, size_t len,
       buf += 8;
     } else {
       if (simdutf_unlikely(fast_invalid_utf32(in) || max_val > 0x10ffff)) {
-        return std::make_pair(nullptr,
+        return std::make_pair(nullPtr(),
                               reinterpret_cast<char16_t *>(utf16_output));
       }
       expansion_result_t res = neon_expand_surrogate<big_endian>(in.val[0]);
@@ -22844,7 +22844,7 @@ arm_convert_utf32_to_utf16(const char32_t *buf, size_t len,
 
   // check for invalid input
   if (vmaxvq_u32(vreinterpretq_u32_u16(forbidden_bytemask)) != 0) {
-    return std::make_pair(nullptr, reinterpret_cast<char16_t *>(utf16_output));
+    return std::make_pair(nullPtr(), reinterpret_cast<char16_t *>(utf16_output));
   }
 
   return std::make_pair(buf, reinterpret_cast<char16_t *>(utf16_output));
@@ -23164,7 +23164,7 @@ arm_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_out) {
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else if ((word & 0xFFFF0000) == 0) {
           if (word >= 0xD800 && word <= 0xDFFF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char *>(utf8_output));
           }
           *utf8_output++ = char((word >> 12) | 0b11100000);
@@ -23172,7 +23172,7 @@ arm_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_out) {
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else {
           if (word > 0x10FFFF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char *>(utf8_output));
           }
           *utf8_output++ = char((word >> 18) | 0b11110000);
@@ -23187,7 +23187,7 @@ arm_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_out) {
 
   // check for invalid input
   if (vmaxvq_u16(forbidden_bytemask) != 0) {
-    return std::make_pair(nullptr, reinterpret_cast<char *>(utf8_output));
+    return std::make_pair(nullPtr(), reinterpret_cast<char *>(utf8_output));
   }
   return std::make_pair(buf, reinterpret_cast<char *>(utf8_output));
 }
@@ -28450,7 +28450,7 @@ validating_utf8_to_fixed_length(const char *str, size_t len, OUTPUT *dwords) {
   }
   checker.check_eof();
   if (checker.errors()) {
-    return {ptr, nullptr}; // We found an error.
+    return {ptr, nullPtr()}; // We found an error.
   }
   return {ptr, output};
 }
@@ -29263,7 +29263,7 @@ fast_avx512_convert_utf8_to_utf16(const char *in, size_t len, char16_t *out) {
     }
   }
   if (!result) {
-    out = nullptr;
+    out = nullPtr();
   }
   return std::make_pair(in, out);
 }
@@ -29874,14 +29874,14 @@ avx512_convert_utf32_to_utf8(const char32_t *buf, size_t len,
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else if ((word & 0xFFFF0000) == 0) { // 3-byte
           if (word >= 0xD800 && word <= 0xDFFF) {
-            return std::make_pair(nullptr, utf8_output);
+            return std::make_pair(nullPtr(), utf8_output);
           }
           *utf8_output++ = char((word >> 12) | 0b11100000);
           *utf8_output++ = char(((word >> 6) & 0b111111) | 0b10000000);
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else { // 4-byte
           if (word > 0x10FFFF) {
-            return std::make_pair(nullptr, utf8_output);
+            return std::make_pair(nullPtr(), utf8_output);
           }
           *utf8_output++ = char((word >> 18) | 0b11110000);
           *utf8_output++ = char(((word >> 12) & 0b111111) | 0b10000000);
@@ -29897,11 +29897,11 @@ avx512_convert_utf32_to_utf8(const char32_t *buf, size_t len,
   const __m256i v_10ffff = _mm256_set1_epi32((uint32_t)0x10ffff);
   if (static_cast<uint32_t>(_mm256_movemask_epi8(_mm256_cmpeq_epi32(
           _mm256_max_epu32(running_max, v_10ffff), v_10ffff))) != 0xffffffff) {
-    return std::make_pair(nullptr, utf8_output);
+    return std::make_pair(nullPtr(), utf8_output);
   }
 
   if (static_cast<uint32_t>(_mm256_movemask_epi8(forbidden_bytemask)) != 0) {
-    return std::make_pair(nullptr, utf8_output);
+    return std::make_pair(nullPtr(), utf8_output);
   }
 
   return std::make_pair(buf, utf8_output);
@@ -30250,7 +30250,7 @@ avx512_convert_utf32_to_utf16(const char32_t *buf, size_t len,
           saturation_bitmask, _mm512_and_si512(in, v_f800), v_d800);
       error |= _mm512_mask_cmpgt_epu32_mask(surrogate_bitmask, in, v_10ffff);
       if (simdutf_unlikely(error)) {
-        return std::make_pair(nullptr, utf16_output);
+        return std::make_pair(nullPtr(), utf16_output);
       }
       __m512i v1, v2, v;
       // for the bits saturation_bitmask == 0, we need to unpack the 32-bit word
@@ -30315,7 +30315,7 @@ avx512_convert_utf32_to_utf16(const char32_t *buf, size_t len,
           saturation_bitmask, _mm512_and_si512(in, v_f800), v_d800);
       error |= _mm512_mask_cmpgt_epu32_mask(surrogate_bitmask, in, v_10ffff);
       if (simdutf_unlikely(error)) {
-        return std::make_pair(nullptr, utf16_output);
+        return std::make_pair(nullPtr(), utf16_output);
       }
       __m512i v1, v2, v;
       in = _mm512_mask_sub_epi32(in, surrogate_bitmask, in, v_10000);
@@ -30347,7 +30347,7 @@ avx512_convert_utf32_to_utf16(const char32_t *buf, size_t len,
 
   // check for invalid input
   if (forbidden_bytemask != 0) {
-    return std::make_pair(nullptr, utf16_output);
+    return std::make_pair(nullPtr(), utf16_output);
   }
 
   return std::make_pair(buf, utf16_output);
@@ -34153,7 +34153,7 @@ avx2_convert_utf16_to_latin1(const char16_t *buf, size_t len,
       buf += 32;
       latin1_output += 32;
     } else {
-      return std::make_pair(nullptr, reinterpret_cast<char *>(latin1_output));
+      return std::make_pair(nullPtr(), reinterpret_cast<char *>(latin1_output));
     }
   } // while
   return std::make_pair(buf, latin1_output);
@@ -34518,7 +34518,7 @@ avx2_convert_utf16_to_utf8(const char16_t *buf, size_t len, char *utf8_output) {
           k++;
           uint16_t diff2 = uint16_t(next_word - 0xDC00);
           if ((diff | diff2) > 0x3FF) {
-            return std::make_pair(nullptr, utf8_output);
+            return std::make_pair(nullPtr(), utf8_output);
           }
           uint32_t value = (diff << 10) + diff2 + 0x10000;
           *utf8_output++ = char((value >> 18) | 0b11110000);
@@ -34933,7 +34933,7 @@ avx2_convert_utf16_to_utf32(const char16_t *buf, size_t len,
           k++;
           uint16_t diff2 = uint16_t(next_word - 0xDC00);
           if ((diff | diff2) > 0x3FF) {
-            return std::make_pair(nullptr, utf32_output);
+            return std::make_pair(nullPtr(), utf32_output);
           }
           uint32_t value = (diff << 10) + diff2 + 0x10000;
           *utf32_output++ = char32_t(value);
@@ -35051,7 +35051,7 @@ avx2_convert_utf32_to_latin1(const char32_t *buf, size_t len,
         _mm256_or_si256(_mm256_or_si256(a, b), _mm256_or_si256(c, d));
 
     if (!_mm256_testz_si256(check_combined, high_bytes_mask)) {
-      return std::make_pair(nullptr, latin1_output);
+      return std::make_pair(nullPtr(), latin1_output);
     }
 
     b = _mm256_slli_epi32(b, 1 * 8);
@@ -35403,14 +35403,14 @@ avx2_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_output) {
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else if ((word & 0xFFFF0000) == 0) { // 3-byte
           if (word >= 0xD800 && word <= 0xDFFF) {
-            return std::make_pair(nullptr, utf8_output);
+            return std::make_pair(nullPtr(), utf8_output);
           }
           *utf8_output++ = char((word >> 12) | 0b11100000);
           *utf8_output++ = char(((word >> 6) & 0b111111) | 0b10000000);
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else { // 4-byte
           if (word > 0x10FFFF) {
-            return std::make_pair(nullptr, utf8_output);
+            return std::make_pair(nullPtr(), utf8_output);
           }
           *utf8_output++ = char((word >> 18) | 0b11110000);
           *utf8_output++ = char(((word >> 12) & 0b111111) | 0b10000000);
@@ -35426,11 +35426,11 @@ avx2_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_output) {
   const __m256i v_10ffff = _mm256_set1_epi32((uint32_t)0x10ffff);
   if (static_cast<uint32_t>(_mm256_movemask_epi8(_mm256_cmpeq_epi32(
           _mm256_max_epu32(running_max, v_10ffff), v_10ffff))) != 0xffffffff) {
-    return std::make_pair(nullptr, utf8_output);
+    return std::make_pair(nullPtr(), utf8_output);
   }
 
   if (static_cast<uint32_t>(_mm256_movemask_epi8(forbidden_bytemask)) != 0) {
-    return std::make_pair(nullptr, utf8_output);
+    return std::make_pair(nullPtr(), utf8_output);
   }
 
   return std::make_pair(buf, utf8_output);
@@ -35774,7 +35774,7 @@ avx2_convert_utf32_to_utf16(const char32_t *buf, size_t len,
         if ((word & 0xFFFF0000) == 0) {
           // will not generate a surrogate pair
           if (word >= 0xD800 && word <= 0xDFFF) {
-            return std::make_pair(nullptr, utf16_output);
+            return std::make_pair(nullPtr(), utf16_output);
           }
           *utf16_output++ =
               big_endian
@@ -35783,7 +35783,7 @@ avx2_convert_utf32_to_utf16(const char32_t *buf, size_t len,
         } else {
           // will generate a surrogate pair
           if (word > 0x10FFFF) {
-            return std::make_pair(nullptr, utf16_output);
+            return std::make_pair(nullPtr(), utf16_output);
           }
           word -= 0x10000;
           uint16_t high_surrogate = uint16_t(0xD800 + (word >> 10));
@@ -35804,7 +35804,7 @@ avx2_convert_utf32_to_utf16(const char32_t *buf, size_t len,
 
   // check for invalid input
   if (static_cast<uint32_t>(_mm256_movemask_epi8(forbidden_bytemask)) != 0) {
-    return std::make_pair(nullptr, utf16_output);
+    return std::make_pair(nullPtr(), utf16_output);
   }
 
   return std::make_pair(buf, utf16_output);
@@ -50024,7 +50024,7 @@ sse_convert_utf16_to_latin1(const char16_t *buf, size_t len,
       buf += 8;
       latin1_output += 8;
     } else {
-      return std::make_pair(nullptr, reinterpret_cast<char *>(latin1_output));
+      return std::make_pair(nullPtr(), reinterpret_cast<char *>(latin1_output));
     }
   } // while
   return std::make_pair(buf, latin1_output);
@@ -50333,7 +50333,7 @@ sse_convert_utf16_to_utf8(const char16_t *buf, size_t len, char *utf8_output) {
           k++;
           uint16_t diff2 = uint16_t(next_word - 0xDC00);
           if ((diff | diff2) > 0x3FF) {
-            return std::make_pair(nullptr, utf8_output);
+            return std::make_pair(nullPtr(), utf8_output);
           }
           uint32_t value = (diff << 10) + diff2 + 0x10000;
           *utf8_output++ = char((value >> 18) | 0b11110000);
@@ -50697,7 +50697,7 @@ sse_convert_utf16_to_utf32(const char16_t *buf, size_t len,
           k++;
           uint16_t diff2 = uint16_t(next_word - 0xDC00);
           if ((diff | diff2) > 0x3FF) {
-            return std::make_pair(nullptr, utf32_output);
+            return std::make_pair(nullPtr(), utf32_output);
           }
           uint32_t value = (diff << 10) + diff2 + 0x10000;
           *utf32_output++ = char32_t(value);
@@ -50815,7 +50815,7 @@ sse_convert_utf32_to_latin1(const char32_t *buf, size_t len,
     check_combined = _mm_or_si128(check_combined, in4);
 
     if (!_mm_testz_si128(check_combined, high_bytes_mask)) {
-      return std::make_pair(nullptr, latin1_output);
+      return std::make_pair(nullPtr(), latin1_output);
     }
     __m128i pack1 = _mm_unpacklo_epi32(_mm_shuffle_epi8(in1, shufmask),
                                        _mm_shuffle_epi8(in2, shufmask));
@@ -51180,14 +51180,14 @@ sse_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_output) {
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else if ((word & 0xFFFF0000) == 0) {
           if (word >= 0xD800 && word <= 0xDFFF) {
-            return std::make_pair(nullptr, utf8_output);
+            return std::make_pair(nullPtr(), utf8_output);
           }
           *utf8_output++ = char((word >> 12) | 0b11100000);
           *utf8_output++ = char(((word >> 6) & 0b111111) | 0b10000000);
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else {
           if (word > 0x10FFFF) {
-            return std::make_pair(nullptr, utf8_output);
+            return std::make_pair(nullPtr(), utf8_output);
           }
           *utf8_output++ = char((word >> 18) | 0b11110000);
           *utf8_output++ = char(((word >> 12) & 0b111111) | 0b10000000);
@@ -51203,11 +51203,11 @@ sse_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_output) {
   const __m128i v_10ffff = _mm_set1_epi32((uint32_t)0x10ffff);
   if (static_cast<uint16_t>(_mm_movemask_epi8(_mm_cmpeq_epi32(
           _mm_max_epu32(running_max, v_10ffff), v_10ffff))) != 0xffff) {
-    return std::make_pair(nullptr, utf8_output);
+    return std::make_pair(nullPtr(), utf8_output);
   }
 
   if (static_cast<uint32_t>(_mm_movemask_epi8(forbidden_bytemask)) != 0) {
-    return std::make_pair(nullptr, utf8_output);
+    return std::make_pair(nullPtr(), utf8_output);
   }
 
   return std::make_pair(buf, utf8_output);
@@ -51576,7 +51576,7 @@ sse_convert_utf32_to_utf16(const char32_t *buf, size_t len,
       buf += 16;
     } else {
       if (!validate_utf32(in0, in1) || !validate_utf32(in2, in3)) {
-        return std::make_pair(nullptr, utf16_output);
+        return std::make_pair(nullPtr(), utf16_output);
       }
 
       const auto ret0 = sse_expand_surrogate<big_endian>(in0);
@@ -51601,7 +51601,7 @@ sse_convert_utf32_to_utf16(const char32_t *buf, size_t len,
 
   // check for invalid input
   if (static_cast<uint32_t>(_mm_movemask_epi8(forbidden_bytemask)) != 0) {
-    return std::make_pair(nullptr, utf16_output);
+    return std::make_pair(nullPtr(), utf16_output);
   }
 
   return std::make_pair(buf, utf16_output);
@@ -56548,13 +56548,13 @@ const char32_t *lsx_validate_utf32le(const char32_t *input, size_t size) {
   __m128i is_zero =
       __lsx_vxor_v(__lsx_vmax_wu(currentmax, standardmax), standardmax);
   if (__lsx_bnz_v(is_zero)) {
-    return nullptr;
+    return nullPtr();
   }
 
   is_zero = __lsx_vxor_v(__lsx_vmax_wu(currentoffsetmax, standardoffsetmax),
                          standardoffsetmax);
   if (__lsx_bnz_v(is_zero)) {
-    return nullptr;
+    return nullPtr();
   }
 
   return input;
@@ -57313,7 +57313,7 @@ lsx_convert_utf16_to_latin1(const char16_t *buf, size_t len,
       buf += 16;
       latin1_output += 16;
     } else {
-      return std::make_pair(nullptr, reinterpret_cast<char *>(latin1_output));
+      return std::make_pair(nullPtr(), reinterpret_cast<char *>(latin1_output));
     }
   } // while
   return std::make_pair(buf, latin1_output);
@@ -57627,7 +57627,7 @@ lsx_convert_utf16_to_utf8(const char16_t *buf, size_t len, char *utf8_out) {
           k++;
           uint16_t diff2 = uint16_t(next_word - 0xDC00);
           if ((diff | diff2) > 0x3FF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char *>(utf8_output));
           }
           uint32_t value = (diff << 10) + diff2 + 0x10000;
@@ -57939,7 +57939,7 @@ lsx_convert_utf16_to_utf32(const char16_t *buf, size_t len,
           k++;
           uint16_t diff2 = uint16_t(next_word - 0xDC00);
           if ((diff | diff2) > 0x3FF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char32_t *>(utf32_output));
           }
           uint32_t value = (diff << 10) + diff2 + 0x10000;
@@ -58050,7 +58050,7 @@ lsx_convert_utf32_to_latin1(const char32_t *buf, size_t len,
       buf += 8;
       latin1_output += 8;
     } else {
-      return std::make_pair(nullptr, reinterpret_cast<char *>(latin1_output));
+      return std::make_pair(nullPtr(), reinterpret_cast<char *>(latin1_output));
     }
   } // while
   return std::make_pair(buf, latin1_output);
@@ -58298,7 +58298,7 @@ lsx_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_out) {
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else if ((word & 0xFFFF0000) == 0) {
           if (word >= 0xD800 && word <= 0xDFFF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char *>(utf8_output));
           }
           *utf8_output++ = char((word >> 12) | 0b11100000);
@@ -58306,7 +58306,7 @@ lsx_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_out) {
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else {
           if (word > 0x10FFFF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char *>(utf8_output));
           }
           *utf8_output++ = char((word >> 18) | 0b11110000);
@@ -58321,7 +58321,7 @@ lsx_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_out) {
 
   // check for invalid input
   if (__lsx_bnz_v(forbidden_bytemask)) {
-    return std::make_pair(nullptr, reinterpret_cast<char *>(utf8_output));
+    return std::make_pair(nullPtr(), reinterpret_cast<char *>(utf8_output));
   }
 
   return std::make_pair(buf, reinterpret_cast<char *>(utf8_output));
@@ -58602,7 +58602,7 @@ lsx_convert_utf32_to_utf16(const char32_t *buf, size_t len,
         if ((word & 0xFFFF0000) == 0) {
           // will not generate a surrogate pair
           if (word >= 0xD800 && word <= 0xDFFF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char16_t *>(utf16_output));
           }
           *utf16_output++ = !match_system(big_endian)
@@ -58611,7 +58611,7 @@ lsx_convert_utf32_to_utf16(const char32_t *buf, size_t len,
         } else {
           // will generate a surrogate pair
           if (word > 0x10FFFF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char16_t *>(utf16_output));
           }
           word -= 0x10000;
@@ -58632,7 +58632,7 @@ lsx_convert_utf32_to_utf16(const char32_t *buf, size_t len,
 
   // check for invalid input
   if (__lsx_bnz_v(forbidden_bytemask)) {
-    return std::make_pair(nullptr, reinterpret_cast<char16_t *>(utf16_output));
+    return std::make_pair(nullPtr(), reinterpret_cast<char16_t *>(utf16_output));
   }
   return std::make_pair(buf, reinterpret_cast<char16_t *>(utf16_output));
 }
@@ -63125,7 +63125,7 @@ const char32_t *lasx_validate_utf32le(const char32_t *input, size_t size) {
   while (((uint64_t)input & 0x1F) && input < end) {
     uint32_t word = *input++;
     if (word > 0x10FFFF || (word >= 0xD800 && word <= 0xDFFF)) {
-      return nullptr;
+      return nullPtr();
     }
   }
 
@@ -63146,13 +63146,13 @@ const char32_t *lasx_validate_utf32le(const char32_t *input, size_t size) {
   __m256i is_zero =
       __lasx_xvxor_v(__lasx_xvmax_wu(currentmax, standardmax), standardmax);
   if (__lasx_xbnz_v(is_zero)) {
-    return nullptr;
+    return nullPtr();
   }
 
   is_zero = __lasx_xvxor_v(__lasx_xvmax_wu(currentoffsetmax, standardoffsetmax),
                            standardoffsetmax);
   if (__lasx_xbnz_v(is_zero)) {
-    return nullptr;
+    return nullPtr();
   }
   return input;
 }
@@ -64008,7 +64008,7 @@ lasx_convert_utf16_to_latin1(const char16_t *buf, size_t len,
       buf += 16;
       latin1_output += 16;
     } else {
-      return std::make_pair(nullptr, reinterpret_cast<char *>(latin1_output));
+      return std::make_pair(nullPtr(), reinterpret_cast<char *>(latin1_output));
     }
   } // while
   return std::make_pair(buf, latin1_output);
@@ -64338,7 +64338,7 @@ lasx_convert_utf16_to_utf8(const char16_t *buf, size_t len, char *utf8_out) {
           k++;
           uint16_t diff2 = uint16_t(next_word - 0xDC00);
           if ((diff | diff2) > 0x3FF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char *>(utf8_output));
           }
           uint32_t value = (diff << 10) + diff2 + 0x10000;
@@ -64630,7 +64630,7 @@ lasx_convert_utf16_to_utf32(const char16_t *buf, size_t len,
       buf++;
     } else {
       if (buf + 1 >= end) {
-        return std::make_pair(nullptr,
+        return std::make_pair(nullPtr(),
                               reinterpret_cast<char32_t *>(utf32_output));
       }
       // must be a surrogate pair
@@ -64639,7 +64639,7 @@ lasx_convert_utf16_to_utf32(const char16_t *buf, size_t len,
           !match_system(big_endian) ? scalar::u16_swap_bytes(buf[1]) : buf[1];
       uint16_t diff2 = uint16_t(next_word - 0xDC00);
       if ((diff | diff2) > 0x3FF) {
-        return std::make_pair(nullptr,
+        return std::make_pair(nullPtr(),
                               reinterpret_cast<char32_t *>(utf32_output));
       }
       uint32_t value = (diff << 10) + diff2 + 0x10000;
@@ -64693,7 +64693,7 @@ lasx_convert_utf16_to_utf32(const char16_t *buf, size_t len,
           k++;
           uint16_t diff2 = uint16_t(next_word - 0xDC00);
           if ((diff | diff2) > 0x3FF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char32_t *>(utf32_output));
           }
           uint32_t value = (diff << 10) + diff2 + 0x10000;
@@ -64835,7 +64835,7 @@ lasx_convert_utf32_to_latin1(const char32_t *buf, size_t len,
       buf += 16;
       latin1_output += 16;
     } else {
-      return std::make_pair(nullptr, reinterpret_cast<char *>(latin1_output));
+      return std::make_pair(nullPtr(), reinterpret_cast<char *>(latin1_output));
     }
   } // while
   return std::make_pair(buf, latin1_output);
@@ -64902,14 +64902,14 @@ lasx_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_out) {
       *utf8_output++ = char((word & 0b111111) | 0b10000000);
     } else if ((word & 0xFFFF0000) == 0) {
       if (word >= 0xD800 && word <= 0xDFFF) {
-        return std::make_pair(nullptr, reinterpret_cast<char *>(utf8_output));
+        return std::make_pair(nullPtr(), reinterpret_cast<char *>(utf8_output));
       }
       *utf8_output++ = char((word >> 12) | 0b11100000);
       *utf8_output++ = char(((word >> 6) & 0b111111) | 0b10000000);
       *utf8_output++ = char((word & 0b111111) | 0b10000000);
     } else {
       if (word > 0x10FFFF) {
-        return std::make_pair(nullptr, reinterpret_cast<char *>(utf8_output));
+        return std::make_pair(nullPtr(), reinterpret_cast<char *>(utf8_output));
       }
       *utf8_output++ = char((word >> 18) | 0b11110000);
       *utf8_output++ = char(((word >> 12) & 0b111111) | 0b10000000);
@@ -65151,7 +65151,7 @@ lasx_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_out) {
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else if ((word & 0xFFFF0000) == 0) {
           if (word >= 0xD800 && word <= 0xDFFF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char *>(utf8_output));
           }
           *utf8_output++ = char((word >> 12) | 0b11100000);
@@ -65159,7 +65159,7 @@ lasx_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_out) {
           *utf8_output++ = char((word & 0b111111) | 0b10000000);
         } else {
           if (word > 0x10FFFF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char *>(utf8_output));
           }
           *utf8_output++ = char((word >> 18) | 0b11110000);
@@ -65174,7 +65174,7 @@ lasx_convert_utf32_to_utf8(const char32_t *buf, size_t len, char *utf8_out) {
 
   // check for invalid input
   if (__lasx_xbnz_v(forbidden_bytemask)) {
-    return std::make_pair(nullptr, reinterpret_cast<char *>(utf8_output));
+    return std::make_pair(nullPtr(), reinterpret_cast<char *>(utf8_output));
   }
   return std::make_pair(buf, reinterpret_cast<char *>(utf8_output));
 }
@@ -65493,7 +65493,7 @@ lasx_convert_utf32_to_utf16(const char32_t *buf, size_t len,
     if ((word & 0xFFFF0000) == 0) {
       // will not generate a surrogate pair
       if (word >= 0xD800 && word <= 0xDFFF) {
-        return std::make_pair(nullptr,
+        return std::make_pair(nullPtr(),
                               reinterpret_cast<char16_t *>(utf16_output));
       }
       *utf16_output++ = !match_system(big_endian)
@@ -65503,7 +65503,7 @@ lasx_convert_utf32_to_utf16(const char32_t *buf, size_t len,
     } else {
       // will generate a surrogate pair
       if (word > 0x10FFFF) {
-        return std::make_pair(nullptr,
+        return std::make_pair(nullPtr(),
                               reinterpret_cast<char16_t *>(utf16_output));
       }
       word -= 0x10000;
@@ -65553,7 +65553,7 @@ lasx_convert_utf32_to_utf16(const char32_t *buf, size_t len,
         if ((word & 0xFFFF0000) == 0) {
           // will not generate a surrogate pair
           if (word >= 0xD800 && word <= 0xDFFF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char16_t *>(utf16_output));
           }
           *utf16_output++ = !match_system(big_endian)
@@ -65562,7 +65562,7 @@ lasx_convert_utf32_to_utf16(const char32_t *buf, size_t len,
         } else {
           // will generate a surrogate pair
           if (word > 0x10FFFF) {
-            return std::make_pair(nullptr,
+            return std::make_pair(nullPtr(),
                                   reinterpret_cast<char16_t *>(utf16_output));
           }
           word -= 0x10000;
@@ -65583,7 +65583,7 @@ lasx_convert_utf32_to_utf16(const char32_t *buf, size_t len,
 
   // check for invalid input
   if (__lasx_xbnz_v(forbidden_bytemask)) {
-    return std::make_pair(nullptr, reinterpret_cast<char16_t *>(utf16_output));
+    return std::make_pair(nullPtr(), reinterpret_cast<char16_t *>(utf16_output));
   }
   return std::make_pair(buf, reinterpret_cast<char16_t *>(utf16_output));
 }

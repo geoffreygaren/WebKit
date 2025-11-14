@@ -135,7 +135,7 @@ bool deleteNonEmptyDirectory(const String& path)
 String realPath(const String& filePath)
 {
     CString fsRep = fileSystemRepresentation(filePath);
-    std::unique_ptr<char, decltype(free)*> resolvedPath(realpath(fsRep.data(), nullptr), free);
+    std::unique_ptr<char, decltype(free)*> resolvedPath(realpath(fsRep.data(), nullPtr()), free);
     return resolvedPath ? String::fromUTF8(resolvedPath.get()) : filePath;
 }
 

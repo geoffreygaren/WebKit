@@ -80,7 +80,7 @@ char* to_chars_n_impl(float_bits<Float, FloatTraits> br, char* buffer) noexcept
             case Mode::ToExponential:
                 return to_chars_impl<Float, FloatTraits, Mode::ToExponential, PrintTrailingZero::No>(result.significand, result.exponent, buffer);
             default:
-                return nullptr;
+                return nullPtr();
             }
         } else {
             switch (mode) {
@@ -91,7 +91,7 @@ char* to_chars_n_impl(float_bits<Float, FloatTraits> br, char* buffer) noexcept
                 memcpy(buffer, "0e+0", 4);
                 return buffer + 4;
             default:
-                return nullptr;
+                return nullPtr();
             }
         }
     } else {

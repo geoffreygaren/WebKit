@@ -80,7 +80,7 @@ RealTimeThreads::RealTimeThreads()
             RealTimeThreads::singleton().demoteAllThreadsFromRealTime();
         };
         action.sa_flags = SA_SIGINFO;
-        sigaction(SIGXCPU, &action, nullptr);
+        sigaction(SIGXCPU, &action, nullPtr());
     });
 }
 
@@ -157,7 +157,7 @@ static int64_t realTimeKitGetProperty(GDBusProxy* proxy, const char* propertyNam
 {
     const char* interfaceName = shouldUsePortal() ? "org.freedesktop.portal.Realtime" : "org.freedesktop.RealtimeKit1";
     GRefPtr<GVariant> result = adoptGRef(g_dbus_proxy_call_sync(proxy, "org.freedesktop.DBus.Properties.Get",
-        g_variant_new("(ss)", interfaceName, propertyName), G_DBUS_CALL_FLAGS_NONE, s_dbusCallTimeout.millisecondsAs<int>(), nullptr, error));
+        g_variant_new("(ss)", interfaceName, propertyName), G_DBUS_CALL_FLAGS_NONE, s_dbusCallTimeout.millisecondsAs<int>(), nullPtr(), error));
     if (!result)
         return -1;
 
@@ -180,12 +180,12 @@ void RealTimeThreads::realTimeKitMakeThreadRealTime(uint64_t processID, uint64_t
     if (!m_realTimeKitProxy) {
         if (shouldUsePortal()) {
             m_realTimeKitProxy = adoptGRef(g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SESSION,
-                static_cast<GDBusProxyFlags>(G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS | G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES), nullptr,
-                "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop", "org.freedesktop.portal.Realtime", nullptr, &error.outPtr()));
+                static_cast<GDBusProxyFlags>(G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS | G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES), nullPtr(),
+                "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop", "org.freedesktop.portal.Realtime", nullPtr(), &error.outPtr()));
         } else {
             m_realTimeKitProxy = adoptGRef(g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM,
-                static_cast<GDBusProxyFlags>(G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS | G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES), nullptr,
-                "org.freedesktop.RealtimeKit1", "/org/freedesktop/RealtimeKit1", "org.freedesktop.RealtimeKit1", nullptr, &error.outPtr()));
+                static_cast<GDBusProxyFlags>(G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS | G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES), nullPtr(),
+                "org.freedesktop.RealtimeKit1", "/org/freedesktop/RealtimeKit1", "org.freedesktop.RealtimeKit1", nullPtr(), &error.outPtr()));
         }
 
         if (!m_realTimeKitProxy.value()) {
@@ -205,7 +205,7 @@ void RealTimeThreads::realTimeKitMakeThreadRealTime(uint64_t processID, uint64_t
         if (error) {
             LOG_ERROR("Failed to get RTTimeUSecMax from RealtimeKit: %s", error->message);
             if (!g_error_matches(error.get(), G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_INTERFACE))
-                m_realTimeKitProxy = nullptr;
+                m_realTimeKitProxy = nullPtr();
 
             scheduleDiscardRealTimeKitProxy();
             return;
@@ -219,11 +219,11 @@ void RealTimeThreads::realTimeKitMakeThreadRealTime(uint64_t processID, uint64_t
 #endif
 
     GRefPtr<GVariant> result = adoptGRef(g_dbus_proxy_call_sync(m_realTimeKitProxy->get(), "MakeThreadRealtimeWithPID",
-        g_variant_new("(ttu)", processID, threadID, priority), G_DBUS_CALL_FLAGS_NONE, s_dbusCallTimeout.millisecondsAs<int>(), nullptr, &error.outPtr()));
+        g_variant_new("(ttu)", processID, threadID, priority), G_DBUS_CALL_FLAGS_NONE, s_dbusCallTimeout.millisecondsAs<int>(), nullPtr(), &error.outPtr()));
     if (!result) {
         LOG_ERROR("Failed to make thread real time: %s", error->message);
         if (!g_error_matches(error.get(), G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_INTERFACE))
-            m_realTimeKitProxy = nullptr;
+            m_realTimeKitProxy = nullPtr();
     }
 
     scheduleDiscardRealTimeKitProxy();

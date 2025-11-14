@@ -1595,12 +1595,12 @@ private:
      * A pointer to an object containing the strings to use in formatting (e.g.,
      * month and day names, AM and PM strings, time zone names, etc.)
      */
-    DateFormatSymbols*  fSymbols = nullptr;   // Owned
+    DateFormatSymbols*  fSymbols = nullPtr();   // Owned
 
     /**
      * The time zone formatter
      */
-    TimeZoneFormat* fTimeZoneFormat = nullptr;
+    TimeZoneFormat* fTimeZoneFormat = nullPtr();
 
     /**
      * If dates have ambiguous years, we map them into the century starting
@@ -1640,7 +1640,7 @@ private:
      * The number format in use for each date field. nullptr means fall back
      * to fNumberFormat in DateFormat.
      */
-    const SharedNumberFormat    **fSharedNumberFormatters = nullptr;
+    const SharedNumberFormat    **fSharedNumberFormatters = nullPtr();
 
     /**
      * Number formatter pre-allocated for fast performance
@@ -1649,11 +1649,11 @@ private:
      * of DecimalFormat (and is otherwise null). This should always be cleaned up before
      * destroying fNumberFormatter.
      */
-    const number::SimpleNumberFormatter* fSimpleNumberFormatter = nullptr;
+    const number::SimpleNumberFormatter* fSimpleNumberFormatter = nullPtr();
 
     UBool fHaveDefaultCentury;
 
-    const BreakIterator* fCapitalizationBrkIter = nullptr;
+    const BreakIterator* fCapitalizationBrkIter = nullPtr();
 };
 
 inline UDate

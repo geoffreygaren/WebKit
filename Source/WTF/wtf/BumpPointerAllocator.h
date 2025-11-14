@@ -101,8 +101,8 @@ private:
     BumpPointerPool(const PageAllocation& allocation, size_t remainingCapacity)
         : m_current(allocation.base())
         , m_start(allocation.base())
-        , m_next(nullptr)
-        , m_previous(nullptr)
+        , m_next(nullPtr())
+        , m_previous(nullPtr())
         , m_allocation(allocation)
         , m_remainingCapacity(remainingCapacity)
     {
@@ -113,7 +113,7 @@ private:
         // Add size of BumpPointerPool object, check for overflow.
         minimumCapacity += sizeof(BumpPointerPool);
         if (minimumCapacity < sizeof(BumpPointerPool))
-            return nullptr;
+            return nullPtr();
 
         size_t poolSize = std::max(static_cast<size_t>(MINIMUM_BUMP_POOL_SIZE), WTF::pageSize());
         while (poolSize < minimumCapacity) {
@@ -121,16 +121,16 @@ private:
             // The following if check relies on MINIMUM_BUMP_POOL_SIZE being a power of 2!
             ASSERT(!(MINIMUM_BUMP_POOL_SIZE & (MINIMUM_BUMP_POOL_SIZE - 1)));
             if (!poolSize)
-                return nullptr;
+                return nullPtr();
         }
 
         if (poolSize > remainingCapacity)
-            return nullptr;
+            return nullPtr();
 
         PageAllocation allocation = PageAllocation::allocate(poolSize);
         if (!!allocation)
             return new (allocation) BumpPointerPool(allocation, remainingCapacity - poolSize);
-        return nullptr;
+        return nullPtr();
     }
 
     void shrink()
@@ -162,7 +162,7 @@ private:
                 // We've run to the end; allocate a new pool.
                 pool = BumpPointerPool::create(previousPool->m_remainingCapacity, size);
                 if (!pool) [[unlikely]]
-                    return nullptr;
+                    return nullPtr();
                 previousPool->m_next = pool;
                 pool->m_previous = previousPool;
                 return pool;
@@ -231,7 +231,7 @@ class BumpPointerAllocator {
     WTF_DEPRECATED_MAKE_FAST_ALLOCATED(BumpPointerAllocator);
 public:
     BumpPointerAllocator()
-        : m_head(nullptr)
+        : m_head(nullPtr())
     {
     }
 

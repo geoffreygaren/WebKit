@@ -51,12 +51,12 @@ public:
 
     FixedVector() = default;
     FixedVector(const FixedVector& other)
-        : m_storage(other.m_storage ? other.m_storage->clone().moveToUniquePtr() : nullptr)
+        : m_storage(other.m_storage ? other.m_storage->clone().moveToUniquePtr() : nullPtr())
     { }
     FixedVector(FixedVector&& other) = default;
 
     FixedVector(std::initializer_list<T> initializerList)
-        : m_storage(initializerList.size() ? Storage::create(initializerList).moveToUniquePtr() : nullptr)
+        : m_storage(initializerList.size() ? Storage::create(initializerList).moveToUniquePtr() : nullPtr())
     {
     }
 
@@ -85,11 +85,11 @@ public:
     }
 
     explicit FixedVector(size_t size)
-        : m_storage(size ? Storage::create(size).moveToUniquePtr() : nullptr)
+        : m_storage(size ? Storage::create(size).moveToUniquePtr() : nullPtr())
     { }
 
     FixedVector(size_t size, const T& value)
-        : m_storage(size ? Storage::create(size).moveToUniquePtr() : nullptr)
+        : m_storage(size ? Storage::create(size).moveToUniquePtr() : nullPtr())
     {
         fill(value);
     }
@@ -128,42 +128,42 @@ public:
     template<typename... Args>
     static FixedVector createWithSizeAndConstructorArguments(size_t size, Args&&... args)
     {
-        return Self { size ? Storage::createWithSizeAndConstructorArguments(size, std::forward<Args>(args)...).moveToUniquePtr() : std::unique_ptr<Storage> { nullptr } };
+        return Self { size ? Storage::createWithSizeAndConstructorArguments(size, std::forward<Args>(args)...).moveToUniquePtr() : std::unique_ptr<Storage> { nullPtr() } };
     }
 
     template<std::invocable<size_t> Generator>
     static FixedVector createWithSizeFromGenerator(size_t size, NOESCAPE Generator&& generator)
     {
-        return Self { size ? Storage::createWithSizeFromGenerator(size, std::forward<Generator>(generator)).moveToUniquePtr() : std::unique_ptr<Storage> { nullptr } };
+        return Self { size ? Storage::createWithSizeFromGenerator(size, std::forward<Generator>(generator)).moveToUniquePtr() : std::unique_ptr<Storage> { nullPtr() } };
     }
 
     template<std::invocable<size_t> FailableGenerator>
     static FixedVector createWithSizeFromFailableGenerator(size_t size, NOESCAPE FailableGenerator&& generator)
     {
-        return Self { size ? Storage::createWithSizeFromFailableGenerator(size, std::forward<FailableGenerator>(generator)) : std::unique_ptr<Storage> { nullptr } };
+        return Self { size ? Storage::createWithSizeFromFailableGenerator(size, std::forward<FailableGenerator>(generator)) : std::unique_ptr<Storage> { nullPtr() } };
     }
 
     template<typename SizedRange, typename Mapper>
     static FixedVector map(SizedRange&& range, NOESCAPE Mapper&& mapper)
     {
         auto size = std::size(range);
-        return Self { size ? Storage::map(size, std::forward<SizedRange>(range), std::forward<Mapper>(mapper)).moveToUniquePtr() : std::unique_ptr<Storage> { nullptr } };
+        return Self { size ? Storage::map(size, std::forward<SizedRange>(range), std::forward<Mapper>(mapper)).moveToUniquePtr() : std::unique_ptr<Storage> { nullPtr() } };
     }
 
     size_t size() const { return m_storage ? m_storage->size() : 0; }
     bool isEmpty() const { return m_storage ? m_storage->isEmpty() : true; }
     size_t byteSize() const { return m_storage ? m_storage->byteSize() : 0; }
 
-    iterator begin() LIFETIME_BOUND { return m_storage ? m_storage->begin() : nullptr; }
-    iterator end() LIFETIME_BOUND { return m_storage ? m_storage->end() : nullptr; }
+    iterator begin() LIFETIME_BOUND { return m_storage ? m_storage->begin() : nullPtr(); }
+    iterator end() LIFETIME_BOUND { return m_storage ? m_storage->end() : nullPtr(); }
 
     const_iterator begin() const LIFETIME_BOUND { return const_cast<FixedVector*>(this)->begin(); }
     const_iterator end() const LIFETIME_BOUND { return const_cast<FixedVector*>(this)->end(); }
 
-    reverse_iterator rbegin() LIFETIME_BOUND { return m_storage ? m_storage->rbegin() : reverse_iterator(nullptr); }
-    reverse_iterator rend() LIFETIME_BOUND { return m_storage ? m_storage->rend() : reverse_iterator(nullptr); }
-    const_reverse_iterator rbegin() const LIFETIME_BOUND { return m_storage ? m_storage->rbegin() : const_reverse_iterator(nullptr); }
-    const_reverse_iterator rend() const LIFETIME_BOUND { return m_storage ? m_storage->rend() : const_reverse_iterator(nullptr); }
+    reverse_iterator rbegin() LIFETIME_BOUND { return m_storage ? m_storage->rbegin() : reverse_iterator(nullPtr()); }
+    reverse_iterator rend() LIFETIME_BOUND { return m_storage ? m_storage->rend() : reverse_iterator(nullPtr()); }
+    const_reverse_iterator rbegin() const LIFETIME_BOUND { return m_storage ? m_storage->rbegin() : const_reverse_iterator(nullPtr()); }
+    const_reverse_iterator rend() const LIFETIME_BOUND { return m_storage ? m_storage->rend() : const_reverse_iterator(nullPtr()); }
 
     T& at(size_t i) LIFETIME_BOUND { return m_storage->at(i); }
     const T& at(size_t i) const LIFETIME_BOUND { return m_storage->at(i); }
@@ -176,7 +176,7 @@ public:
     T& last() LIFETIME_BOUND { return (*this)[size() - 1]; }
     const T& last() const LIFETIME_BOUND { return (*this)[size() - 1]; }
 
-    void clear() { m_storage = nullptr; }
+    void clear() { m_storage = nullPtr(); }
 
     void fill(const T& val)
     {

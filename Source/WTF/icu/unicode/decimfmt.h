@@ -2192,7 +2192,7 @@ class U_I18N_API DecimalFormat : public NumberFormat {
 
     // One instance field for the implementation, keep all fields inside of an implementation
     // class defined in number_mapper.h
-    number::impl::DecimalFormatFields* fields = nullptr;
+    number::impl::DecimalFormatFields* fields = nullPtr();
 
     // Allow child class CompactDecimalFormat to access fProperties:
     friend class CompactDecimalFormat;

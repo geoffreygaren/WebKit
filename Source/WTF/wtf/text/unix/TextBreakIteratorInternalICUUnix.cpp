@@ -26,14 +26,14 @@ namespace WTF {
 
 const char* currentSearchLocaleID()
 {
-    if (auto* localeDefault = setlocale(LC_MESSAGES, nullptr))
+    if (auto* localeDefault = setlocale(LC_MESSAGES, nullPtr()))
         return localeDefault;
     return "";
 }
 
 const char* currentTextBreakLocaleID()
 {
-    if (auto* localeDefault = setlocale(LC_MESSAGES, nullptr))
+    if (auto* localeDefault = setlocale(LC_MESSAGES, nullPtr()))
         return localeDefault;
     return "en_us";
 }

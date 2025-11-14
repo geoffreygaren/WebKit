@@ -60,7 +60,7 @@ public:
     T* get() const
     {
         if (!isValid())
-            return nullptr;
+            return nullPtr();
         return &m_data->value;
     }
 

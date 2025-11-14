@@ -73,7 +73,7 @@ static uint64_t s_lockedFileData[(sizeof(LockedPrintStream) + 7) / 8];
 
 static void initializeLogFileOnce()
 {
-    const char* filename = nullptr;
+    const char* filename = nullPtr();
 
     if (s_file)
         return;
@@ -133,7 +133,7 @@ static void initializeLogFile()
 
 void setDataFile(const char* path)
 {
-    FilePrintStream* file = nullptr;
+    FilePrintStream* file = nullPtr();
     std::array<char, maxPathLength + 1> formattedPath;
     const char* pathToOpen = path;
 
@@ -170,7 +170,7 @@ void setDataFile(const char* path)
         file = new (s_fileData) FilePrintStream(stderr, FilePrintStream::Borrow);
     }
 
-    setvbuf(file->file(), nullptr, _IONBF, 0); // Prefer unbuffered output, so that we get a full log upon crash or deadlock.
+    setvbuf(file->file(), nullPtr(), _IONBF, 0); // Prefer unbuffered output, so that we get a full log upon crash or deadlock.
 
     if (s_file)
         s_file->flush();

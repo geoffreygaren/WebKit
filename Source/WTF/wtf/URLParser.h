@@ -70,7 +70,7 @@ public:
     WTF_EXPORT_PRIVATE static std::optional<String> formURLDecode(StringView input);
 
 private:
-    URLParser(String&&, const URL& = { }, const URLTextEncoding* = nullptr);
+    URLParser(String&&, const URL& = { }, const URLTextEncoding* = nullPtr());
     URL result() { return m_url; }
 
     friend class URL;
@@ -82,7 +82,7 @@ private:
     bool m_hostHasPercentOrNonASCII { false };
     bool m_didSeeSyntaxViolation { false };
     String m_inputString;
-    const void* m_inputBegin { nullptr };
+    const void* m_inputBegin { nullPtr() };
 
     static constexpr size_t defaultInlineBufferSize = 2048;
     using Latin1Buffer = Vector<Latin1Character, defaultInlineBufferSize>;

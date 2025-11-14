@@ -409,7 +409,7 @@ protected:
 #if OS(LINUX)
     ThreadIdentifier m_id { 0 };
 #endif
-    PlatformRegisters* m_platformRegisters { nullptr };
+    PlatformRegisters* m_platformRegisters { nullPtr() };
     unsigned m_suspendCount { 0 };
 #endif
 
@@ -417,17 +417,17 @@ protected:
     SpecificStorage m_specificStorage;
 #endif
 
-    AtomStringTable* m_currentAtomStringTable { nullptr };
+    AtomStringTable* m_currentAtomStringTable { nullPtr() };
     AtomStringTable m_defaultAtomStringTable;
 
 #if ENABLE(STACK_STATS)
     StackStats::PerThreadStats m_stackStats;
 #endif
-    void* m_savedStackPointerAtVMEntry { nullptr };
+    void* m_savedStackPointerAtVMEntry { nullPtr() };
     void* m_savedLastStackTop;
 public:
-    void* m_apiData { nullptr };
-    RefPtr<ClientData> m_clientData { nullptr };
+    void* m_apiData { nullPtr() };
+    RefPtr<ClientData> m_clientData { nullPtr() };
 };
 
 #if !OS(WINDOWS)

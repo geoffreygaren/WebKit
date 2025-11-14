@@ -44,10 +44,10 @@ namespace WTF {
 
 // Declarations of string operations
 
-WTF_EXPORT_PRIVATE double charactersToDouble(std::span<const Latin1Character>, bool* ok = nullptr);
-WTF_EXPORT_PRIVATE double charactersToDouble(std::span<const char16_t>, bool* ok = nullptr);
-WTF_EXPORT_PRIVATE float charactersToFloat(std::span<const Latin1Character>, bool* ok = nullptr);
-WTF_EXPORT_PRIVATE float charactersToFloat(std::span<const char16_t>, bool* ok = nullptr);
+WTF_EXPORT_PRIVATE double charactersToDouble(std::span<const Latin1Character>, bool* ok = nullPtr());
+WTF_EXPORT_PRIVATE double charactersToDouble(std::span<const char16_t>, bool* ok = nullPtr());
+WTF_EXPORT_PRIVATE float charactersToFloat(std::span<const Latin1Character>, bool* ok = nullPtr());
+WTF_EXPORT_PRIVATE float charactersToFloat(std::span<const char16_t>, bool* ok = nullPtr());
 WTF_EXPORT_PRIVATE float charactersToFloat(std::span<const Latin1Character>, size_t& parsedLength);
 WTF_EXPORT_PRIVATE float charactersToFloat(std::span<const char16_t>, size_t& parsedLength);
 
@@ -228,8 +228,8 @@ public:
     WTF_EXPORT_PRIVATE Vector<String> WARN_UNUSED_RETURN splitAllowingEmptyEntries(char16_t separator) const;
     WTF_EXPORT_PRIVATE Vector<String> WARN_UNUSED_RETURN splitAllowingEmptyEntries(StringView separator) const;
 
-    WTF_EXPORT_PRIVATE double toDouble(bool* ok = nullptr) const;
-    WTF_EXPORT_PRIVATE float toFloat(bool* ok = nullptr) const;
+    WTF_EXPORT_PRIVATE double toDouble(bool* ok = nullPtr()) const;
+    WTF_EXPORT_PRIVATE float toFloat(bool* ok = nullPtr()) const;
 
     WTF_EXPORT_PRIVATE String WARN_UNUSED_RETURN isolatedCopy() const &;
     WTF_EXPORT_PRIVATE String WARN_UNUSED_RETURN isolatedCopy() &&;
@@ -489,7 +489,7 @@ inline std::optional<UCharDirection> String::defaultWritingDirection() const
 inline void String::clearImplIfNotShared()
 {
     if (m_impl && m_impl->hasOneRef())
-        m_impl = nullptr;
+        m_impl = nullPtr();
 }
 
 inline String String::substring(unsigned position, unsigned length) const

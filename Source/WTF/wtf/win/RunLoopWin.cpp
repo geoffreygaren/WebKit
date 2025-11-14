@@ -58,13 +58,13 @@ LRESULT RunLoop::wndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         performWork();
         return 0;
     case SetTimerMessage:
-        ::SetTimer(hWnd, wParam, lParam, nullptr);
+        ::SetTimer(hWnd, wParam, lParam, nullPtr());
         return 0;
     case KillTimerMessage:
         ::KillTimer(hWnd, wParam);
         return 0;
     case WM_TIMER:
-        RunLoop::TimerBase* timer = nullptr;
+        RunLoop::TimerBase* timer = nullPtr();
         {
             Locker locker { m_loopLock };
             if (m_liveTimers.contains(wParam))
@@ -81,7 +81,7 @@ LRESULT RunLoop::wndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 void RunLoop::run()
 {
     MSG message;
-    while (BOOL result = ::GetMessage(&message, nullptr, 0, 0)) {
+    while (BOOL result = ::GetMessage(&message, nullPtr(), 0, 0)) {
         if (result == -1)
             break;
         ::TranslateMessage(&message);
@@ -115,8 +115,8 @@ void RunLoop::registerRunLoopMessageWindowClass()
 
 RunLoop::RunLoop()
 {
-    m_runLoopMessageWindow = ::CreateWindow(kRunLoopMessageWindowClassName, nullptr, 0,
-        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, HWND_MESSAGE, nullptr, nullptr, this);
+    m_runLoopMessageWindow = ::CreateWindow(kRunLoopMessageWindowClassName, nullPtr(), 0,
+        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, HWND_MESSAGE, nullPtr(), nullPtr(), this);
     RELEASE_ASSERT(::IsWindow(m_runLoopMessageWindow));
 }
 
@@ -138,7 +138,7 @@ void RunLoop::wakeUp()
 RunLoop::CycleResult RunLoop::cycle(RunLoopMode)
 {
     MSG message;
-    while (::PeekMessage(&message, nullptr, 0, 0, PM_REMOVE)) {
+    while (::PeekMessage(&message, nullPtr(), 0, 0, PM_REMOVE)) {
         if (message.message == WM_QUIT)
             return CycleResult::Stop;
 

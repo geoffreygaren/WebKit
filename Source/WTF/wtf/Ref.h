@@ -81,7 +81,7 @@ public:
         if (__asan_address_is_poisoned(this))
             __asan_unpoison_memory_region(this, sizeof(*this));
 #endif
-        if (auto* ptr = PtrTraits::exchange(m_ptr, nullptr))
+        if (auto* ptr = PtrTraits::exchange(m_ptr, nullPtr()))
             RefDerefTraits::derefIfNotNull(ptr);
     }
 
@@ -128,7 +128,7 @@ public:
 
     Ref(HashTableEmptyValueType) : m_ptr(hashTableEmptyValue()) { }
     bool isHashTableEmptyValue() const { return m_ptr == hashTableEmptyValue(); }
-    static T* hashTableEmptyValue() { return nullptr; }
+    static T* hashTableEmptyValue() { return nullPtr(); }
 
     const T* ptrAllowingHashTableEmptyValue() const LIFETIME_BOUND { ASSERT(m_ptr || isHashTableEmptyValue()); return PtrTraits::unwrap(m_ptr); }
     T* ptrAllowingHashTableEmptyValue() LIFETIME_BOUND { ASSERT(m_ptr || isHashTableEmptyValue()); return PtrTraits::unwrap(m_ptr); }
@@ -151,7 +151,7 @@ public:
     {
         ASSERT(m_ptr);
 
-        T& result = *PtrTraits::exchange(m_ptr, nullptr);
+        T& result = *PtrTraits::exchange(m_ptr, nullPtr());
 #if ASAN_ENABLED
         __asan_poison_memory_region(this, sizeof(*this));
 #endif
@@ -349,7 +349,7 @@ inline RefPtr<match_constness_t<Source, Target>> dynamicDowncast(Ref<Source, Ptr
     static_assert(!std::same_as<Source, Target>, "Unnecessary cast to same type");
     static_assert(std::derived_from<Target, Source>, "Should be a downcast");
     if (!is<Target>(source))
-        return nullptr;
+        return nullPtr();
     return unsafeRefDowncast<match_constness_t<Source, Target>>(WTFMove(source));
 }
 

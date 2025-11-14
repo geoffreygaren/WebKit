@@ -159,7 +159,7 @@ static int32_t uTextUTF16ContextAwareExtract(UText*, int64_t, int64_t, char16_t*
 
 static void uTextUTF16ContextAwareClose(UText* text)
 {
-    text->context = nullptr;
+    text->context = nullPtr();
 }
 
 UText* openUTF16ContextAwareUTextProvider(UText* text, std::span<const char16_t> string, std::span<const char16_t> priorContext, UErrorCode* status)

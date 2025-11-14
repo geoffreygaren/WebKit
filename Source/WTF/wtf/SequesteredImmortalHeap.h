@@ -220,7 +220,7 @@ public:
     template <typename T> requires (sizeof(T) <= slotSize)
     T* allocateAndInstall()
     {
-        T* slot = nullptr;
+        T* slot = nullPtr();
         {
             Locker locker { m_scavengerLock };
             ASSERT(!getUnchecked());
@@ -233,7 +233,7 @@ public:
             WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
         }
         _pthread_setspecific_direct(key, reinterpret_cast<void*>(slot));
-        pthread_key_init_np(key, nullptr);
+        pthread_key_init_np(key, nullPtr());
 
         dataLogIf(verbose, "SequesteredImmortalHeap: thread (", Thread::currentSingleton(), ") allocated slot ", instance().m_nextFreeIndex - 1, " (", slot, ")");
         return slot;
@@ -272,11 +272,11 @@ public:
     template<AllocationFailureMode mode>
     GranuleHeader* mapGranule(size_t bytes)
     {
-        void* p = mmap(nullptr, bytes, PROT_READ | PROT_WRITE,
+        void* p = mmap(nullPtr(), bytes, PROT_READ | PROT_WRITE,
             MAP_PRIVATE | MAP_ANON, -1, 0);
         if (p == MAP_FAILED) [[unlikely]] {
             if constexpr (mode == AllocationFailureMode::ReturnNull)
-                return nullptr;
+                return nullPtr();
             RELEASE_ASSERT_NOT_REACHED();
         }
         RELEASE_ASSERT_DATA_ADDRESS_IS_SANE(p);

@@ -295,7 +295,7 @@ private:
     unsigned keyCount() const { return m_keyCount; }
     unsigned tableHash() const { return m_tableHash; }
 
-    ValueType* m_table { nullptr };
+    ValueType* m_table { nullPtr() };
     unsigned m_tableSize { 0 };
     unsigned m_keyCount { 0 };
     unsigned m_tableHash { 0 };
@@ -304,7 +304,7 @@ private:
 #if CHECK_HASHTABLE_ITERATORS
 public:
     // All access to m_iterators should be guarded with m_mutex.
-    mutable const_iterator* m_iterators { nullptr };
+    mutable const_iterator* m_iterators { nullPtr() };
     // Use std::unique_ptr so HashTable can still be memmove'd or memcpy'ed.
     mutable std::unique_ptr<Lock> m_mutex { makeUnique<Lock>() };
 #endif
@@ -341,7 +341,7 @@ ALWAYS_INLINE auto RobinHoodHashTable<Key, Value, Extractor, HashFunctions, Trai
 
     ValueType* table = m_table;
     if (!table)
-        return nullptr;
+        return nullPtr();
 
     unsigned size = tableSize();
     unsigned sizeMask = tableSizeMask();
@@ -353,14 +353,14 @@ ALWAYS_INLINE auto RobinHoodHashTable<Key, Value, Extractor, HashFunctions, Trai
     while (true) {
         ValueType* entry = m_table + index;
         if (isEmptyBucket(*entry))
-            return nullptr;
+            return nullPtr();
 
         // RobinHoodHashTable maintains this invariant so that we can stop
         // probing when distance exceeds probing distance of the existing entry.
         auto& entryKey = Extractor::extract(*entry);
         unsigned entryHash = IdentityTranslatorType::hash(entryKey) ^ tableHash;
         if (distance > probeDistance(entryHash, index, size, sizeMask))
-            return nullptr;
+            return nullPtr();
 
         if (entryHash == hash && HashTranslator::equal(entryKey, key))
             return entry;
@@ -400,7 +400,7 @@ ALWAYS_INLINE auto RobinHoodHashTable<Key, Value, Extractor, HashFunctions, Trai
     unsigned index = desiredIndex(hash, sizeMask);
     unsigned distance = 0;
 
-    ValueType* entry = nullptr;
+    ValueType* entry = nullPtr();
     while (true) {
         entry = m_table + index;
         if (isEmptyBucket(*entry)) {
@@ -491,7 +491,7 @@ inline auto RobinHoodHashTable<Key, Value, Extractor, HashFunctions, Traits, Key
     unsigned index = desiredIndex(hash, sizeMask);
     unsigned distance = 0;
 
-    ValueType* entry = nullptr;
+    ValueType* entry = nullPtr();
     while (true) {
         entry = m_table + index;
         if (isEmptyBucket(*entry)) {
@@ -798,7 +798,7 @@ void RobinHoodHashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits,
     m_keyCount = 0;
     m_tableHash = 0;
     m_willExpand = false;
-    deallocateTable(std::exchange(m_table, nullptr), oldTableSize);
+    deallocateTable(std::exchange(m_table, nullPtr()), oldTableSize);
     internalCheckTableConsistency();
 }
 
@@ -854,7 +854,7 @@ inline RobinHoodHashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTrait
 {
     invalidateIterators(&other);
 
-    m_table = std::exchange(other.m_table, nullptr);
+    m_table = std::exchange(other.m_table, nullPtr());
     m_tableSize = std::exchange(other.m_tableSize, 0);
     m_keyCount = std::exchange(other.m_keyCount, 0);
     m_tableHash = std::exchange(other.m_tableHash, 0);

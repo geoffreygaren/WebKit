@@ -97,7 +97,7 @@ public:
 
     void revokeAll()
     {
-        if (RefPtr impl = std::exchange(m_impl, nullptr))
+        if (RefPtr impl = std::exchange(m_impl, nullPtr()))
             impl->clear();
     }
 
@@ -173,7 +173,7 @@ public:
     {
         if (auto* pointer = m_impl.pointer()) {
             pointer->clear();
-            m_impl.setPointer(nullptr);
+            m_impl.setPointer(nullPtr());
         }
     }
 

@@ -52,7 +52,7 @@ public:
     ~CheckedRef()
     {
         unpoison(*this);
-        if (auto* ptr = PtrTraits::exchange(m_ptr, nullptr))
+        if (auto* ptr = PtrTraits::exchange(m_ptr, nullPtr()))
             PtrTraits::unwrap(ptr)->decrementCheckedPtrCount();
     }
 
@@ -101,7 +101,7 @@ public:
 
     CheckedRef(HashTableEmptyValueType) : m_ptr(hashTableEmptyValue()) { }
     bool isHashTableEmptyValue() const { return m_ptr == hashTableEmptyValue(); }
-    static T* hashTableEmptyValue() { return nullptr; }
+    static T* hashTableEmptyValue() { return nullPtr(); }
 
     const T* ptrAllowingHashTableEmptyValue() const { ASSERT(m_ptr || isHashTableEmptyValue()); return PtrTraits::unwrap(m_ptr); }
     T* ptrAllowingHashTableEmptyValue() { ASSERT(m_ptr || isHashTableEmptyValue()); return PtrTraits::unwrap(m_ptr); }
@@ -176,7 +176,7 @@ private:
 
     T* releasePtr()
     {
-        T* ptr = PtrTraits::exchange(m_ptr, nullptr);
+        T* ptr = PtrTraits::exchange(m_ptr, nullPtr());
         poison(*this);
         return ptr;
     }

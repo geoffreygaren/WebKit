@@ -339,7 +339,7 @@ public:
     {
         auto it = begin();
         if (it == end())
-            return nullptr;
+            return nullPtr();
         auto* first = it.get();
         remove(it);
         return first;

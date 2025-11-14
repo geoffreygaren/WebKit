@@ -51,10 +51,10 @@ struct ThreadData {
     std::condition_variable parkingCondition;
 
     // The queue node.
-    ThreadData* nextInQueue { nullptr };
+    ThreadData* nextInQueue { nullPtr() };
 
     // The queue itself.
-    ThreadData* queueTail { nullptr };
+    ThreadData* queueTail { nullPtr() };
 };
 
 } // anonymous namespace
@@ -227,8 +227,8 @@ NEVER_INLINE void WordLock::unlockSlow()
     // Now the lock is available for acquisition. But we just have to wake up the old queue head.
     // After that, we're done!
 
-    queueHead->nextInQueue = nullptr;
-    queueHead->queueTail = nullptr;
+    queueHead->nextInQueue = nullPtr();
+    queueHead->queueTail = nullPtr();
 
     // We do this carefully because this may run either before or during the parkingLock critical
     // section in lockSlow().

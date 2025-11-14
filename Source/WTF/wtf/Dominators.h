@@ -426,7 +426,7 @@ private:
         typename Graph::Node immediateDominator(typename Graph::Node block)
         {
             if (block == m_graph.root())
-                return nullptr;
+                return nullPtr();
             return m_graph.node(m_idoms[m_graph.index(block)]);
         }
 
@@ -624,12 +624,12 @@ private:
             WTF_DEPRECATED_MAKE_STRUCT_FAST_ALLOCATED(BlockData);
 
             BlockData()
-                : parent(nullptr)
+                : parent(nullPtr())
                 , preNumber(UINT_MAX)
                 , semiNumber(UINT_MAX)
-                , ancestor(nullptr)
-                , label(nullptr)
-                , dom(nullptr)
+                , ancestor(nullPtr())
+                , label(nullPtr())
+                , dom(nullPtr())
             {
             }
         
@@ -882,7 +882,7 @@ private:
         WTF_DEPRECATED_MAKE_STRUCT_FAST_ALLOCATED(BlockData);
 
         BlockData()
-            : idomParent(nullptr)
+            : idomParent(nullPtr())
             , preNumber(UINT_MAX)
             , postNumber(UINT_MAX)
         {

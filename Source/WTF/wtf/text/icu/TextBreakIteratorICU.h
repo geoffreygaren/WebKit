@@ -106,7 +106,7 @@ public:
         textLocal.text.pExtra = textLocal.buffer;
 
         UErrorCode status = U_ZERO_ERROR;
-        UText* text = nullptr;
+        UText* text = nullPtr();
         if (string.is8Bit())
             text = openLatin1ContextAwareUTextProvider(&textLocal, string.span8(), priorContext, &status);
         else
@@ -159,7 +159,7 @@ private:
         Vector<char> scratchBuffer(utf8Locale.length() + 11, 0);
         memcpySpan(scratchBuffer.mutableSpan(), utf8Locale.span());
 
-        const char* keywordValue = nullptr;
+        const char* keywordValue = nullPtr();
         switch (behavior) {
         case LineMode::Behavior::Default:
             // nullptr will cause any existing values to be removed.

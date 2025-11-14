@@ -109,7 +109,7 @@ public:
 
             // We keep the copy function null - the block is already on the heap
             // so it should never be copied.
-            nullptr,
+            nullPtr(),
 
             [](const void* ptr) {
                 static_cast<Block*>(const_cast<void*>(ptr))->f.~F();
@@ -144,7 +144,7 @@ public:
     }
 
     BlockPtr()
-        : m_block(nullptr)
+        : m_block(nullPtr())
     {
     }
 
@@ -167,7 +167,7 @@ public:
     }
     
     BlockPtr(BlockPtr&& other)
-        : m_block(std::exchange(other.m_block, nullptr))
+        : m_block(std::exchange(other.m_block, nullPtr()))
     {
     }
     
@@ -199,7 +199,7 @@ public:
 #if !__has_feature(objc_arc)
         Block_release(m_block);
 #endif
-        m_block = std::exchange(other.m_block, nullptr);
+        m_block = std::exchange(other.m_block, nullPtr());
 
         return *this;
     }

@@ -114,7 +114,7 @@ inline bool is_objc(ArgType * source)
 template<typename T> inline T *checked_objc_cast(id object)
 {
     if (!object)
-        return nullptr;
+        return nullPtr();
 
     RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(is_objc<T>(object));
 
@@ -125,7 +125,7 @@ template<typename T, typename U> inline T *checked_objc_cast(U *object)
 {
     static_assert(std::is_base_of_v<U, T>);
     if (!object)
-        return nullptr;
+        return nullPtr();
 
     RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(is_objc<T>(object));
 
@@ -144,14 +144,14 @@ RetainPtr<T> dynamic_objc_cast(RetainPtr<U>&& object)
     static_assert(std::is_base_of_v<U, T>);
     static_assert(!std::is_same_v<U, T>);
     if (!is_objc<T>(object.get()))
-        return nullptr;
+        return nullPtr();
     return adoptNS(static_cast<T*>(object.leakRef()));
 }
 
 template<typename T> RetainPtr<T> dynamic_objc_cast(RetainPtr<id>&& object)
 {
     if (!is_objc<T>(object.get()))
-        return nullptr;
+        return nullPtr();
     return adoptNS(reinterpret_cast<T*>(object.leakRef()));
 }
 
@@ -162,28 +162,28 @@ RetainPtr<T> dynamic_objc_cast(const RetainPtr<U>& object)
     static_assert(std::is_base_of_v<U, T>);
     static_assert(!std::is_same_v<U, T>);
     if (!is_objc<T>(object.get()))
-        return nullptr;
+        return nullPtr();
     return static_cast<T*>(object.get());
 }
 
 template<typename T> RetainPtr<T> dynamic_objc_cast(const RetainPtr<id>& object)
 {
     if (!is_objc<T>(object.get()))
-        return nullptr;
+        return nullPtr();
     return reinterpret_cast<T*>(object.get());
 }
 
 template<typename T> T *dynamic_objc_cast(NSObject *object)
 {
     if (!is_objc<T>(object))
-        return nullptr;
+        return nullPtr();
     return static_cast<T*>(object);
 }
 
 template<typename T> T *dynamic_objc_cast(id object)
 {
     if (!is_objc<T>(object))
-        return nullptr;
+        return nullPtr();
     return reinterpret_cast<T*>(object);
 }
 

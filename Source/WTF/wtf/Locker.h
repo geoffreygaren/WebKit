@@ -76,7 +76,7 @@ public:
     // but it's not necessary to engage in that protocol yet. For example,
     // this often happens when an object is newly allocated and it can not
     // be accessed concurrently.
-    Locker(NoLockingNecessaryTag) : m_lockable(nullptr) { }
+    Locker(NoLockingNecessaryTag) : m_lockable(nullPtr()) { }
     
     Locker(std::underlying_type_t<NoLockingNecessaryTag>) = delete;
 
@@ -102,7 +102,7 @@ public:
     void unlockEarly()
     {
         unlock();
-        m_lockable = nullptr;
+        m_lockable = nullPtr();
     }
     
     // It's great to be able to pass lockers around. It enables custom locking adaptors like
@@ -111,14 +111,14 @@ public:
         : m_lockable(other.m_lockable)
     {
         ASSERT(&other != this);
-        other.m_lockable = nullptr;
+        other.m_lockable = nullPtr();
     }
     
     Locker& operator=(Locker&& other)
     {
         ASSERT(&other != this);
         m_lockable = other.m_lockable;
-        other.m_lockable = nullptr;
+        other.m_lockable = nullPtr();
         return *this;
     }
     
@@ -189,21 +189,21 @@ public:
     void unlockEarly()
     {
         unlock();
-        m_lockable = nullptr;
+        m_lockable = nullPtr();
     }
 
     ExternalLocker(ExternalLocker&& other)
         : m_lockable(other.m_lockable)
     {
         ASSERT(&other != this);
-        other.m_lockable = nullptr;
+        other.m_lockable = nullPtr();
     }
 
     ExternalLocker& operator=(ExternalLocker&& other)
     {
         ASSERT(&other != this);
         m_lockable = other.m_lockable;
-        other.m_lockable = nullptr;
+        other.m_lockable = nullPtr();
         return *this;
     }
 

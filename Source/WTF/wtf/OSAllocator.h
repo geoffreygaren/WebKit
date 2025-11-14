@@ -46,14 +46,14 @@ public:
     // The memory returned by this cannot be released as on Windows there's no guaranteed API to
     // get an aligned address and the size + alignment then rounding trick cannot release the unused parts
     // due to how the Windows syscalls work.
-    WTF_EXPORT_PRIVATE static void* tryReserveUncommittedAligned(size_t, size_t alignment, Usage = UnknownUsage, void* address = nullptr, bool writable = true, bool executable = false, bool jitCageEnabled = false, unsigned numGuardPagesToAddOnEachEnd = 0);
+    WTF_EXPORT_PRIVATE static void* tryReserveUncommittedAligned(size_t, size_t alignment, Usage = UnknownUsage, void* address = nullPtr(), bool writable = true, bool executable = false, bool jitCageEnabled = false, unsigned numGuardPagesToAddOnEachEnd = 0);
 
     // These methods are symmetric; reserveUncommitted allocates VM in an uncommitted state,
     // releaseDecommitted should be called on a region of VM allocated by a single reservation,
     // the memory must all currently be in a decommitted state. reserveUncommitted returns to
     // you memory that is zeroed.
-    WTF_EXPORT_PRIVATE static void* reserveUncommitted(size_t, Usage = UnknownUsage, void* address = nullptr, bool writable = true, bool executable = false, bool jitCageEnabled = false, unsigned numGuardPagesToAddOnEachEnd = 0);
-    WTF_EXPORT_PRIVATE static void* tryReserveUncommitted(size_t, Usage = UnknownUsage, void* address = nullptr, bool writable = true, bool executable = false, bool jitCageEnabled = false, unsigned numGuardPagesToAddOnEachEnd = 0);
+    WTF_EXPORT_PRIVATE static void* reserveUncommitted(size_t, Usage = UnknownUsage, void* address = nullPtr(), bool writable = true, bool executable = false, bool jitCageEnabled = false, unsigned numGuardPagesToAddOnEachEnd = 0);
+    WTF_EXPORT_PRIVATE static void* tryReserveUncommitted(size_t, Usage = UnknownUsage, void* address = nullPtr(), bool writable = true, bool executable = false, bool jitCageEnabled = false, unsigned numGuardPagesToAddOnEachEnd = 0);
     WTF_EXPORT_PRIVATE static void releaseDecommitted(void*, size_t, unsigned numberOfGuardPagesOnEachEnd);
 
     // These methods are symmetric; they commit or decommit a region of VM (uncommitted VM should
@@ -65,14 +65,14 @@ public:
     // These methods are symmetric; reserveAndCommit allocates VM in an committed state,
     // decommitAndRelease should be called on a region of VM allocated by a single reservation,
     // the memory must all currently be in a committed state.
-    WTF_EXPORT_PRIVATE static void* reserveAndCommit(size_t, Usage = UnknownUsage, void* address = nullptr, bool writable = true, bool executable = false, bool jitCageEnabled = false, unsigned numGuardPagesToAddOnEachEnd = 0);
-    WTF_EXPORT_PRIVATE static void* tryReserveAndCommit(size_t, Usage = UnknownUsage, void* address = nullptr, bool writable = true, bool executable = false, bool jitCageEnabled = false, unsigned numGuardPagesToAddOnEachEnd = 0);
+    WTF_EXPORT_PRIVATE static void* reserveAndCommit(size_t, Usage = UnknownUsage, void* address = nullPtr(), bool writable = true, bool executable = false, bool jitCageEnabled = false, unsigned numGuardPagesToAddOnEachEnd = 0);
+    WTF_EXPORT_PRIVATE static void* tryReserveAndCommit(size_t, Usage = UnknownUsage, void* address = nullPtr(), bool writable = true, bool executable = false, bool jitCageEnabled = false, unsigned numGuardPagesToAddOnEachEnd = 0);
     static void decommitAndRelease(void* base, size_t size);
 
     // These methods are akin to reserveAndCommit/decommitAndRelease, above - however rather than
     // committing/decommitting the entire region additional parameters allow a subregion to be
     // specified.
-    WTF_EXPORT_PRIVATE static void* reserveAndCommit(size_t reserveSize, size_t commitSize, Usage = UnknownUsage, void* address = nullptr, bool writable = true, bool executable = false, bool jitCageEnabled = false);
+    WTF_EXPORT_PRIVATE static void* reserveAndCommit(size_t reserveSize, size_t commitSize, Usage = UnknownUsage, void* address = nullPtr(), bool writable = true, bool executable = false, bool jitCageEnabled = false);
 
     // Reallocate an existing, committed allocation.
     // The prior allocation must be fully comitted, and the new size will also be fully committed.
@@ -102,7 +102,7 @@ inline void OSAllocator::decommitAndRelease(void* releaseBase, size_t releaseSiz
 template<typename T>
 inline T* OSAllocator::reallocateCommitted(T* oldBase, size_t oldSize, size_t newSize, Usage usage, bool writable, bool executable, bool jitCageEnabled)
 {
-    void* newBase = reserveAndCommit(newSize, usage, nullptr, writable, executable, jitCageEnabled);
+    void* newBase = reserveAndCommit(newSize, usage, nullPtr(), writable, executable, jitCageEnabled);
     memcpy(newBase, oldBase, std::min(oldSize, newSize));
     decommitAndRelease(oldBase, oldSize);
     return static_cast<T*>(newBase);

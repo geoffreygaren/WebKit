@@ -102,7 +102,7 @@ struct SequesteredArenaMalloc {
         void* realResult;
         if (result.getValue(realResult))
             return realResult;
-        return nullptr;
+        return nullPtr();
     }
 
     static void* zeroedMalloc(size_t size) { return sequesteredArenaZeroedMalloc(size); }
@@ -113,7 +113,7 @@ struct SequesteredArenaMalloc {
         void* realResult;
         if (result.getValue(realResult))
             return realResult;
-        return nullptr;
+        return nullPtr();
     }
 
     static void* realloc(void* p, size_t size) { return sequesteredArenaRealloc(p, size); }
@@ -124,7 +124,7 @@ struct SequesteredArenaMalloc {
         void* realResult;
         if (result.getValue(realResult))
             return realResult;
-        return nullptr;
+        return nullPtr();
     }
 
     static void free(void* p) { sequesteredArenaFree(p); }

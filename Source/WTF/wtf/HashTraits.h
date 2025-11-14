@@ -152,7 +152,7 @@ template<typename T> struct SimpleClassHashTraits : GenericHashTraits<T> {
 
 template<typename T, typename Deleter> struct HashTraits<std::unique_ptr<T, Deleter>> : SimpleClassHashTraits<std::unique_ptr<T, Deleter>> {
     typedef std::nullptr_t EmptyValueType;
-    static EmptyValueType emptyValue() { return nullptr; }
+    static EmptyValueType emptyValue() { return nullPtr(); }
     static bool isEmptyValue(const std::unique_ptr<T, Deleter>& value) { return !value; }
 
     static void constructDeletedValue(std::unique_ptr<T, Deleter>& slot) { new (NotNull, std::addressof(slot)) std::unique_ptr<T, Deleter> { reinterpret_cast<T*>(-1) }; }
@@ -160,7 +160,7 @@ template<typename T, typename Deleter> struct HashTraits<std::unique_ptr<T, Dele
 
     typedef T* PeekType;
     static T* peek(const std::unique_ptr<T, Deleter>& value) { return value.get(); }
-    static T* peek(std::nullptr_t) { return nullptr; }
+    static T* peek(std::nullptr_t) { return nullPtr(); }
 
     static void customDeleteBucket(std::unique_ptr<T, Deleter>& value)
     {
@@ -189,7 +189,7 @@ template<typename T, typename Deleter> struct HashTraits<std::unique_ptr<T, Dele
 
 template<typename T> struct HashTraits<UniqueRef<T>> : SimpleClassHashTraits<UniqueRef<T>> {
     typedef std::nullptr_t EmptyValueType;
-    static EmptyValueType emptyValue() { return nullptr; }
+    static EmptyValueType emptyValue() { return nullPtr(); }
 
     template <typename>
     static void constructEmptyValue(UniqueRef<T>& slot)
@@ -205,11 +205,11 @@ template<typename T> struct HashTraits<UniqueRef<T>> : SimpleClassHashTraits<Uni
     typedef T* PeekType;
     static const T* peek(const UniqueRef<T>& value) { return &value.get(); }
     static T* peek(UniqueRef<T>& value) { return &value.get(); }
-    static T* peek(std::nullptr_t) { return nullptr; }
+    static T* peek(std::nullptr_t) { return nullPtr(); }
 
     using TakeType = std::unique_ptr<T>;
     static TakeType take(UniqueRef<T>&& value) { return value.moveToUniquePtr(); }
-    static TakeType take(std::nullptr_t) { return nullptr; }
+    static TakeType take(std::nullptr_t) { return nullPtr(); }
 };
 
 template<> struct HashTraits<ASCIILiteral> : SimpleClassHashTraits<ASCIILiteral> {
@@ -221,7 +221,7 @@ template<> struct HashTraits<ASCIILiteral> : SimpleClassHashTraits<ASCIILiteral>
 };
 
 template<typename P, typename Q, typename R> struct HashTraits<RefPtr<P, Q, R>> : SimpleClassHashTraits<RefPtr<P, Q, R>> {
-    static P* emptyValue() { return nullptr; }
+    static P* emptyValue() { return nullPtr(); }
     static bool isEmptyValue(const RefPtr<P, Q, R>& value) { return !value; }
 
     using PeekType = P*;
@@ -266,7 +266,7 @@ template<typename P> struct HashTraits<Packed<P*>> : SimpleClassHashTraits<Packe
     using TargetType = Packed<P*>;
     static_assert(TargetType::alignment < 4 * KB, "The first page is always unmapped since it includes nullptr.");
 
-    static Packed<P*> emptyValue() { return nullptr; }
+    static Packed<P*> emptyValue() { return nullPtr(); }
     static bool isEmptyValue(const TargetType& value) { return value.get() == nullptr; }
 
     using PeekType = Packed<P*>;
@@ -278,7 +278,7 @@ template<typename P> struct HashTraits<CompactPtr<P>> : SimpleClassHashTraits<Co
     static constexpr bool hasIsEmptyValueFunction = true;
     using TargetType = CompactPtr<P>;
 
-    static CompactPtr<P> emptyValue() { return nullptr; }
+    static CompactPtr<P> emptyValue() { return nullPtr(); }
     static bool isEmptyValue(const TargetType& value) { return !value; }
 
     using PeekType = CompactPtr<P>;
@@ -322,9 +322,9 @@ template<typename Traits, typename T> inline bool isHashTraitsReleasedWeakValue(
 template<typename Traits, typename T>
 struct HashTraitHasCustomDelete {
     static T& bucketArg;
-    template<typename X> static std::true_type TestHasCustomDelete(X*, decltype(X::customDeleteBucket(bucketArg))* = nullptr);
+    template<typename X> static std::true_type TestHasCustomDelete(X*, decltype(X::customDeleteBucket(bucketArg))* = nullPtr());
     static std::false_type TestHasCustomDelete(...);
-    typedef decltype(TestHasCustomDelete(static_cast<Traits*>(nullptr))) ResultType;
+    typedef decltype(TestHasCustomDelete(static_cast<Traits*>(nullPtr()))) ResultType;
     static constexpr bool value = ResultType::value;
 };
 

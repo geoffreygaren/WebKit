@@ -198,7 +198,7 @@ String bootSessionUUIDString()
         constexpr size_t maxUUIDLength = 37;
         std::array<char, maxUUIDLength> uuid;
         size_t uuidLength = maxUUIDLength;
-        if (sysctlbyname("kern.bootsessionuuid", uuid.data(), &uuidLength, nullptr, 0))
+        if (sysctlbyname("kern.bootsessionuuid", uuid.data(), &uuidLength, nullPtr(), 0))
             return;
         bootSessionUUID.construct(std::span<const char> { uuid }.first(uuidLength - 1));
     });

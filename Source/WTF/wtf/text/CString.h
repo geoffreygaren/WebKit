@@ -140,7 +140,7 @@ inline CString::CString(const std::string& value)
 
 inline const char* CString::data() const
 {
-    return m_buffer ? m_buffer->spanIncludingNullTerminator().data() : nullptr;
+    return m_buffer ? m_buffer->spanIncludingNullTerminator().data() : nullPtr();
 }
 
 inline std::span<const char> CString::span() const

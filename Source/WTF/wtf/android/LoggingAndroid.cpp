@@ -32,7 +32,7 @@ namespace WTF {
 
 String logLevelString()
 {
-    const char* propertyValue = nullptr;
+    const char* propertyValue = nullPtr();
 
     if (const auto* propertyInfo = __system_property_find("debug." LOG_CHANNEL_WEBKIT_SUBSYSTEM ".log")) {
         __system_property_read_callback(propertyInfo, [](void *userData, const char*, const char* value, unsigned) {

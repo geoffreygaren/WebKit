@@ -63,7 +63,7 @@ template<typename T> static inline void releaseOSObject(T ptr)
 template<typename T> class OSObjectPtr {
 public:
     OSObjectPtr()
-        : m_ptr(nullptr)
+        : m_ptr(nullPtr())
     {
     }
 
@@ -88,7 +88,7 @@ public:
     OSObjectPtr(OSObjectPtr&& other)
         : m_ptr(WTFMove(other.m_ptr))
     {
-        other.m_ptr = nullptr;
+        other.m_ptr = nullPtr();
     }
 
     OSObjectPtr(T ptr)
@@ -116,7 +116,7 @@ public:
     {
         if (m_ptr)
             releaseOSObject(m_ptr);
-        m_ptr = nullptr;
+        m_ptr = nullPtr();
         return *this;
     }
 
@@ -134,7 +134,7 @@ public:
 
     T leakRef() WARN_UNUSED_RETURN
     {
-        return std::exchange(m_ptr, nullptr);
+        return std::exchange(m_ptr, nullPtr());
     }
 
     friend OSObjectPtr adoptOSObject<T>(T) WARN_UNUSED_RETURN;

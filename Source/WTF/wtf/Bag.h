@@ -44,7 +44,7 @@ public:
     { }
     
     T m_item;
-    typename PtrTraits::StorageType m_next { nullptr };
+    typename PtrTraits::StorageType m_next { nullPtr() };
 };
 
 template<typename T, typename PassedPtrTraits = RawPtrTraits<T>, typename Malloc = FastMalloc>
@@ -62,7 +62,7 @@ public:
     {
         ASSERT(!m_head);
         m_head = other.unwrappedHead();
-        other.m_head = nullptr;
+        other.m_head = nullPtr();
     }
 
     template<typename U>
@@ -74,7 +74,7 @@ public:
         Bag destroy;
         destroy.m_head = unwrappedHead();
         m_head = other.unwrappedHead();
-        other.m_head = nullptr;
+        other.m_head = nullPtr();
 
         return *this;
     }
@@ -93,7 +93,7 @@ public:
             current->~Node();
             Malloc::free(current);
         }
-        m_head = nullptr;
+        m_head = nullPtr();
     }
     
     template<typename... Args>
@@ -154,7 +154,7 @@ public:
 private:
     Node* unwrappedHead() const { return PtrTraits::unwrap(m_head); }
 
-    typename PtrTraits::StorageType m_head { nullptr };
+    typename PtrTraits::StorageType m_head { nullPtr() };
 };
 
 } // namespace WTF

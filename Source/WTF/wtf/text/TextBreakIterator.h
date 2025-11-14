@@ -325,7 +325,7 @@ public:
         m_stringView = stringView;
         m_locale = locale;
         m_iterator = std::nullopt;
-        m_cachedPriorContext = nullptr;
+        m_cachedPriorContext = nullPtr();
         m_mode = mode;
         m_contentAnalysis = contentAnalysis;
     }
@@ -344,7 +344,7 @@ private:
     StringView m_stringView;
     AtomString m_locale;
     std::optional<CachedTextBreakIterator> m_iterator;
-    const char16_t* m_cachedPriorContext { nullptr };
+    const char16_t* m_cachedPriorContext { nullPtr() };
     TextBreakIterator::LineMode::Behavior m_mode { TextBreakIterator::LineMode::Behavior::Default };
     TextBreakIterator::ContentAnalysis m_contentAnalysis { TextBreakIterator::ContentAnalysis::Mechanical };
     PriorContext m_priorContext;

@@ -105,9 +105,9 @@ public:
     bool isEmpty() const;
 
     iterator begin() LIFETIME_BOUND { return makeIterator(m_head); }
-    iterator end() LIFETIME_BOUND { return makeIterator(nullptr); }
+    iterator end() LIFETIME_BOUND { return makeIterator(nullPtr()); }
     const_iterator begin() const LIFETIME_BOUND { return makeConstIterator(m_head); }
-    const_iterator end() const LIFETIME_BOUND { return makeConstIterator(nullptr); }
+    const_iterator end() const LIFETIME_BOUND { return makeConstIterator(nullPtr()); }
 
     iterator random() LIFETIME_BOUND { return makeIterator(m_impl.random()); }
     const_iterator random() const LIFETIME_BOUND { return makeIterator(m_impl.random()); }
@@ -191,8 +191,8 @@ private:
     const_iterator makeConstIterator(Node*) const;
 
     HashTable<Node*, Node*, IdentityExtractor, NodeHash, NodeTraits, NodeTraits> m_impl;
-    Node* m_head { nullptr };
-    Node* m_tail { nullptr };
+    Node* m_head { nullPtr() };
+    Node* m_tail { nullPtr() };
 };
 
 template<typename ValueArg> struct ListHashSetNode
@@ -208,8 +208,8 @@ template<typename ValueArg> struct ListHashSetNode
     }
 
     ValueArg m_value;
-    ListHashSetNode* m_prev { nullptr };
-    ListHashSetNode* m_next { nullptr };
+    ListHashSetNode* m_prev { nullPtr() };
+    ListHashSetNode* m_next { nullPtr() };
 };
 
 template<typename HashArg> struct ListHashSetNodeHashFunctions {
@@ -370,8 +370,8 @@ public:
 private:
     Node* node() { return m_position; }
 
-    const ListHashSetType* m_set { nullptr };
-    Node* m_position { nullptr };
+    const ListHashSetType* m_set { nullPtr() };
+    Node* m_position { nullPtr() };
 #if CHECK_HASHTABLE_ITERATORS
     WeakPtr<const ListHashSetType> m_weakSet;
     WeakPtr<Node> m_weakPosition;
@@ -415,8 +415,8 @@ inline ListHashSet<T, U>& ListHashSet<T, U>::operator=(const ListHashSet& other)
 template<typename T, typename U>
 inline ListHashSet<T, U>::ListHashSet(ListHashSet&& other)
     : m_impl(WTFMove(other.m_impl))
-    , m_head(std::exchange(other.m_head, nullptr))
-    , m_tail(std::exchange(other.m_tail, nullptr))
+    , m_head(std::exchange(other.m_head, nullPtr()))
+    , m_tail(std::exchange(other.m_tail, nullPtr()))
 {
 }
 
@@ -586,7 +586,7 @@ inline bool ListHashSet<T, U>::contains(const ValueType& value) const
 template<typename T, typename U>
 auto ListHashSet<T, U>::add(const ValueType& value) -> AddResult
 {
-    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(value, [] { return nullptr; });
+    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(value, [] { return nullPtr(); });
     if (result.isNewEntry)
         appendNode(*result.iterator);
     return AddResult(makeIterator(*result.iterator), result.isNewEntry);
@@ -595,7 +595,7 @@ auto ListHashSet<T, U>::add(const ValueType& value) -> AddResult
 template<typename T, typename U>
 auto ListHashSet<T, U>::add(ValueType&& value) -> AddResult
 {
-    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(WTFMove(value), [] { return nullptr; });
+    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(WTFMove(value), [] { return nullPtr(); });
     if (result.isNewEntry)
         appendNode(*result.iterator);
     return AddResult(makeIterator(*result.iterator), result.isNewEntry);
@@ -604,7 +604,7 @@ auto ListHashSet<T, U>::add(ValueType&& value) -> AddResult
 template<typename T, typename U>
 auto ListHashSet<T, U>::appendOrMoveToLast(const ValueType& value) -> AddResult
 {
-    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(value, [] { return nullptr; });
+    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(value, [] { return nullPtr(); });
     Node* node = *result.iterator;
     if (!result.isNewEntry)
         unlink(node);
@@ -616,7 +616,7 @@ auto ListHashSet<T, U>::appendOrMoveToLast(const ValueType& value) -> AddResult
 template<typename T, typename U>
 auto ListHashSet<T, U>::appendOrMoveToLast(ValueType&& value) -> AddResult
 {
-    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(WTFMove(value), [] { return nullptr; });
+    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(WTFMove(value), [] { return nullPtr(); });
     Node* node = *result.iterator;
     if (!result.isNewEntry)
         unlink(node);
@@ -640,7 +640,7 @@ bool ListHashSet<T, U>::moveToLastIfPresent(const ValueType& value)
 template<typename T, typename U>
 auto ListHashSet<T, U>::prependOrMoveToFirst(const ValueType& value) -> AddResult
 {
-    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(value, [] { return nullptr; });
+    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(value, [] { return nullPtr(); });
     Node* node = *result.iterator;
     if (!result.isNewEntry)
         unlink(node);
@@ -652,7 +652,7 @@ auto ListHashSet<T, U>::prependOrMoveToFirst(const ValueType& value) -> AddResul
 template<typename T, typename U>
 auto ListHashSet<T, U>::prependOrMoveToFirst(ValueType&& value) -> AddResult
 {
-    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(WTFMove(value), [] { return nullptr; });
+    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(WTFMove(value), [] { return nullPtr(); });
     Node* node = *result.iterator;
     if (!result.isNewEntry)
         unlink(node);
@@ -676,7 +676,7 @@ auto ListHashSet<T, U>::insertBefore(const ValueType& beforeValue, ValueType&& n
 template<typename T, typename U>
 auto ListHashSet<T, U>::insertBefore(iterator it, const ValueType& newValue) -> AddResult
 {
-    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(newValue, [] { return nullptr; });
+    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(newValue, [] { return nullPtr(); });
     if (result.isNewEntry)
         insertNodeBefore(it.node(), *result.iterator);
     return AddResult(makeIterator(*result.iterator), result.isNewEntry);
@@ -685,7 +685,7 @@ auto ListHashSet<T, U>::insertBefore(iterator it, const ValueType& newValue) -> 
 template<typename T, typename U>
 auto ListHashSet<T, U>::insertBefore(iterator it, ValueType&& newValue) -> AddResult
 {
-    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(WTFMove(newValue), [] { return nullptr; });
+    auto result = m_impl.template add<BaseTranslator, ShouldValidateKey::Yes>(WTFMove(newValue), [] { return nullPtr(); });
     if (result.isNewEntry)
         insertNodeBefore(it.node(), *result.iterator);
     return AddResult(makeIterator(*result.iterator), result.isNewEntry);
@@ -712,8 +712,8 @@ inline void ListHashSet<T, U>::clear()
 {
     deleteAllNodes();
     m_impl.clear(); 
-    m_head = nullptr;
-    m_tail = nullptr;
+    m_head = nullPtr();
+    m_tail = nullPtr();
 }
 
 template<typename T, typename U>
@@ -837,7 +837,7 @@ template<typename T, typename U>
 void ListHashSet<T, U>::appendNode(Node* node)
 {
     node->m_prev = m_tail;
-    node->m_next = nullptr;
+    node->m_next = nullPtr();
 
     if (m_tail) {
         ASSERT(m_head);
@@ -853,7 +853,7 @@ void ListHashSet<T, U>::appendNode(Node* node)
 template<typename T, typename U>
 void ListHashSet<T, U>::prependNode(Node* node)
 {
-    node->m_prev = nullptr;
+    node->m_prev = nullPtr();
     node->m_next = m_head;
 
     if (m_head)
@@ -886,7 +886,7 @@ void ListHashSet<T, U>::deleteAllNodes()
     if (!m_head)
         return;
 
-    for (Node* node = m_head, *next = m_head->m_next; node; node = next, next = node ? node->m_next : nullptr)
+    for (Node* node = m_head, *next = m_head->m_next; node; node = next, next = node ? node->m_next : nullPtr())
         delete node;
 }
 

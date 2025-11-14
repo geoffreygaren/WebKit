@@ -89,7 +89,7 @@ public:
         WTF_DEPRECATED_MAKE_FAST_ALLOCATED(iterator);
     public:
         constexpr iterator()
-            : m_bitSet(nullptr)
+            : m_bitSet(nullPtr())
             , m_index(0)
         {
         }

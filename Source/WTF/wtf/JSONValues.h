@@ -500,13 +500,13 @@ inline RefPtr<Object> Value::asObject()
     case Type::Integer:
     case Type::String:
     case Type::Array:
-        return nullptr;
+        return nullPtr();
     case Type::Object:
         static_assert(sizeof(Object) == sizeof(ObjectBase));
         return static_cast<Object*>(this);
     }
     RELEASE_ASSERT_NOT_REACHED();
-    return nullptr;
+    return nullPtr();
 }
 
 inline RefPtr<const Object> Value::asObject() const
@@ -518,13 +518,13 @@ inline RefPtr<const Object> Value::asObject() const
     case Type::Integer:
     case Type::String:
     case Type::Array:
-        return nullptr;
+        return nullPtr();
     case Type::Object:
         static_assert(sizeof(Object) == sizeof(ObjectBase));
         return static_cast<const Object*>(this);
     }
     RELEASE_ASSERT_NOT_REACHED();
-    return nullptr;
+    return nullPtr();
 }
 
 inline RefPtr<Array> Value::asArray()
@@ -536,13 +536,13 @@ inline RefPtr<Array> Value::asArray()
     case Type::Integer:
     case Type::Object:
     case Type::String:
-        return nullptr;
+        return nullPtr();
     case Type::Array:
         static_assert(sizeof(ArrayBase) == sizeof(Array));
         return static_cast<Array*>(this);
     }
     RELEASE_ASSERT_NOT_REACHED();
-    return nullptr;
+    return nullPtr();
 }
 
 } // namespace JSONImpl

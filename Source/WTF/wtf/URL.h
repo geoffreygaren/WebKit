@@ -63,12 +63,12 @@ public:
     // Resolves the relative URL with the given base URL. If provided, the
     // URLTextEncoding is used to encode non-ASCII characters. The base URL can be
     // null or empty, in which case the relative URL will be interpreted as absolute.
-    WTF_EXPORT_PRIVATE URL(const URL& base, const String& relative, const URLTextEncoding* = nullptr);
+    WTF_EXPORT_PRIVATE URL(const URL& base, const String& relative, const URLTextEncoding* = nullPtr());
 
     // Parses the input string as an absolute URL. If you need to parse a relative URL, call the constructor above
     // taking a base URL and a relative URL string.
-    WTF_EXPORT_PRIVATE explicit URL(String&& absoluteURL, const URLTextEncoding* = nullptr);
-    explicit URL(const String& absoluteURL, const URLTextEncoding* encoding = nullptr)
+    WTF_EXPORT_PRIVATE explicit URL(String&& absoluteURL, const URLTextEncoding* = nullPtr());
+    explicit URL(const String& absoluteURL, const URLTextEncoding* encoding = nullPtr())
         : URL(String { absoluteURL }, encoding)
     {
     }

@@ -54,7 +54,7 @@ void sequesteredArenaSetMaxSingleAllocationSize(size_t size)
 
 #define FAIL_IF_EXCEEDS_LIMIT(size) do { \
         if ((size) > maxSingleSequesteredArenaAllocationSize) [[unlikely]] \
-            return nullptr; \
+            return nullPtr(); \
     } while (false)
 #else // !ASSERT_ENABLED
 
@@ -120,7 +120,7 @@ TryMallocReturnValue trySequesteredArenaCalloc(size_t numElements, size_t elemen
     CheckedSize checkedSize = elementSize;
     checkedSize *= numElements;
     if (checkedSize.hasOverflowed())
-        return nullptr;
+        return nullPtr();
     return trySequesteredArenaZeroedMalloc(checkedSize);
 }
 TryMallocReturnValue trySequesteredArenaRealloc(void* object, size_t newSize)

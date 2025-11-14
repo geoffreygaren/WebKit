@@ -154,7 +154,7 @@ private:
     friend class SymbolRegistry;
 
     SymbolRegistry* symbolRegistry() const { return m_symbolRegistry.get(); }
-    void clearSymbolRegistry() { m_symbolRegistry = nullptr; }
+    void clearSymbolRegistry() { m_symbolRegistry = nullPtr(); }
 
     static Ref<RegisteredSymbolImpl> create(StringImpl& rep, SymbolRegistry&);
     static Ref<RegisteredSymbolImpl> createPrivate(StringImpl& rep, SymbolRegistry&);
@@ -192,7 +192,7 @@ inline SymbolRegistry* SymbolImpl::symbolRegistry() const
 {
     if (isRegistered())
         return static_cast<const RegisteredSymbolImpl*>(this)->symbolRegistry();
-    return nullptr;
+    return nullPtr();
 }
 
 inline RegisteredSymbolImpl* SymbolImpl::asRegisteredSymbolImpl()

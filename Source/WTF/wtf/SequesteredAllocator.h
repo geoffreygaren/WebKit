@@ -182,7 +182,7 @@ private:
             }
             if constexpr (!canExpand) {
                 if constexpr (mode == AllocationFailureMode::ReturnNull)
-                    return nullptr;
+                    return nullPtr();
                 ASSERT(mode == AllocationFailureMode::Assert);
                 RELEASE_ASSERT_NOT_REACHED();
             }
@@ -200,7 +200,7 @@ private:
             }
             if constexpr (!canExpand) {
                 if constexpr (mode == AllocationFailureMode::ReturnNull)
-                    return nullptr;
+                    return nullPtr();
                 ASSERT(mode == AllocationFailureMode::Assert);
                 RELEASE_ASSERT_NOT_REACHED();
             }
@@ -238,7 +238,7 @@ private:
             GranuleHeader* granule = reinterpret_cast<GranuleHeader*>(mapGranule<mode>(minArenaGranuleSize));
             if constexpr (mode == AllocationFailureMode::ReturnNull) {
                 if (!granule) [[unlikely]]
-                    return nullptr;
+                    return nullPtr();
             }
 
             m_granules.push(granule);

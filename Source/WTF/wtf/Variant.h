@@ -237,6 +237,7 @@ namespace std {
 #include <new>
 #include <type_traits>
 #include <utility>
+#include <wtf/TypeTraits.h>
 
 // MPark.Variant
 //
@@ -2227,7 +2228,7 @@ namespace mpark {
     template <typename Arg, std::size_t I, typename T>
     struct overload_leaf<Arg, I, T, false> {
       using impl = lib::size_constant<I> (*)(T);
-      operator impl() const { return nullptr; };
+      operator impl() const { return nullPtr(); };
     };
 
     template <typename Arg, std::size_t I, typename T>
@@ -2245,7 +2246,7 @@ namespace mpark {
 #endif
         > {
       using impl = lib::size_constant<I> (*)(T);
-      operator impl() const { return nullptr; };
+      operator impl() const { return nullPtr(); };
     };
 
     template <typename Arg, typename... Ts>
@@ -2549,7 +2550,7 @@ namespace mpark {
     inline constexpr /* auto * */ AUTO generic_get_if(V *v) noexcept
       AUTO_RETURN(v && holds_alternative<I>(*v)
                       ? lib::addressof(access::variant::get_alt<I>(*v).value)
-                      : nullptr)
+                      : nullPtr())
 
   }  // namespace detail
 

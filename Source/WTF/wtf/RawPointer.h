@@ -30,7 +30,7 @@ namespace WTF {
 class RawPointer {
 public:
     RawPointer()
-        : m_value(nullptr)
+        : m_value(nullPtr())
     {
     }
     

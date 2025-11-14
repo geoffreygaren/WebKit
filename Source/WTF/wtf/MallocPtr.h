@@ -64,7 +64,7 @@ public:
 
     T *leakPtr() WARN_UNUSED_RETURN
     {
-        return std::exchange(m_ptr, nullptr);
+        return std::exchange(m_ptr, nullPtr());
     }
 
     explicit operator bool() const
@@ -142,7 +142,7 @@ private:
     {
     }
 
-    T* m_ptr { nullptr };
+    T* m_ptr { nullPtr() };
 };
 
 static_assert(sizeof(MallocPtr<int>) == sizeof(int*));

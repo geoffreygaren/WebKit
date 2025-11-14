@@ -95,7 +95,7 @@ template<typename CollectionType, typename MapFunctionType> RetainPtr<NSMutableA
 template<typename VectorElementType> Vector<VectorElementType> makeVector(NSArray *array)
 {
     return Vector<VectorElementType>(array.count, [&](size_t index) {
-        constexpr const VectorElementType* typedNull = nullptr;
+        const VectorElementType* typedNull = nullPtr();
         return makeVectorElement(typedNull, array[index]);
     });
 }

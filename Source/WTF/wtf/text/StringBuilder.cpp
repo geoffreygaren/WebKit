@@ -187,7 +187,7 @@ void StringBuilder::shrinkToFit()
 {
     if (shouldShrinkToFit()) {
         reallocateBuffer(m_length);
-        m_string = std::exchange(m_buffer, nullptr);
+        m_string = std::exchange(m_buffer, nullPtr());
     }
 }
 

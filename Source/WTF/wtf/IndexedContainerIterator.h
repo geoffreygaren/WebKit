@@ -34,7 +34,7 @@ class IndexedContainerIterator {
     WTF_DEPRECATED_MAKE_FAST_ALLOCATED(IndexedContainerIterator);
 public:
     IndexedContainerIterator()
-        : m_container(nullptr)
+        : m_container(nullPtr())
         , m_index(0)
     {
     }

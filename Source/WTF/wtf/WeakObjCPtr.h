@@ -101,9 +101,9 @@ public:
 
 private:
 #if __has_feature(objc_arc)
-    mutable __weak id m_weakReference { nullptr };
+    mutable __weak id m_weakReference { nullPtr() };
 #else
-    mutable id m_weakReference { nullptr };
+    mutable id m_weakReference { nullPtr() };
 #endif
 };
 

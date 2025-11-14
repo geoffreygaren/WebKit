@@ -60,11 +60,11 @@ public:
         RefLogStackShot* stackShot = new RefLogStackShot(ptr);
 
         size_t index = s_end.fetch_add(1, std::memory_order_acquire) & s_sizeMask;
-        if (RefLogStackShot* old = s_buffer[index].exchange(nullptr, std::memory_order_acquire))
+        if (RefLogStackShot* old = s_buffer[index].exchange(nullPtr(), std::memory_order_acquire))
             delete old;
 
         // Other threads may have raced ahead and filled the log. If so, our stack shot is oldest, so we drop it.
-        RefLogStackShot* expected = nullptr;
+        RefLogStackShot* expected = nullPtr();
         if (!s_buffer[index].compare_exchange_strong(expected, stackShot, std::memory_order_release))
             delete stackShot;
     }

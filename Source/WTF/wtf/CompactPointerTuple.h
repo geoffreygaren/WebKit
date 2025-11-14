@@ -149,7 +149,7 @@ public:
     }
 
 private:
-    PointerType m_pointer { nullptr };
+    PointerType m_pointer { nullPtr() };
     Type m_type { 0 };
 #endif
 

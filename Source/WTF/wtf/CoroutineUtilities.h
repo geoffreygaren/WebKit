@@ -35,12 +35,12 @@ class CoroutineHandle {
 public:
     CoroutineHandle() = default;
     CoroutineHandle(std::coroutine_handle<PromiseType>&& handle)
-        : m_handle(std::exchange(handle, nullptr)) { }
+        : m_handle(std::exchange(handle, nullPtr())) { }
     CoroutineHandle(CoroutineHandle&& other)
-        : m_handle(std::exchange(other.m_handle, nullptr)) { }
+        : m_handle(std::exchange(other.m_handle, nullPtr())) { }
     CoroutineHandle& operator=(CoroutineHandle&& other)
     {
-        m_handle = std::exchange(other.m_handle, nullptr);
+        m_handle = std::exchange(other.m_handle, nullPtr());
         return *this;
     }
     CoroutineHandle(const CoroutineHandle&) = delete;
@@ -114,7 +114,7 @@ public:
         std::coroutine_handle<promise_type> m_coroutine;
     };
     Awaitable(std::coroutine_handle<promise_type> coroutine)
-        : m_coroutine(std::exchange(coroutine, nullptr)) { }
+        : m_coroutine(std::exchange(coroutine, nullPtr())) { }
     AwaitableHelper operator co_await() const { return { m_coroutine.handle() }; }
 private:
     CoroutineHandle<promise_type> m_coroutine;

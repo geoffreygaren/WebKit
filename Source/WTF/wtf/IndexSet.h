@@ -94,7 +94,7 @@ public:
             WTF_DEPRECATED_MAKE_FAST_ALLOCATED(iterator);
         public:
             iterator()
-                : m_collection(nullptr)
+                : m_collection(nullPtr())
             {
             }
 

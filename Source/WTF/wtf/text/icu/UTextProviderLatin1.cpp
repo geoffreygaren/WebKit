@@ -220,7 +220,7 @@ static int32_t uTextLatin1MapNativeIndexToUTF16(const UText* uText, int64_t nati
 
 static void uTextLatin1Close(UText* uText)
 {
-    uText->context = nullptr;
+    uText->context = nullPtr();
 }
 
 UText* openLatin1UTextProvider(UTextWithBuffer* utWithBuffer, std::span<const Latin1Character> string, UErrorCode* status)
@@ -386,7 +386,7 @@ static int32_t uTextLatin1ContextAwareExtract(UText*, int64_t, int64_t, char16_t
 
 static void uTextLatin1ContextAwareClose(UText* text)
 {
-    text->context = nullptr;
+    text->context = nullPtr();
 }
 
 UText* openLatin1ContextAwareUTextProvider(UTextWithBuffer* utWithBuffer, std::span<const Latin1Character> string, std::span<const char16_t> priorContext, UErrorCode* status)

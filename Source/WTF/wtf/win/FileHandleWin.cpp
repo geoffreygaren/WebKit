@@ -58,7 +58,7 @@ std::optional<uint64_t> FileHandle::read(std::span<uint8_t> data)
         return { };
 
     DWORD bytesRead;
-    bool success = ::ReadFile(*m_handle, data.data(), data.size(), &bytesRead, nullptr);
+    bool success = ::ReadFile(*m_handle, data.data(), data.size(), &bytesRead, nullPtr());
 
     if (!success)
         return { };
@@ -71,7 +71,7 @@ std::optional<uint64_t> FileHandle::write(std::span<const uint8_t> data)
         return { };
 
     DWORD bytesWritten;
-    bool success = WriteFile(*m_handle, data.data(), data.size(), &bytesWritten, nullptr);
+    bool success = WriteFile(*m_handle, data.data(), data.size(), &bytesWritten, nullPtr());
 
     if (!success)
         return { };
@@ -171,7 +171,7 @@ std::optional<MappedFileData> FileHandle::map(MappedFileMode, FileOpenMode openM
         break;
     }
 
-    Win32Handle fileMapping = Win32Handle::adopt(CreateFileMapping(platformHandle(), nullptr, pageProtection, 0, 0, nullptr));
+    Win32Handle fileMapping = Win32Handle::adopt(CreateFileMapping(platformHandle(), nullPtr(), pageProtection, 0, 0, nullPtr()));
     if (!fileMapping)
         return { };
 

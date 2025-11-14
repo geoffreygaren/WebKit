@@ -61,7 +61,7 @@ public:
     {
         m_data.setPointer(other.pointer());
         m_data.setType(other.type());
-        other.m_data.setPointer(nullptr);
+        other.m_data.setPointer(nullPtr());
         other.m_data.setType({ });
     }
 

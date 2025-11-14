@@ -65,7 +65,7 @@ public:
     Mutex parkingLock;
     ThreadCondition parkingCondition;
 
-    const void* address { nullptr };
+    const void* address { nullPtr() };
     
     RefPtr<ThreadData> nextInQueue;
     
@@ -172,7 +172,7 @@ public:
                     queueTail = previous;
                 didDequeue = true;
                 *currentPtr = current->nextInQueue;
-                current->nextInQueue = nullptr;
+                current->nextInQueue = nullPtr();
                 break;
             }
         }
@@ -185,7 +185,7 @@ public:
     
     ThreadData* dequeue()
     {
-        ThreadData* result = nullptr;
+        ThreadData* result = nullPtr();
         genericDequeue(
             [&] (ThreadData* element, bool) -> DequeueResult {
                 result = element;
@@ -271,7 +271,7 @@ Hashtable* ensureHashtable()
 
         if (!currentHashtable) {
             auto currentHashtable = makeUnique<Hashtable>(maxLoadFactor);
-            if (hashtable.compareExchangeWeak(nullptr, currentHashtable.get())) {
+            if (hashtable.compareExchangeWeak(nullPtr(), currentHashtable.get())) {
                 if (verbose)
                     dataLogForCurrentThread(": created initial hashtable ", RawPointer(currentHashtable.get()), "\n");
                 return currentHashtable.release(); // Leak the hash table.
@@ -301,7 +301,7 @@ Vector<Bucket*> lockHashtable()
 
                 if (!bucket) {
                     bucket = new Bucket();
-                    if (!bucketPointer.compareExchangeWeak(nullptr, bucket)) {
+                    if (!bucketPointer.compareExchangeWeak(nullPtr(), bucket)) {
                         delete bucket;
                         continue;
                     }
@@ -478,7 +478,7 @@ bool enqueue(const void* address, NOESCAPE const Functor& functor)
             bucket = bucketPointer.load();
             if (!bucket) {
                 bucket = new Bucket();
-                if (!bucketPointer.compareExchangeWeak(nullptr, bucket)) {
+                if (!bucketPointer.compareExchangeWeak(nullPtr(), bucket)) {
                     delete bucket;
                     continue;
                 }
@@ -534,7 +534,7 @@ bool dequeue(
                 bucket = bucketPointer.load();
                 if (!bucket) {
                     bucket = new Bucket();
-                    if (!bucketPointer.compareExchangeWeak(nullptr, bucket)) {
+                    if (!bucketPointer.compareExchangeWeak(nullPtr(), bucket)) {
                         delete bucket;
                         continue;
                     }
@@ -580,7 +580,7 @@ NEVER_INLINE ParkingLot::ParkResult ParkingLot::parkConditionallyImpl(
         address,
         [&] () -> ThreadData* {
             if (!validation())
-                return nullptr;
+                return nullPtr();
 
             me->address = address;
             return me.get();
@@ -646,7 +646,7 @@ NEVER_INLINE ParkingLot::ParkResult ParkingLot::parkConditionallyImpl(
             while (me->address)
                 me->parkingCondition.wait(me->parkingLock);
         }
-        me->address = nullptr;
+        me->address = nullPtr();
     }
 
     ParkResult result;
@@ -693,7 +693,7 @@ NEVER_INLINE ParkingLot::UnparkResult ParkingLot::unparkOne(const void* address)
     
     {
         MutexLocker locker(threadData->parkingLock);
-        threadData->address = nullptr;
+        threadData->address = nullPtr();
         threadData->token = 0;
     }
     threadData->parkingCondition.signal();
@@ -739,7 +739,7 @@ NEVER_INLINE void ParkingLot::unparkOneImpl(
     
     {
         MutexLocker locker(threadData->parkingLock);
-        threadData->address = nullptr;
+        threadData->address = nullPtr();
     }
     // At this point, the threadData may die. Good thing we have a RefPtr<> on it.
     threadData->parkingCondition.signal();
@@ -777,7 +777,7 @@ NEVER_INLINE unsigned ParkingLot::unparkCount(const void* address, unsigned coun
         ASSERT(threadData->address);
         {
             MutexLocker locker(threadData->parkingLock);
-            threadData->address = nullptr;
+            threadData->address = nullPtr();
         }
         threadData->parkingCondition.signal();
     }

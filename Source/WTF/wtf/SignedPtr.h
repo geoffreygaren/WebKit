@@ -38,12 +38,12 @@ public:
     WTF_DEPRECATED_MAKE_FAST_ALLOCATED(SignedPtr);
 public:
     constexpr SignedPtr()
-        : m_value(nullptr)
+        : m_value(nullPtr())
     {
     }
 
     constexpr SignedPtr(std::nullptr_t)
-        : m_value(nullptr)
+        : m_value(nullPtr())
     {
     }
 
@@ -56,7 +56,7 @@ public:
     {
 #if CPU(ARM64E)
         if (!m_value)
-            return nullptr;
+            return nullPtr();
         return ptrauth_auth_data(m_value, ptrauth_key_process_dependent_data, Tag);
 #else
         return m_value;
@@ -76,7 +76,7 @@ public:
 
     void clear()
     {
-        set(nullptr);
+        set(nullPtr());
     }
 
     T* operator->() const { return get(); }
@@ -89,7 +89,7 @@ public:
     
     // This conversion operator allows implicit conversion to bool but not to other integer types.
     typedef T* (SignedPtr::*UnspecifiedBoolType);
-    operator UnspecifiedBoolType() const { return get() ? &SignedPtr::m_value : nullptr; }
+    operator UnspecifiedBoolType() const { return get() ? &SignedPtr::m_value : nullPtr(); }
     explicit operator bool() const { return get(); }
 
     SignedPtr& operator=(T* value)

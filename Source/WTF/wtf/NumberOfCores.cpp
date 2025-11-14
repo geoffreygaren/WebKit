@@ -91,7 +91,7 @@ int numberOfPhysicalProcessorCores()
     static std::once_flag onceKey;
     std::call_once(onceKey, [&] {
         size_t valueSize = sizeof(numCores);
-        int result = sysctlbyname("hw.physicalcpu_max", &numCores, &valueSize, nullptr, 0);
+        int result = sysctlbyname("hw.physicalcpu_max", &numCores, &valueSize, nullPtr(), 0);
         if (result < 0)
             numCores = defaultIfUnavailable;
     });

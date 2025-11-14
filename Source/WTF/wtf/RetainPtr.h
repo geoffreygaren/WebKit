@@ -109,12 +109,12 @@ public:
 
     template<typename U = StorageType>
     std::enable_if_t<IsNSType<U> && std::is_same_v<U, StorageType>, StorageType> leakRef() NS_RETURNS_RETAINED WARN_UNUSED_RETURN {
-        return std::exchange(m_ptr, nullptr);
+        return std::exchange(m_ptr, nullPtr());
     }
 
     template<typename U = StorageType>
     std::enable_if_t<!IsNSType<U> && std::is_same_v<U, StorageType>, StorageType> leakRef() CF_RETURNS_RETAINED WARN_UNUSED_RETURN {
-        return std::exchange(m_ptr, nullptr);
+        return std::exchange(m_ptr, nullPtr());
     }
 
     PtrType autorelease();
@@ -176,7 +176,7 @@ private:
 #endif
 #endif
 
-    StorageType m_ptr { nullptr };
+    StorageType m_ptr { nullPtr() };
 };
 
 template<typename T> RetainPtr(T) -> RetainPtr<RetainPtrType<T>>;
@@ -186,7 +186,7 @@ template<typename T> RetainPtr<RetainPtrType<T>> retainPtr(T) WARN_UNUSED_RETURN
 
 template<typename T> inline RetainPtr<T>::~RetainPtr()
 {
-    if (auto ptr = std::exchange(m_ptr, nullptr))
+    if (auto ptr = std::exchange(m_ptr, nullPtr()))
         releaseFoundationPtr(ptr);
 }
 
@@ -211,13 +211,13 @@ template<typename T> template<typename U> inline RetainPtr<T>::RetainPtr(const R
 
 template<typename T> inline void RetainPtr<T>::clear()
 {
-    if (auto ptr = std::exchange(m_ptr, nullptr))
+    if (auto ptr = std::exchange(m_ptr, nullPtr()))
         releaseFoundationPtr(ptr);
 }
 
 template<typename T> inline auto RetainPtr<T>::autorelease() -> PtrType
 {
-    auto ptr = std::exchange(m_ptr, nullptr);
+    auto ptr = std::exchange(m_ptr, nullPtr());
     if (ptr)
         autoreleaseFoundationPtr(ptr);
     return ptr;

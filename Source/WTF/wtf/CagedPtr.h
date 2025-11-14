@@ -46,9 +46,9 @@ public:
     static constexpr unsigned maxNumberOfAllowedPACBits = numberOfPointerBits - OS_CONSTANT(EFFECTIVE_ADDRESS_WIDTH);
     static constexpr uintptr_t nonPACBitsMask = (1ull << (numberOfPointerBits - maxNumberOfAllowedPACBits)) - 1;
 
-    CagedPtr() : CagedPtr(nullptr) { }
+    CagedPtr() : CagedPtr(nullPtr()) { }
     CagedPtr(std::nullptr_t)
-        : m_ptr(nullptr)
+        : m_ptr(nullPtr())
     { }
 
     CagedPtr(T* ptr)
@@ -66,7 +66,7 @@ public:
     {
         T* ptr = PtrTraits::unwrap(m_ptr);
         if (!ptr)
-            return nullptr;
+            return nullPtr();
         return Gigacage::caged(kind, ptr);
     }
 
@@ -95,13 +95,13 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
     }
 
     CagedPtr(CagedPtr&& other)
-        : m_ptr(PtrTraits::exchange(other.m_ptr, nullptr))
+        : m_ptr(PtrTraits::exchange(other.m_ptr, nullPtr()))
     {
     }
 
     CagedPtr& operator=(CagedPtr&& ptr)
     {
-        m_ptr = PtrTraits::exchange(ptr.m_ptr, nullptr);
+        m_ptr = PtrTraits::exchange(ptr.m_ptr, nullPtr());
         return *this;
     }
 

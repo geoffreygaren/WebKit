@@ -506,7 +506,7 @@ private:
 
     char actualLocale[ULOC_FULLNAME_CAPACITY];
     char validLocale[ULOC_FULLNAME_CAPACITY];
-    const char16_t* currPattern = nullptr;
+    const char16_t* currPattern = nullPtr();
 
     UnicodeString currencySpcBeforeSym[UNUM_CURRENCY_SPACING_COUNT];
     UnicodeString currencySpcAfterSym[UNUM_CURRENCY_SPACING_COUNT];

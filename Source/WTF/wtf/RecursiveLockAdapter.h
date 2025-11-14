@@ -33,7 +33,7 @@ namespace WTF {
 template<typename LockType>
 class RecursiveLockAdapter {
 public:
-    RecursiveLockAdapter() = default;
+    constexpr RecursiveLockAdapter() = default;
 
     // Use WTF_IGNORES_THREAD_SAFETY_ANALYSIS because the function does conditional locking, which is
     // not supported by analysis. Also RecursiveLockAdapter may wrap a lock type besides WTF::Lock
@@ -60,7 +60,7 @@ public:
     {
         if (--m_recursionCount)
             return;
-        m_owner = nullptr;
+        m_owner = nullPtr();
         m_lock.unlock();
     }
     

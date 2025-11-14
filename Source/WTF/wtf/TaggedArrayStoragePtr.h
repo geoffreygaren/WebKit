@@ -33,7 +33,7 @@ template<typename PtrType>
 class TaggedArrayStoragePtr {
 public:
     TaggedArrayStoragePtr()
-        : m_ptr(tagArrayPtr<PtrType>(nullptr, 0))
+        : m_ptr(tagArrayPtr<PtrType>(nullPtr(), 0))
     { }
 
     TaggedArrayStoragePtr(PtrType* ptr, unsigned length)

@@ -45,7 +45,7 @@ std::unique_ptr<FilePrintStream> FilePrintStream::open(const char* filename, con
 {
     FILE* file = fopen(filename, mode);
     if (!file)
-        return nullptr;
+        return nullPtr();
 
     return makeUnique<FilePrintStream>(file);
 }

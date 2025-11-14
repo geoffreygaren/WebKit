@@ -47,23 +47,23 @@ RetainPtr<CFURLRef> URL::createCFURL(const String& string)
 {
     if (string.is8Bit() && string.containsOnlyASCII()) [[likely]] {
         auto characters = string.span8();
-        return adoptCF(CFURLCreateAbsoluteURLWithBytes(nullptr, byteCast<UInt8>(characters.data()), characters.size(), kCFStringEncodingUTF8, nullptr, true));
+        return adoptCF(CFURLCreateAbsoluteURLWithBytes(nullPtr(), byteCast<UInt8>(characters.data()), characters.size(), kCFStringEncodingUTF8, nullPtr(), true));
     }
     CString utf8 = string.utf8();
     auto utf8Span = utf8.span();
-    return adoptCF(CFURLCreateAbsoluteURLWithBytes(nullptr, byteCast<UInt8>(utf8Span.data()), utf8Span.size(), kCFStringEncodingUTF8, nullptr, true));
+    return adoptCF(CFURLCreateAbsoluteURLWithBytes(nullPtr(), byteCast<UInt8>(utf8Span.data()), utf8Span.size(), kCFStringEncodingUTF8, nullPtr(), true));
 }
 
 RetainPtr<CFURLRef> URL::createCFURL() const
 {
     if (isNull())
-        return nullptr;
+        return nullPtr();
 
     if (isEmpty())
         return emptyCFURL();
 
     if (!isValid() && linkedOnOrAfterSDKWithBehavior(SDKAlignedBehavior::ConvertsInvalidURLsToNull))
-        return nullptr;
+        return nullPtr();
 
     RetainPtr result = createCFURL(m_string);
 
@@ -71,7 +71,7 @@ RetainPtr<CFURLRef> URL::createCFURL() const
     if (!linkedOnOrAfterSDKWithBehavior(SDKAlignedBehavior::ConvertsInvalidURLsToNull)
         && protocolIsInHTTPFamily()
         && !isSameOrigin(result.get(), *this))
-        return nullptr;
+        return nullPtr();
 
     return result;
 }

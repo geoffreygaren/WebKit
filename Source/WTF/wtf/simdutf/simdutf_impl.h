@@ -906,7 +906,7 @@ static inline uint32_t detect_supported_architectures() {
   #if defined(__linux__)
   simdutf_riscv_hwprobe probes[] = {{SIMDUTF_RISCV_HWPROBE_KEY_IMA_EXT_0, 0}};
   long ret = simdutf_riscv_hwprobe(&probes, sizeof probes / sizeof *probes, 0,
-                                   nullptr, 0);
+                                   nullPtr(), 0);
   if (ret == 0) {
     uint64_t extensions = probes[0].value;
     if (extensions & SIMDUTF_RISCV_HWPROBE_IMA_V)
@@ -6557,7 +6557,7 @@ public:
         return impl;
       }
     }
-    return nullptr;
+    return nullPtr();
   }
 
   /**
@@ -6571,7 +6571,7 @@ public:
    *
    * @return the most advanced supported implementation for the current host, or
    * an implementation that returns UNSUPPORTED_ARCHITECTURE if there is no
-   * supported implementation. Will never return nullptr.
+   * supported implementation. Will never return nullPtr().
    */
   const implementation *detect_best_supported() const noexcept;
 };

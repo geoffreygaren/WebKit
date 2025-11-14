@@ -844,7 +844,7 @@ void URLParser::copyURLPartsUntil(const URL& base, URLPart part, const CodePoint
     switch (scheme(m_asciiBuffer.subspan(0, m_url.m_schemeEnd))) {
     case Scheme::WS:
     case Scheme::WSS:
-        nonUTF8QueryEncoding = nullptr;
+        nonUTF8QueryEncoding = nullPtr();
         m_urlIsSpecial = true;
         return;
     case Scheme::File:
@@ -857,7 +857,7 @@ void URLParser::copyURLPartsUntil(const URL& base, URLPart part, const CodePoint
         return;
     case Scheme::NonSpecial:
         m_urlIsSpecial = false;
-        nonUTF8QueryEncoding = nullptr;
+        nonUTF8QueryEncoding = nullPtr();
         auto pathStart = m_url.m_hostEnd + m_url.m_portLength;
         if (pathStart + 2 < m_asciiBuffer.size()
             && m_asciiBuffer[pathStart] == '/'
@@ -1136,7 +1136,7 @@ void URLParser::parse(std::span<const CharacterType> input, const URL& base, con
 
     auto endIndex = input.size();
     if (nonUTF8QueryEncoding == URLTextEncodingSentinelAllowingC0AtEnd) [[unlikely]]
-        nonUTF8QueryEncoding = nullptr;
+        nonUTF8QueryEncoding = nullPtr();
     else {
         while (endIndex && isC0ControlOrSpace(input[endIndex - 1])) [[unlikely]] {
             syntaxViolation<CharacterType>(input);
@@ -1229,7 +1229,7 @@ void URLParser::parse(std::span<const CharacterType> input, const URL& base, con
                     break;
                 case Scheme::WS:
                 case Scheme::WSS:
-                    nonUTF8QueryEncoding = nullptr;
+                    nonUTF8QueryEncoding = nullPtr();
                     m_urlIsSpecial = true;
                     if (base.protocolIs(urlScheme))
                         state = State::SpecialRelativeOrAuthority;
@@ -1250,7 +1250,7 @@ void URLParser::parse(std::span<const CharacterType> input, const URL& base, con
                     ++c;
                     break;
                 case Scheme::NonSpecial:
-                    nonUTF8QueryEncoding = nullptr;
+                    nonUTF8QueryEncoding = nullPtr();
                     auto maybeSlash = c;
                     advance(maybeSlash);
                     if (!maybeSlash.atEnd() && *maybeSlash == '/') {

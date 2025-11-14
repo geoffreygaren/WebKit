@@ -39,7 +39,7 @@ bool hasEntitlement(SecTaskRef task, ASCIILiteral entitlement)
         return false;
     auto savedErrno = errno;
     auto string = entitlement.createCFString();
-    auto result = adoptCF(SecTaskCopyValueForEntitlement(task, string.get(), nullptr)) == kCFBooleanTrue;
+    auto result = adoptCF(SecTaskCopyValueForEntitlement(task, string.get(), nullPtr())) == kCFBooleanTrue;
     errno = savedErrno;
     return result;
 }
@@ -75,7 +75,7 @@ bool hasEntitlementValue(audit_token_t token, ASCIILiteral entitlement, ASCIILit
         return false;
 
     auto string = entitlement.createCFString();
-    String entitlementValue = dynamic_cf_cast<CFStringRef>(adoptCF(SecTaskCopyValueForEntitlement(secTaskForToken.get(), string.get(), nullptr)).get());
+    String entitlementValue = dynamic_cf_cast<CFStringRef>(adoptCF(SecTaskCopyValueForEntitlement(secTaskForToken.get(), string.get(), nullPtr())).get());
     return entitlementValue == value;
 }
 
@@ -86,7 +86,7 @@ bool hasEntitlementValueInArray(audit_token_t token, ASCIILiteral entitlement, A
         return false;
 
     auto string = entitlement.createCFString();
-    RetainPtr array = adoptCF(dynamic_cf_cast<CFArrayRef>(SecTaskCopyValueForEntitlement(secTaskForToken.get(), string.get(), nullptr)));
+    RetainPtr array = adoptCF(dynamic_cf_cast<CFArrayRef>(SecTaskCopyValueForEntitlement(secTaskForToken.get(), string.get(), nullPtr())));
     if (!array)
         return false;
 

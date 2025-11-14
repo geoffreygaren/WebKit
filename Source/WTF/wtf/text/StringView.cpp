@@ -383,7 +383,7 @@ StringViewWithUnderlyingString normalizedNFC(StringView string)
     if (checkResult)
         return { string, { } };
 
-    unsigned normalizedLength = unorm2_normalize(normalizer, span.data(), span.size(), nullptr, 0, &status);
+    unsigned normalizedLength = unorm2_normalize(normalizer, span.data(), span.size(), nullPtr(), 0, &status);
     ASSERT(needsToGrowToProduceBuffer(status));
 
     std::span<char16_t> characters;
@@ -577,10 +577,10 @@ void StringView::setUnderlyingStringImpl(const StringImpl* string)
 {
     UnderlyingString* underlyingString;
     if (!string)
-        underlyingString = nullptr;
+        underlyingString = nullPtr();
     else {
         Locker locker { underlyingStringsLock };
-        auto result = underlyingStrings().add(string, nullptr);
+        auto result = underlyingStrings().add(string, nullPtr());
         if (result.isNewEntry)
             result.iterator->value = new UnderlyingString(*string);
         else

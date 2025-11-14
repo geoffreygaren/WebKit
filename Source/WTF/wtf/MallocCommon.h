@@ -49,7 +49,7 @@ inline TryMallocReturnValue::TryMallocReturnValue(void* data)
 inline TryMallocReturnValue::TryMallocReturnValue(TryMallocReturnValue&& source)
     : m_data(source.m_data)
 {
-    source.m_data = nullptr;
+    source.m_data = nullPtr();
 }
 
 inline TryMallocReturnValue::~TryMallocReturnValue()
@@ -60,7 +60,7 @@ inline TryMallocReturnValue::~TryMallocReturnValue()
 template<typename T> inline bool TryMallocReturnValue::getValue(T*& data)
 {
     data = static_cast<T*>(m_data);
-    m_data = nullptr;
+    m_data = nullPtr();
     return data;
 }
 

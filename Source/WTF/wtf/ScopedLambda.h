@@ -46,7 +46,7 @@ template<typename ResultType, typename... ArgumentTypes>
 class ScopedLambda<ResultType (ArgumentTypes...)> {
     WTF_FORBID_HEAP_ALLOCATION;
 public:
-    ScopedLambda(ResultType (*impl)(void* arg, ArgumentTypes...) = nullptr, void* arg = nullptr)
+    ScopedLambda(ResultType (*impl)(void* arg, ArgumentTypes...) = nullPtr(), void* arg = nullPtr())
         : m_impl(impl)
         , m_arg(arg)
     {

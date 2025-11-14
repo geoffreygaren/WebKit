@@ -37,7 +37,7 @@ struct Mmap {
     {
         auto* data = ::mmap(addr, size, pageProtection, options, fileDescriptor, 0);
         if (data == MAP_FAILED)
-            return nullptr;
+            return nullPtr();
         RELEASE_ASSERT((pageProtection & PROT_EXEC) || WTF_DATA_ADDRESS_IS_SANE(data));
         return data;
     }

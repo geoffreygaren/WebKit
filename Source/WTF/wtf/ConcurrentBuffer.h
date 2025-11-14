@@ -109,7 +109,7 @@ private:
         return result;
     }
     
-    Array* m_array { nullptr };
+    Array* m_array { nullPtr() };
     Vector<ArrayPtr> m_allArrays;
 };
 

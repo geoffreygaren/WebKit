@@ -181,7 +181,7 @@ public:
     T dataLocation() const
     {
         ASSERT_VALID_CODE_POINTER(m_value);
-        return std::bit_cast<T>(m_value ? std::bit_cast<char*>(m_value) - 1 : nullptr);
+        return std::bit_cast<T>(m_value ? std::bit_cast<char*>(m_value) - 1 : nullPtr());
     }
 #else
     template<typename T = void*>
@@ -219,7 +219,7 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_END
         if (m_value)
             CodePtrBase::dumpWithName(taggedPtr(), dataLocation(), name, out);
         else
-            CodePtrBase::dumpWithName(nullptr, nullptr, name, out);
+            CodePtrBase::dumpWithName(nullPtr(), nullPtr(), name, out);
     }
 
     void dump(PrintStream& out) const { dumpWithName("CodePtr"_s, out); }
@@ -274,7 +274,7 @@ private:
         return result;
     }
 
-    void* m_value { nullptr };
+    void* m_value { nullPtr() };
 
     template<PtrTag, FunctionAttributes> friend class CodePtr;
 };

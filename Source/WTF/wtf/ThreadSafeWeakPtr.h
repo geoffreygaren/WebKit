@@ -78,7 +78,7 @@ public:
             ASSERT_WITH_SECURITY_IMPLICATION(m_object);
             if (--m_strongReferenceCount) [[likely]]
                 return;
-            object = static_cast<T*>(std::exchange(m_object, nullptr));
+            object = static_cast<T*>(std::exchange(m_object, nullPtr()));
             // We need to take a weak ref so `this` survives until the `delete object` below.
             // This comes up when destructors try to eagerly remove themselves from WeakHashSets.
             // e.g.
@@ -136,7 +136,7 @@ public:
             ++m_strongReferenceCount;
             return adoptRef(const_cast<U*>(maybeInteriorPointer));
         }
-        return nullptr;
+        return nullPtr();
     }
 
     // These should really only be used for debugging and shouldn't be used to guard any checks in production,
@@ -181,7 +181,7 @@ private:
     mutable Lock m_lock;
     mutable size_t m_strongReferenceCount WTF_GUARDED_BY_LOCK(m_lock) { 1 };
     mutable size_t m_weakReferenceCount WTF_GUARDED_BY_LOCK(m_lock) { 0 };
-    mutable void* m_object WTF_GUARDED_BY_LOCK(m_lock) { nullptr };
+    mutable void* m_object WTF_GUARDED_BY_LOCK(m_lock) { nullPtr() };
 };
 
 struct ThreadSafeWeakPtrControlBlockRefDerefTraits {
@@ -189,7 +189,7 @@ struct ThreadSafeWeakPtrControlBlockRefDerefTraits {
     {
         if (ptr) [[likely]]
             return ptr->weakRef();
-        return nullptr;
+        return nullPtr();
     }
 
     static ALWAYS_INLINE void derefIfNotNull(ThreadSafeWeakPtrControlBlock* ptr)
@@ -337,8 +337,8 @@ public:
     { }
 
     ThreadSafeWeakPtr(ThreadSafeWeakPtr&& other)
-        : m_objectOfCorrectType(std::exchange(other.m_objectOfCorrectType, nullptr))
-        , m_controlBlock(std::exchange(other.m_controlBlock, nullptr))
+        : m_objectOfCorrectType(std::exchange(other.m_objectOfCorrectType, nullPtr()))
+        , m_controlBlock(std::exchange(other.m_controlBlock, nullPtr()))
     { }
 
     template<typename U>
@@ -351,7 +351,7 @@ public:
     template<typename U>
     ThreadSafeWeakPtr(const U* retainedPointer)
         : m_objectOfCorrectType(static_cast<const T*>(retainedPointer))
-        , m_controlBlock(retainedPointer ? controlBlock(*retainedPointer) : nullptr)
+        , m_controlBlock(retainedPointer ? controlBlock(*retainedPointer) : nullPtr())
     { }
 
     template<typename U>
@@ -363,7 +363,7 @@ public:
     template<typename U>
     ThreadSafeWeakPtr(const RefPtr<U>& strongReference)
         : m_objectOfCorrectType(static_cast<const T*>(strongReference.get()))
-        , m_controlBlock(strongReference ? controlBlock(*strongReference) : nullptr)
+        , m_controlBlock(strongReference ? controlBlock(*strongReference) : nullPtr())
     { }
 
     ThreadSafeWeakPtr(ThreadSafeWeakPtrControlBlock& controlBlock, const T& objectOfCorrectType)
@@ -373,8 +373,8 @@ public:
 
     ThreadSafeWeakPtr& operator=(ThreadSafeWeakPtr&& other)
     {
-        m_controlBlock = std::exchange(other.m_controlBlock, nullptr);
-        m_objectOfCorrectType = std::exchange(other.m_objectOfCorrectType, nullptr);
+        m_controlBlock = std::exchange(other.m_controlBlock, nullPtr());
+        m_objectOfCorrectType = std::exchange(other.m_objectOfCorrectType, nullPtr());
         return *this;
     }
 
@@ -397,15 +397,15 @@ public:
     template<typename U>
     ThreadSafeWeakPtr& operator=(const U* retainedPointer)
     {
-        m_controlBlock = retainedPointer ? controlBlock(*retainedPointer) : nullptr;
+        m_controlBlock = retainedPointer ? controlBlock(*retainedPointer) : nullPtr();
         m_objectOfCorrectType = static_cast<const T*>(retainedPointer);
         return *this;
     }
 
     ThreadSafeWeakPtr& operator=(std::nullptr_t)
     {
-        m_controlBlock = nullptr;
-        m_objectOfCorrectType = nullptr;
+        m_controlBlock = nullPtr();
+        m_objectOfCorrectType = nullPtr();
         return *this;
     }
 
@@ -420,12 +420,12 @@ public:
     template<typename U>
     ThreadSafeWeakPtr& operator=(const RefPtr<U>& strongReference)
     {
-        m_controlBlock = strongReference ? controlBlock(*strongReference) : nullptr;
+        m_controlBlock = strongReference ? controlBlock(*strongReference) : nullPtr();
         m_objectOfCorrectType = static_cast<const T*>(strongReference.get());
         return *this;
     }
 
-    RefPtr<T> get() const { return m_controlBlock ? m_controlBlock->template makeStrongReferenceIfPossible<T>(m_objectOfCorrectType.ptr()) : nullptr; }
+    RefPtr<T> get() const { return m_controlBlock ? m_controlBlock->template makeStrongReferenceIfPossible<T>(m_objectOfCorrectType.ptr()) : nullPtr(); }
 
     void setTag(TagType tag) { m_objectOfCorrectType.setTag(tag); }
     TagType tag() const { return m_objectOfCorrectType.tag(); }
@@ -483,7 +483,7 @@ public:
         ASSERT(isWeak());
         RefPtr<T> strong = m_weak.get();
         m_weak.setTag(Status::Strong);
-        m_weak = nullptr;
+        m_weak = nullPtr();
         m_strong = WTFMove(strong);
         ASSERT(isStrong());
         return m_strong.get();
@@ -628,7 +628,7 @@ public:
             }
             auto weak = std::exchange(other.m_weak, ThreadSafeWeakPtr<U, EnumTaggingTraits<U, Status>> { });
             ASSERT(other.isStrong());
-            other.m_strong = std::exchange(m_strong, nullptr);
+            other.m_strong = std::exchange(m_strong, nullPtr());
             m_weak = WTFMove(weak);
             ASSERT(isWeak());
             return;
@@ -639,7 +639,7 @@ public:
             return;
         }
 
-        auto strong = std::exchange(other.m_strong, nullptr);
+        auto strong = std::exchange(other.m_strong, nullPtr());
         other.m_weak = std::exchange(m_weak, ThreadSafeWeakPtr<T, EnumTaggingTraits<T, Status>> { });
         ASSERT(other.isWeak());
         ASSERT(isStrong());
@@ -669,7 +669,7 @@ private:
             ASSERT(isWeak());
             ASSERT(other.isStrong());
         } else {
-            m_strong = std::exchange(other.m_strong, nullptr);
+            m_strong = std::exchange(other.m_strong, nullPtr());
             ASSERT(isStrong());
             ASSERT(other.isStrong());
         }

@@ -1948,7 +1948,7 @@ HEDLEY_DIAGNOSTIC_POP
 #endif
 #if defined(__cplusplus)
 #  if __cplusplus >= 201103L
-#    define HEDLEY_NULL HEDLEY_DIAGNOSTIC_DISABLE_CPP98_COMPAT_WRAP_(nullptr)
+#    define HEDLEY_NULL HEDLEY_DIAGNOSTIC_DISABLE_CPP98_COMPAT_WRAP_(nullPtr())
 #  elif defined(NULL)
 #    define HEDLEY_NULL NULL
 #  else

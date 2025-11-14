@@ -210,7 +210,7 @@ class U_COMMON_API StringPiece : public UMemory {
    * Sets to an empty string.
    * @stable ICU 4.2
    */
-  void clear() { ptr_ = nullptr; length_ = 0; }
+  void clear() { ptr_ = nullPtr(); length_ = 0; }
 
   /**
    * Reset the stringpiece to refer to new data.

@@ -142,7 +142,7 @@ class U_I18N_API SimpleNumber : public UMemory {
     SimpleNumber(SimpleNumber&& other) noexcept {
         fData = other.fData;
         fSign = other.fSign;
-        other.fData = nullptr;
+        other.fData = nullPtr();
     }
 
     /**
@@ -154,7 +154,7 @@ class U_I18N_API SimpleNumber : public UMemory {
         cleanup();
         fData = other.fData;
         fSign = other.fSign;
-        other.fData = nullptr;
+        other.fData = nullPtr();
         return *this;
     }
 
@@ -165,7 +165,7 @@ class U_I18N_API SimpleNumber : public UMemory {
 
     void cleanup();
 
-    impl::UFormattedNumberData* fData = nullptr;
+    impl::UFormattedNumberData* fData = nullPtr();
     USimpleNumberSign fSign = UNUM_SIMPLE_NUMBER_NO_SIGN;
 
     friend class SimpleNumberFormatter;
@@ -272,9 +272,9 @@ class U_I18N_API SimpleNumberFormatter : public UMemory {
         fOwnedSymbols = other.fOwnedSymbols;
         fMicros = other.fMicros;
         fPatternModifier = other.fPatternModifier;
-        other.fOwnedSymbols = nullptr;
-        other.fMicros = nullptr;
-        other.fPatternModifier = nullptr;
+        other.fOwnedSymbols = nullPtr();
+        other.fMicros = nullPtr();
+        other.fPatternModifier = nullPtr();
     }
 
     /**
@@ -288,9 +288,9 @@ class U_I18N_API SimpleNumberFormatter : public UMemory {
         fOwnedSymbols = other.fOwnedSymbols;
         fMicros = other.fMicros;
         fPatternModifier = other.fPatternModifier;
-        other.fOwnedSymbols = nullptr;
-        other.fMicros = nullptr;
-        other.fPatternModifier = nullptr;
+        other.fOwnedSymbols = nullPtr();
+        other.fMicros = nullPtr();
+        other.fPatternModifier = nullPtr();
         return *this;
     }
 
@@ -310,9 +310,9 @@ class U_I18N_API SimpleNumberFormatter : public UMemory {
     UNumberGroupingStrategy fGroupingStrategy = UNUM_GROUPING_AUTO;
 
     // Owned Pointers:
-    DecimalFormatSymbols* fOwnedSymbols = nullptr; // can be empty
-    impl::SimpleMicroProps* fMicros = nullptr;
-    impl::AdoptingSignumModifierStore* fPatternModifier = nullptr;
+    DecimalFormatSymbols* fOwnedSymbols = nullPtr(); // can be empty
+    impl::SimpleMicroProps* fMicros = nullPtr();
+    impl::AdoptingSignumModifierStore* fPatternModifier = nullPtr();
 };
 
 

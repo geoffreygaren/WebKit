@@ -35,14 +35,14 @@ namespace WTF {
 
 RetainPtr<CFDataRef> bytesAsCFData(std::span<const uint8_t> bytes)
 {
-    return adoptCF(CFDataCreate(nullptr, bytes.data(), bytes.size()));
+    return adoptCF(CFDataCreate(nullPtr(), bytes.data(), bytes.size()));
 }
 
 RetainPtr<CFDataRef> bytesAsCFData(CFURLRef url)
 {
     if (!url)
-        return nullptr;
-    auto bytesLength = CFURLGetBytes(url, nullptr, 0);
+        return nullPtr();
+    auto bytesLength = CFURLGetBytes(url, nullPtr(), 0);
     RELEASE_ASSERT(bytesLength != -1);
     auto buffer = MallocSpan<uint8_t, SystemMalloc>::malloc(bytesLength);
     RELEASE_ASSERT(buffer);
@@ -54,7 +54,7 @@ String bytesAsString(CFURLRef url)
 {
     if (!url)
         return { };
-    auto bytesLength = CFURLGetBytes(url, nullptr, 0);
+    auto bytesLength = CFURLGetBytes(url, nullPtr(), 0);
     RELEASE_ASSERT(bytesLength != -1);
     RELEASE_ASSERT(bytesLength <= static_cast<CFIndex>(String::MaxLength));
     std::span<Latin1Character> buffer;
@@ -73,7 +73,7 @@ Vector<uint8_t, URLBytesVectorInlineCapacity> bytesAsVector(CFURLRef url)
     if (bytesLength != -1)
         result.shrink(bytesLength);
     else {
-        bytesLength = CFURLGetBytes(url, nullptr, 0);
+        bytesLength = CFURLGetBytes(url, nullPtr(), 0);
         RELEASE_ASSERT(bytesLength != -1);
         result.grow(bytesLength);
         CFURLGetBytes(url, result.mutableSpan().data(), bytesLength);

@@ -235,7 +235,7 @@ template<PtrTagAction tagAction, PtrTag tag, typename PtrType>
 inline PtrType tagCodePtrImpl(PtrType ptr)
 {
     if (!ptr)
-        return nullptr;
+        return nullPtr();
     WTF_PTRTAG_ASSERT(tagAction, ptr, NoPtrTag, removeCodePtrTag(ptr) == ptr);
     return PtrTagTraits<tag>::tagCodePtr(ptr);
 }
@@ -255,7 +255,7 @@ template<PtrTagAction tagAction, PtrTag tag, typename PtrType>
 inline PtrType untagCodePtrImpl(PtrType ptr)
 {
     if (!ptr)
-        return nullptr;
+        return nullPtr();
     PtrType result = PtrTagTraits<tag>::untagCodePtr(ptr);
     WTF_PTRTAG_ASSERT(tagAction, ptr, tag, removeCodePtrTag(ptr) == result);
     return result;
@@ -298,7 +298,7 @@ template<PtrTagAction tagAction, PtrTag oldTag, PtrTag newTag, typename PtrType>
 inline PtrType retagCodePtrImpl(PtrType ptr)
 {
     if (!ptr)
-        return nullptr;
+        return nullPtr();
     WTF_PTRTAG_ASSERT(tagAction, ptr, oldTag, ptr == (tagCodePtrImpl<PtrTagAction::NoAssert, oldTag>(removeCodePtrTag(ptr))));
     PtrType result = retagCodePtrImplHelper<tagAction, oldTag, newTag>(ptr);
     WTF_PTRTAG_ASSERT(tagAction, ptr, newTag, result == (tagCodePtrImpl<PtrTagAction::NoAssert, newTag>(removeCodePtrTag(ptr))));
@@ -375,7 +375,7 @@ template<PtrTagAction tagAction, PtrTag tag, typename PtrType>
 inline PtrType tagCFunctionPtrImpl(PtrType ptr)
 {
     if (!ptr)
-        return nullptr;
+        return nullPtr();
     WTF_PTRTAG_ASSERT(tagAction, ptr, CFunctionPtrTag, ptr == (tagCodePtrImpl<PtrTagAction::NoAssert, CFunctionPtrTag>(removeCodePtrTag(ptr))));
     return retagCodePtrImpl<tagAction, CFunctionPtrTag, tag>(ptr);
 }
@@ -409,7 +409,7 @@ template<PtrTagAction tagAction, PtrTag tag, typename PtrType>
 inline PtrType untagCFunctionPtrImpl(PtrType ptr)
 {
     if (!ptr)
-        return nullptr;
+        return nullPtr();
     WTF_PTRTAG_ASSERT(tagAction, ptr, tag, ptr == (tagCodePtrImpl<PtrTagAction::NoAssert, tag>(removeCodePtrTag(ptr))));
     return retagCodePtrImpl<tagAction, tag, CFunctionPtrTag>(ptr);
 }
@@ -528,7 +528,7 @@ template<typename T>
 inline T* tagArrayPtr(std::nullptr_t, size_t size)
 {
     ASSERT_UNUSED(size, !size);
-    return nullptr;
+    return nullPtr();
 }
 
 template<typename T>

@@ -46,7 +46,7 @@ public:
             RELEASE_ASSERT(static_cast<size_t>(intSize) <= size);
             m_size = intSize;
             if (!m_size)
-                m_array = nullptr;
+                m_array = nullPtr();
         }
     }
     

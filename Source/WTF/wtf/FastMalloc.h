@@ -271,7 +271,7 @@ struct FastMalloc {
         void* realResult;
         if (result.getValue(realResult))
             return realResult;
-        return nullptr;
+        return nullPtr();
     }
 
     static void* zeroedMalloc(size_t size) { return fastZeroedMalloc(size); }
@@ -282,7 +282,7 @@ struct FastMalloc {
         void* realResult;
         if (result.getValue(realResult))
             return realResult;
-        return nullptr;
+        return nullPtr();
     }
 
     static void* realloc(void* p, size_t size) { return fastRealloc(p, size); }
@@ -293,7 +293,7 @@ struct FastMalloc {
         void* realResult;
         if (result.getValue(realResult))
             return realResult;
-        return nullptr;
+        return nullPtr();
     }
     
     static void free(void* p) { fastFree(p); }
@@ -323,7 +323,7 @@ struct FastCompactMalloc {
         void* realResult;
         if (result.getValue(realResult))
             return realResult;
-        return nullptr;
+        return nullPtr();
     }
 
     static void* zeroedMalloc(size_t size) { return fastCompactZeroedMalloc(size); }
@@ -334,7 +334,7 @@ struct FastCompactMalloc {
         void* realResult;
         if (result.getValue(realResult))
             return realResult;
-        return nullptr;
+        return nullPtr();
     }
 
     static void* realloc(void* p, size_t size) { return fastCompactRealloc(p, size); }
@@ -345,7 +345,7 @@ struct FastCompactMalloc {
         void* realResult;
         if (result.getValue(realResult))
             return realResult;
-        return nullptr;
+        return nullPtr();
     }
 
     static void free(void* p) { fastFree(p); }

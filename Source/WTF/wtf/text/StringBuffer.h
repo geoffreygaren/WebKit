@@ -47,7 +47,7 @@ class StringBuffer {
 public:
     explicit StringBuffer(unsigned length)
         : m_length(length)
-        , m_data(m_length ? static_cast<CharType*>(StringBufferMalloc::malloc(Checked<size_t>(m_length) * sizeof(CharType))) : nullptr)
+        , m_data(m_length ? static_cast<CharType*>(StringBufferMalloc::malloc(Checked<size_t>(m_length) * sizeof(CharType))) : nullPtr())
     {
     }
 
@@ -77,7 +77,7 @@ public:
 
     MallocSpan<CharType, StringBufferMalloc> release()
     {
-        return adoptMallocSpan<CharType, StringBufferMalloc>(unsafeMakeSpan(std::exchange(m_data, nullptr), std::exchange(m_length, 0)));
+        return adoptMallocSpan<CharType, StringBufferMalloc>(unsafeMakeSpan(std::exchange(m_data, nullPtr()), std::exchange(m_length, 0)));
     }
 
 private:

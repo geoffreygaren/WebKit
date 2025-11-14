@@ -396,7 +396,7 @@ private:
     {
         if (auto* impl = key.weakImplIfExists(); impl && *impl)
             return impl;
-        return nullptr;
+        return nullPtr();
     }
 
     WeakHashImplMap m_map;

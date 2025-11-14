@@ -76,7 +76,7 @@ public:
     {
         destroy();
         this->m_ptr = ptr.m_ptr;
-        ptr.m_ptr = nullptr;
+        ptr.m_ptr = nullPtr();
         return *this;
     }
     

@@ -41,7 +41,7 @@ inline const struct sockaddr_in* dynamicCastToIPV4SocketAddress(const struct soc
 {
     if (isIPV4SocketAddress(socket))
         SUPPRESS_MEMORY_UNSAFE_CAST return reinterpret_cast<const struct sockaddr_in*>(&socket);
-    return nullptr;
+    return nullPtr();
 }
 
 inline const struct sockaddr_in& asIPV4SocketAddress(const struct sockaddr& socket)
@@ -69,7 +69,7 @@ inline const struct sockaddr_in6* dynamicCastToIPV6SocketAddress(const struct so
 {
     if (isIPV6SocketAddress(socket))
         SUPPRESS_MEMORY_UNSAFE_CAST return reinterpret_cast<const struct sockaddr_in6*>(&socket);
-    return nullptr;
+    return nullPtr();
 }
 
 inline const struct sockaddr_in6& asIPV6SocketAddress(const struct sockaddr& socket)

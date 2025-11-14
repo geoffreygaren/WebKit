@@ -81,7 +81,7 @@ public:
     {
         auto result = adoptRef(*new (NotNull, fastMalloc(Base::allocationSize(size))) RefCountedFixedVectorBase(typename Base::Failable { }, size, std::forward<FailableGenerator>(generator)));
         if (result->size() != size)
-            return nullptr;
+            return nullPtr();
         return result;
     }
 

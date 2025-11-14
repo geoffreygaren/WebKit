@@ -43,10 +43,10 @@ template <typename> struct CFTypeTrait;
 template<typename T> T dynamic_cf_cast(CFTypeRef object)
 {
     if (!object)
-        return nullptr;
+        return nullPtr();
 
     if (CFGetTypeID(object) != CFTypeTrait<T>::typeID())
-        return nullptr;
+        return nullPtr();
 
     return static_cast<T>(const_cast<CF_BRIDGED_TYPE(id) void*>(object));
 }
@@ -54,10 +54,10 @@ template<typename T> T dynamic_cf_cast(CFTypeRef object)
 template<typename T, typename U> RetainPtr<T> dynamic_cf_cast(RetainPtr<U>&& object)
 {
     if (!object)
-        return nullptr;
+        return nullPtr();
 
     if (CFGetTypeID(object.get()) != CFTypeTrait<T>::typeID())
-        return nullptr;
+        return nullPtr();
 
     return adoptCF(static_cast<T>(const_cast<CF_BRIDGED_TYPE(id) void*>(object.leakRef())));
 }
@@ -67,7 +67,7 @@ template<typename T, typename U> RetainPtr<T> dynamic_cf_cast(RetainPtr<U>&& obj
 template<typename T> T checked_cf_cast(CFTypeRef object)
 {
     if (!object)
-        return nullptr;
+        return nullPtr();
 
     RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(CFGetTypeID(object) == CFTypeTrait<T>::typeID());
 

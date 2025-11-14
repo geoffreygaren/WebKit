@@ -109,7 +109,7 @@ std::optional<float> makeVectorElement(const float*, CFNumberRef);
 
 template<typename CollectionType> RetainPtr<CFMutableArrayRef> createCFArray(CollectionType&& collection)
 {
-    auto array = adoptCF(CFArrayCreateMutable(nullptr, Checked<CFIndex>(std::size(collection)), &kCFTypeArrayCallBacks));
+    auto array = adoptCF(CFArrayCreateMutable(nullPtr(), Checked<CFIndex>(std::size(collection)), &kCFTypeArrayCallBacks));
     for (auto&& element : collection)
         addUnlessNil(array.get(), getPtr(makeCFArrayElement(std::forward<decltype(element)>(element))));
     return array;
@@ -117,7 +117,7 @@ template<typename CollectionType> RetainPtr<CFMutableArrayRef> createCFArray(Col
 
 template<typename CollectionType, typename MapFunctionType> RetainPtr<CFMutableArrayRef> createCFArray(CollectionType&& collection, MapFunctionType&& function)
 {
-    auto array = adoptCF(CFArrayCreateMutable(nullptr, Checked<CFIndex>(std::size(collection)), &kCFTypeArrayCallBacks));
+    auto array = adoptCF(CFArrayCreateMutable(nullPtr(), Checked<CFIndex>(std::size(collection)), &kCFTypeArrayCallBacks));
     for (auto&& element : collection)
         addUnlessNil(array.get(), getPtr(std::invoke(std::forward<MapFunctionType>(function), std::forward<decltype(element)>(element))));
     return array;
@@ -126,7 +126,7 @@ template<typename CollectionType, typename MapFunctionType> RetainPtr<CFMutableA
 template<typename VectorElementType, typename CFType> Vector<VectorElementType> makeVector(CFArrayRef array)
 {
     return Vector<VectorElementType>(CFArrayGetCount(array), [&](size_t index) -> std::optional<VectorElementType> {
-        constexpr const VectorElementType* typedNull = nullptr;
+        const VectorElementType* typedNull = nullPtr();
         if (RetainPtr element = dynamic_cf_cast<CFType>(CFArrayGetValueAtIndex(array, index)))
             return makeVectorElement(typedNull, element.get());
         return std::nullopt;
@@ -193,7 +193,7 @@ inline Vector<uint8_t> makeVector(CFDataRef data)
 
 inline RetainPtr<CFNumberRef> makeCFArrayElement(const float& number)
 {
-    return adoptCF(CFNumberCreate(nullptr, kCFNumberFloatType, &number));
+    return adoptCF(CFNumberCreate(nullPtr(), kCFNumberFloatType, &number));
 }
 
 inline std::optional<float> makeVectorElement(const float*, CFNumberRef cfNumber)

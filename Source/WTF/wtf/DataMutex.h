@@ -59,7 +59,7 @@ private:
     Lock m_mutex;
     T m_data WTF_GUARDED_BY_LOCK(m_mutex);
 #if ENABLE_DATA_MUTEX_CHECKS
-    Thread* m_currentMutexHolder { nullptr };
+    Thread* m_currentMutexHolder { nullPtr() };
 #endif
 };
 
@@ -136,7 +136,7 @@ private:
         DATA_MUTEX_CHECK(mutex().isHeld());
         assertIsHeld(m_dataMutex.m_mutex);
 #if ENABLE_DATA_MUTEX_CHECKS
-        m_dataMutex.m_currentMutexHolder = nullptr;
+        m_dataMutex.m_currentMutexHolder = nullPtr();
 #endif
         m_isLocked = false;
         mutex().unlock();

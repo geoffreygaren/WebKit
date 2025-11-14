@@ -30,6 +30,7 @@
 #include <type_traits>
 #include <utility>
 #include <wtf/Compiler.h>
+#include <wtf/TypeTraits.h>
 
 namespace WTF {
 
@@ -115,7 +116,7 @@ inline match_constness_t<Source, Target>* dynamicDowncast(Source& source)
 {
     static_assert(!std::is_same_v<Source, Target>, "Unnecessary cast to same type");
     static_assert(std::is_base_of_v<Source, Target>, "Should be a downcast");
-    SUPPRESS_MEMORY_UNSAFE_CAST return is<Target>(source) ? &static_cast<match_constness_t<Source, Target>&>(source) : nullptr;
+    SUPPRESS_MEMORY_UNSAFE_CAST return is<Target>(source) ? &static_cast<match_constness_t<Source, Target>&>(source) : nullPtr();
 }
 
 template<typename Target, typename Source>
@@ -123,7 +124,7 @@ inline match_constness_t<Source, Target>* dynamicDowncast(Source* source)
 {
     static_assert(!std::is_same_v<Source, Target>, "Unnecessary cast to same type");
     static_assert(std::is_base_of_v<Source, Target>, "Should be a downcast");
-    SUPPRESS_MEMORY_UNSAFE_CAST return is<Target>(source) ? static_cast<match_constness_t<Source, Target>*>(source) : nullptr;
+    SUPPRESS_MEMORY_UNSAFE_CAST return is<Target>(source) ? static_cast<match_constness_t<Source, Target>*>(source) : nullPtr();
 }
 
 // Add support for type checking / casting using is<>() / downcast<>() helpers for a specific class.

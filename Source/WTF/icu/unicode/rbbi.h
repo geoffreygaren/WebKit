@@ -134,7 +134,7 @@ public:
      * Not for general use; Public only for testing purposes.
      * @internal
      */
-    RBBIDataWrapper    *fData = nullptr;
+    RBBIDataWrapper    *fData = nullPtr();
 
 private:
     /**
@@ -158,14 +158,14 @@ private:
      *   Cache of previously determined boundary positions.
      */
     class BreakCache;
-    BreakCache         *fBreakCache = nullptr;
+    BreakCache         *fBreakCache = nullPtr();
 
     /**
      *  Cache of boundary positions within a region of text that has been
      *  sub-divided by dictionary based breaking.
      */
     class DictionaryCache;
-    DictionaryCache *fDictionaryCache = nullptr;
+    DictionaryCache *fDictionaryCache = nullPtr();
 
     /**
      *
@@ -174,7 +174,7 @@ private:
      * handle a given character.
      * @internal (private)
      */
-    UStack              *fLanguageBreakEngines = nullptr;
+    UStack              *fLanguageBreakEngines = nullPtr();
 
     /**
      *
@@ -183,7 +183,7 @@ private:
      * LanguageBreakEngine.
      * @internal (private)
      */
-    UnhandledEngine     *fUnhandledBreakEngine = nullptr;
+    UnhandledEngine     *fUnhandledBreakEngine = nullPtr();
 
     /**
      * Counter for the number of characters encountered with the "dictionary"
@@ -214,7 +214,7 @@ private:
     /**
      *  Array of look-ahead tentative results.
      */
-    int32_t *fLookAheadMatches = nullptr;
+    int32_t *fLookAheadMatches = nullPtr();
 
     /**
      *  A flag to indicate if phrase based breaking is enabled.

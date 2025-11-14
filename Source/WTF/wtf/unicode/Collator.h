@@ -45,7 +45,7 @@ class StringView;
 class Collator {
     WTF_DEPRECATED_MAKE_FAST_ALLOCATED(Collator);
 public:
-    explicit Collator(const char* = nullptr, bool = false) { }
+    explicit Collator(const char* = nullPtr(), bool = false) { }
 
     WTF_EXPORT_PRIVATE static int collate(StringView, StringView);
     WTF_EXPORT_PRIVATE static int collate(const char8_t*, const char8_t*);
@@ -59,7 +59,7 @@ class Collator {
 public:
     // The value nullptr is a special one meaning the system default locale.
     // Locale name parsing is lenient; e.g. language identifiers (such as "en-US") are accepted, too.
-    WTF_EXPORT_PRIVATE explicit Collator(const char* locale = nullptr, bool shouldSortLowercaseFirst = false);
+    WTF_EXPORT_PRIVATE explicit Collator(const char* locale = nullPtr(), bool shouldSortLowercaseFirst = false);
     WTF_EXPORT_PRIVATE ~Collator();
 
     WTF_EXPORT_PRIVATE int collate(StringView, StringView) const;

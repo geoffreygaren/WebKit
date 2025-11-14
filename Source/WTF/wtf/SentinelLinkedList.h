@@ -75,8 +75,8 @@ public:
     void append(BasicRawSentinelNode*);
     
 private:
-    typename PtrTraits::StorageType m_next { nullptr };
-    typename PtrTraits::StorageType m_prev { nullptr };
+    typename PtrTraits::StorageType m_next { nullPtr() };
+    typename PtrTraits::StorageType m_prev { nullPtr() };
 };
 
 template <typename T, typename RawNode = T> class SentinelLinkedList {
@@ -240,8 +240,8 @@ template <typename T, typename RawNode> inline void SentinelLinkedList<T, RawNod
     prev->setNext(next);
     next->setPrev(prev);
     
-    node->setPrev(nullptr);
-    node->setNext(nullptr);
+    node->setPrev(nullPtr());
+    node->setNext(nullPtr());
 }
 
 template <typename T, typename RawNode>

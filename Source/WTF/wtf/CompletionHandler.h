@@ -91,7 +91,7 @@ public:
     {
         assertIsCurrent(m_callThread);
         ASSERT_WITH_MESSAGE(m_function, "Completion handler should not be called more than once");
-        return std::exchange(m_function, nullptr)(std::forward<In>(in)...);
+        return std::exchange(m_function, nullPtr())(std::forward<In>(in)...);
     }
 
 private:
@@ -136,7 +136,7 @@ public:
     {
         assertIsCurrent(m_callThread);
         ASSERT_WITH_MESSAGE(m_function, "Completion handler should not be called more than once");
-        return std::exchange(m_function, nullptr)(std::forward<In>(in)...);
+        return std::exchange(m_function, nullPtr())(std::forward<In>(in)...);
     }
 
 private:

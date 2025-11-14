@@ -109,7 +109,7 @@ public:
             , m_demangledName(demangledName)
         { }
 
-        const char* m_mangledName { nullptr };
+        const char* m_mangledName { nullPtr() };
         std::unique_ptr<const char, SystemFree<const char>> m_demangledName;
     };
 
@@ -134,7 +134,7 @@ public:
         symbolInfo->MaxNameLen = MAX_SYM_NAME;
 #endif
         for (size_t i = 0; i < m_stack.size(); ++i) {
-            const char* name = nullptr;
+            const char* name = nullPtr();
             auto demangled = demangle(m_stack[i]);
             if (demangled)
                 name = demangled->demangledName() ? demangled->demangledName() : demangled->mangledName();
@@ -142,7 +142,7 @@ public:
             if (!name || !strcmp(name, "<redacted>"))
                 name = symbols[i];
 #elif OS(WINDOWS)
-            if (!name && DbgHelper::SymFromAddress(hProc, reinterpret_cast<DWORD64>(m_stack[i]), nullptr, symbolInfo))
+            if (!name && DbgHelper::SymFromAddress(hProc, reinterpret_cast<DWORD64>(m_stack[i]), nullPtr(), symbolInfo))
                 name = symbolInfo->Name;
 #endif
             functor(i + 1, m_stack[i], name);

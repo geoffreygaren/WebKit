@@ -47,7 +47,7 @@ public:
     }
 
     explicit operator bool() const { return m_ptr; }
-    void clear() { m_ptr = nullptr; }
+    void clear() { m_ptr = nullPtr(); }
 
 #if ASSERT_ENABLED
     bool wasConstructedOnMainThread() const { return m_wasConstructedOnMainThread; }
@@ -91,7 +91,7 @@ public:
     }
 
     explicit operator bool() const { return m_ptr; }
-    void clear() { m_ptr = nullptr; }
+    void clear() { m_ptr = nullPtr(); }
 
 #if ASSERT_ENABLED
     bool wasConstructedOnMainThread() const { return m_wasConstructedOnMainThread; }

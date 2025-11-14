@@ -198,9 +198,9 @@ WTF_EXPORT_PRIVATE std::optional<MappedFileData> mapFile(const String& path, Map
 
 // This creates the destination file, maps it, write the provided data to it and returns the mapped file.
 // This function fails if there is already a file at the destination path.
-WTF_EXPORT_PRIVATE MappedFileData mapToFile(const String& path, size_t bytesSize, NOESCAPE const Function<void(const Function<bool(std::span<const uint8_t>)>&)>& apply, FileHandle* = nullptr);
+WTF_EXPORT_PRIVATE MappedFileData mapToFile(const String& path, size_t bytesSize, NOESCAPE const Function<void(const Function<bool(std::span<const uint8_t>)>&)>& apply, FileHandle* = nullPtr());
 
-WTF_EXPORT_PRIVATE MappedFileData createMappedFileData(const String&, size_t, FileHandle* = nullptr);
+WTF_EXPORT_PRIVATE MappedFileData createMappedFileData(const String&, size_t, FileHandle* = nullPtr());
 WTF_EXPORT_PRIVATE void finalizeMappedFileData(MappedFileData&, size_t);
 
 } // namespace FileSystemImpl

@@ -297,8 +297,8 @@ private:
     int32_t len = 1; // length of list used; 1 <= len <= capacity
     uint8_t fFlags = 0;         // Bit flag (see constants above)
 
-    BMPSet *bmpSet = nullptr; // The set is frozen iff either bmpSet or stringSpan is not nullptr.
-    UChar32* buffer = nullptr; // internal buffer, may be nullptr
+    BMPSet *bmpSet = nullPtr(); // The set is frozen iff either bmpSet or stringSpan is not nullptr.
+    UChar32* buffer = nullPtr(); // internal buffer, may be nullptr
     int32_t bufferCapacity = 0; // capacity of buffer
 
     /**
@@ -310,11 +310,11 @@ private:
      * indicating that toPattern() must generate a pattern
      * representation from the inversion list.
      */
-    char16_t *pat = nullptr;
+    char16_t *pat = nullPtr();
     int32_t patLen = 0;
 
-    UVector* strings = nullptr; // maintained in sorted order
-    UnicodeSetStringSpan *stringSpan = nullptr;
+    UVector* strings = nullPtr(); // maintained in sorted order
+    UnicodeSetStringSpan *stringSpan = nullPtr();
 
     /**
      * Initial list array.

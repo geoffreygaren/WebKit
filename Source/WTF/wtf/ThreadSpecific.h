@@ -97,7 +97,7 @@ private:
         ~Data()
         {
             storagePointer()->~T();
-            owner->setInTLS(nullptr);
+            owner->setInTLS(nullPtr());
         }
 
         PointerType storagePointer() const { return const_cast<PointerType>(reinterpret_cast<const T*>(&m_storage)); }
@@ -136,7 +136,7 @@ inline T* ThreadSpecific<T, canBeGCThread>::get()
     Data* data = static_cast<Data*>(pthread_getspecific(m_key));
     if (data)
         return data->storagePointer();
-    return nullptr;
+    return nullPtr();
 }
 
 template<typename T, CanBeGCThread canBeGCThread>
@@ -161,7 +161,7 @@ inline T* ThreadSpecific<T, canBeGCThread>::get()
 {
     auto data = static_cast<Data*>(Thread::currentSingleton().specificStorage().get(m_key));
     if (!data)
-        return nullptr;
+        return nullPtr();
     return data->storagePointer();
 }
 

@@ -84,7 +84,7 @@ ALLOW_NONLITERAL_FORMAT_BEGIN
 #if USE(CF)
     if (contains(formatSpan, "%@"_span)) {
         auto cfFormat = adoptCF(CFStringCreateWithCStringNoCopy(kCFAllocatorDefault, format, kCFStringEncodingUTF8, kCFAllocatorNull));
-        auto result = adoptCF(CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, nullptr, cfFormat.get(), args));
+        auto result = adoptCF(CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, nullPtr(), cfFormat.get(), args));
         va_end(argsCopy);
         return result.get();
     }
@@ -161,9 +161,9 @@ ALLOW_NONLITERAL_FORMAT_BEGIN
 
 #if USE(CF)
     if (contains(formatSpan, "%@"_span)) {
-        auto cfFormat = adoptCF(CFStringCreateWithCStringNoCopy(nullptr, format, kCFStringEncodingUTF8, kCFAllocatorNull));
+        auto cfFormat = adoptCF(CFStringCreateWithCStringNoCopy(nullPtr(), format, kCFStringEncodingUTF8, kCFAllocatorNull));
 
-        auto str = adoptCF(CFStringCreateWithFormatAndArguments(nullptr, nullptr, cfFormat.get(), args));
+        auto str = adoptCF(CFStringCreateWithFormatAndArguments(nullPtr(), nullPtr(), cfFormat.get(), args));
         CFIndex length = CFStringGetMaximumSizeForEncoding(CFStringGetLength(str.get()), kCFStringEncodingUTF8);
         constexpr unsigned InitialBufferSize { 256 };
         Vector<char, InitialBufferSize> buffer(length + 1);
@@ -224,7 +224,7 @@ static void vprintf_stderr_with_prefix(const char* rawPrefix, const char* rawFor
     formatWithPrefix[prefix.size() + format.size()] = 0;
 
 ALLOW_NONLITERAL_FORMAT_BEGIN
-    vprintf_stderr_common(nullptr, formatWithPrefix.span().data(), args);
+    vprintf_stderr_common(nullPtr(), formatWithPrefix.span().data(), args);
 ALLOW_NONLITERAL_FORMAT_END
 }
 
@@ -252,7 +252,7 @@ static void printf_stderr_common(const char* format, ...)
 {
     va_list args;
     va_start(args, format);
-    vprintf_stderr_common(nullptr, format, args);
+    vprintf_stderr_common(nullPtr(), format, args);
     va_end(args);
 }
 
@@ -304,7 +304,7 @@ public:
     WTF_ATTRIBUTE_NSSTRING(2, 0)
     void vprintf(const char* format, va_list argList) final
     {
-        vprintf_stderr_common(nullptr, format, argList);
+        vprintf_stderr_common(nullPtr(), format, argList);
     }
 };
 
@@ -417,7 +417,7 @@ bool WTFIsDebuggerAttached()
     struct kinfo_proc info;
     int mib[] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid() };
     size_t size = sizeof(info);
-    if (sysctl(mib, sizeof(mib) / sizeof(mib[0]), &info, &size, nullptr, 0) == -1)
+    if (sysctl(mib, sizeof(mib) / sizeof(mib[0]), &info, &size, nullPtr(), 0) == -1)
         return false;
     return info.kp_proc.p_flag & P_TRACED;
 #else
@@ -570,7 +570,7 @@ ALLOW_NONLITERAL_FORMAT_END
 
 void WTFLogAlwaysV(const char* format, va_list args)
 {
-    vprintf_stderr_with_trailing_newline(nullptr, format, args);
+    vprintf_stderr_with_trailing_newline(nullPtr(), format, args);
 }
 
 void WTFLogAlways(const char* format, ...)
@@ -598,7 +598,7 @@ WTFLogChannel* WTFLogChannelByName(WTFLogChannel* channels[], size_t count, cons
             return channel;
     }
 
-    return nullptr;
+    return nullPtr();
 }
 
 static void setStateOfAllChannels(WTFLogChannel* channels[], size_t channelCount, WTFLogChannelState state)

@@ -452,8 +452,8 @@ public:
     // FIXME: Like the strict functions above, these give false for "ok" when there is trailing garbage.
     // Like the non-strict functions above, these return the value when there is trailing garbage.
     // It would be better if these were more consistent with the above functions instead.
-    double toDouble(bool* ok = nullptr);
-    float toFloat(bool* ok = nullptr);
+    double toDouble(bool* ok = nullPtr());
+    float toFloat(bool* ok = nullPtr());
 
     WTF_EXPORT_PRIVATE Ref<StringImpl> convertToASCIILowercase();
     WTF_EXPORT_PRIVATE Ref<StringImpl> convertToASCIIUppercase();
@@ -1091,12 +1091,12 @@ template<typename CharacterType> ALWAYS_INLINE RefPtr<StringImpl> StringImpl::tr
 
     if (length > maxInternalLength<CharacterType>()) {
         output = { };
-        return nullptr;
+        return nullPtr();
     }
     SUPPRESS_UNCOUNTED_LOCAL StringImpl* result = (StringImpl*)StringImplMalloc::tryMalloc(allocationSize<CharacterType>(length));
     if (!result) {
         output = { };
-        return nullptr;
+        return nullPtr();
     }
     output = unsafeMakeSpan(result->tailPointer<CharacterType>(), length);
 

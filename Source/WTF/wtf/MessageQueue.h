@@ -158,12 +158,12 @@ namespace WTF {
 
         if (m_killed) {
             result = MessageQueueTerminated;
-            return nullptr;
+            return nullPtr();
         }
 
         if (timedOut) {
             result = MessageQueueTimeout;
-            return nullptr;
+            return nullPtr();
         }
 
         ASSERT(found != m_queue.end());
@@ -178,9 +178,9 @@ namespace WTF {
     {
         Locker lock { m_lock };
         if (m_killed)
-            return nullptr;
+            return nullPtr();
         if (m_queue.isEmpty())
-            return nullptr;
+            return nullPtr();
 
         return m_queue.takeFirst();
     }
@@ -199,7 +199,7 @@ namespace WTF {
     {
         Locker lock { m_lock };
         if (m_queue.isEmpty())
-            return nullptr;
+            return nullPtr();
 
         return m_queue.takeFirst();
     }

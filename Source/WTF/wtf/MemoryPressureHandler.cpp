@@ -68,7 +68,7 @@ MemoryPressureHandler& MemoryPressureHandler::singleton()
 
 static MemoryPressureHandler* memoryPressureHandlerIfExists()
 {
-    return s_hasCreatedMemoryPressureHandler.load() ? &MemoryPressureHandler::singleton() : nullptr;
+    return s_hasCreatedMemoryPressureHandler.load() ? &MemoryPressureHandler::singleton() : nullPtr();
 }
 
 MemoryPressureHandler::MemoryPressureHandler()
@@ -94,7 +94,7 @@ void MemoryPressureHandler::setShouldUsePeriodicMemoryMonitor(bool use)
         m_measurementTimer = makeUnique<RunLoop::Timer>(RunLoop::mainSingleton(), "MemoryPressureHandler::MeasurementTimer"_s, this, &MemoryPressureHandler::measurementTimerFired);
         m_measurementTimer->startRepeating(m_configuration.pollInterval);
     } else
-        m_measurementTimer = nullptr;
+        m_measurementTimer = nullPtr();
 }
 
 #if !RELEASE_LOG_DISABLED

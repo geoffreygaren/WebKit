@@ -697,7 +697,7 @@ private:
 #if !UCONFIG_NO_BREAK_ITERATION
     const SharedBreakIterator *fOptBreakIterator;
 #else
-    std::nullptr_t fOptBreakIterator = nullptr;
+    std::nullptr_t fOptBreakIterator = nullPtr();
 #endif // !UCONFIG_NO_BREAK_ITERATION
     Locale fLocale;
     void init(

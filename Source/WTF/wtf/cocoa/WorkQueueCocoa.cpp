@@ -92,7 +92,7 @@ void WorkQueueBase::platformInitialize(ASCIILiteral name, Type type, QOS qos)
     // This makes it possible to assert that code runs in the expected sequence, regardless of if it is
     // in a thread or a work queue.
     m_threadID = ++s_uid;
-    dispatch_queue_set_specific(m_dispatchQueue.get(), &s_uid, reinterpret_cast<void*>(m_threadID), nullptr);
+    dispatch_queue_set_specific(m_dispatchQueue.get(), &s_uid, reinterpret_cast<void*>(m_threadID), nullPtr());
 }
 
 void WorkQueueBase::platformInvalidate()

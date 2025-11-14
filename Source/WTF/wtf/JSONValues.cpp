@@ -343,7 +343,7 @@ template<typename CodeUnit>
 RefPtr<JSON::Value> buildValue(std::span<const CodeUnit> data, std::span<const CodeUnit>& valueTokenEnd, int depth)
 {
     if (depth > stackLimit)
-        return nullptr;
+        return nullPtr();
 
     RefPtr<JSON::Value> result;
     std::span<const CodeUnit> tokenStart;
@@ -351,7 +351,7 @@ RefPtr<JSON::Value> buildValue(std::span<const CodeUnit> data, std::span<const C
     Token token = parseToken(data, tokenStart, tokenEnd);
     switch (token) {
     case Token::Invalid:
-        return nullptr;
+        return nullPtr();
     case Token::Null:
         result = JSON::Value::null();
         break;
@@ -365,17 +365,17 @@ RefPtr<JSON::Value> buildValue(std::span<const CodeUnit> data, std::span<const C
         bool ok;
         double value = charactersToDouble(tokenStart.first(tokenEnd.data() - tokenStart.data()), &ok);
         if (!ok)
-            return nullptr;
+            return nullPtr();
         result = JSON::Value::create(value);
         break;
     }
     case Token::String: {
         String value;
         if (tokenEnd.data() - tokenStart.data() < 2)
-            return nullptr;
+            return nullPtr();
         bool ok = decodeString(tokenStart.subspan(1, std::to_address(tokenEnd.begin()) - std::to_address(tokenStart.begin()) - 2), value);
         if (!ok)
-            return nullptr;
+            return nullPtr();
         result = JSON::Value::create(value);
         break;
     }
@@ -386,7 +386,7 @@ RefPtr<JSON::Value> buildValue(std::span<const CodeUnit> data, std::span<const C
         while (token != Token::ArrayEnd) {
             RefPtr<JSON::Value> arrayNode = buildValue(data, tokenEnd, depth + 1);
             if (!arrayNode)
-                return nullptr;
+                return nullPtr();
             array->pushValue(arrayNode.releaseNonNull());
 
             // After a list value, we expect a comma or the end of the list.
@@ -396,10 +396,10 @@ RefPtr<JSON::Value> buildValue(std::span<const CodeUnit> data, std::span<const C
                 data = tokenEnd;
                 token = parseToken(data, tokenStart, tokenEnd);
                 if (token == Token::ArrayEnd)
-                    return nullptr;
+                    return nullPtr();
             } else if (token != Token::ArrayEnd) {
                 // Unexpected value after list value. Bail out.
-                return nullptr;
+                return nullPtr();
             }
         }
         ASSERT(token == Token::ArrayEnd);
@@ -412,22 +412,22 @@ RefPtr<JSON::Value> buildValue(std::span<const CodeUnit> data, std::span<const C
         token = parseToken(data, tokenStart, tokenEnd);
         while (token != Token::ObjectEnd) {
             if (token != Token::String)
-                return nullptr;
+                return nullPtr();
             String key;
             if (tokenEnd.data() - tokenStart.data() < 2)
-                return nullptr;
+                return nullPtr();
             if (!decodeString(tokenStart.subspan(1, std::to_address(tokenEnd.begin()) - std::to_address(tokenStart.begin()) - 2), key))
-                return nullptr;
+                return nullPtr();
             data = tokenEnd;
 
             token = parseToken(data, tokenStart, tokenEnd);
             if (token != Token::ObjectPairSeparator)
-                return nullptr;
+                return nullPtr();
             data = tokenEnd;
 
             RefPtr<JSON::Value> value = buildValue(data, tokenEnd, depth + 1);
             if (!value)
-                return nullptr;
+                return nullPtr();
             object->setValue(key, value.releaseNonNull());
             data = tokenEnd;
 
@@ -438,10 +438,10 @@ RefPtr<JSON::Value> buildValue(std::span<const CodeUnit> data, std::span<const C
                 data = tokenEnd;
                 token = parseToken(data, tokenStart, tokenEnd);
                 if (token == Token::ObjectEnd)
-                    return nullptr;
+                    return nullPtr();
             } else if (token != Token::ObjectEnd) {
                 // Unexpected value after last object value. Bail out.
-                return nullptr;
+                return nullPtr();
             }
         }
         ASSERT(token == Token::ObjectEnd);
@@ -451,7 +451,7 @@ RefPtr<JSON::Value> buildValue(std::span<const CodeUnit> data, std::span<const C
 
     default:
         // We got a token that's not a value.
-        return nullptr;
+        return nullPtr();
     }
     valueTokenEnd = tokenEnd;
     return result;
@@ -534,13 +534,13 @@ RefPtr<Value> Value::parseJSON(StringView json)
         std::span<const Latin1Character> tokenEnd;
         result = buildValue(data, tokenEnd, 0);
         if (containsNonSpace(tokenEnd))
-            return nullptr;
+            return nullPtr();
     } else {
         auto data = json.span16();
         std::span<const char16_t> tokenEnd;
         result = buildValue(data, tokenEnd, 0);
         if (containsNonSpace(tokenEnd))
-            return nullptr;
+            return nullPtr();
     }
     return result;
 }
@@ -737,7 +737,7 @@ RefPtr<Object> ObjectBase::getObject(const String& name) const
 {
     auto value = getValue(name);
     if (!value)
-        return nullptr;
+        return nullPtr();
     return value->asObject();
 }
 
@@ -745,7 +745,7 @@ RefPtr<Array> ObjectBase::getArray(const String& name) const
 {
     auto value = getValue(name);
     if (!value)
-        return nullptr;
+        return nullPtr();
     return value->asArray();
 }
 
@@ -753,7 +753,7 @@ RefPtr<Value> ObjectBase::getValue(const String& name) const
 {
     auto findResult = m_map.find(name);
     if (findResult == m_map.end())
-        return nullptr;
+        return nullPtr();
     return findResult->value.copyRef();
 }
 

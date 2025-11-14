@@ -67,7 +67,7 @@ public:
     T* operator->() { return ptr(); }
 
 private:
-    StorageType m_ptr { Traits::wrap(nullptr, Traits::defaultTag) };
+    StorageType m_ptr { Traits::wrap(nullPtr(), Traits::defaultTag) };
 };
 
 

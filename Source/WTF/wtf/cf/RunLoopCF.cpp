@@ -145,7 +145,7 @@ void RunLoop::TimerBase::stop()
         return;
     
     CFRunLoopTimerInvalidate(m_timer.get());
-    m_timer = nullptr;
+    m_timer = nullPtr();
 }
 
 bool RunLoop::TimerBase::isActive() const

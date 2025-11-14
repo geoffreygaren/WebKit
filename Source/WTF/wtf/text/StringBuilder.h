@@ -140,7 +140,7 @@ inline StringBuilder::StringBuilder(OverflowPolicy policy)
 inline void StringBuilder::clear()
 {
     m_string = { };
-    m_buffer = nullptr;
+    m_buffer = nullPtr();
     m_length = 0;
     // We intentionally do not change m_shouldCrashOnOverflow.
 }

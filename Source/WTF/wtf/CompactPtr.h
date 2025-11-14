@@ -94,7 +94,7 @@ public:
 
     CompactPtr<T>& operator=(std::nullptr_t)
     {
-        exchange(nullptr);
+        exchange(nullPtr());
         return *this;
     }
 
@@ -149,7 +149,7 @@ public:
         return oldValue;
     }
 
-    void swap(std::nullptr_t) { set(nullptr); }
+    void swap(std::nullptr_t) { set(nullPtr()); }
 
     void swap(CompactPtr& other) { std::swap(m_ptr, other.m_ptr); }
 

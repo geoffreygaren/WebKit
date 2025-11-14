@@ -54,7 +54,7 @@ public:
     template<typename U> WeakPtr(WeakRef<U, WeakPtrImpl>&&);
 
     template<typename = std::enable_if_t<!IsSmartPtr<T>::value>> WeakPtr(const T* object, EnableWeakPtrThreadingAssertions shouldEnableAssertions = EnableWeakPtrThreadingAssertions::Yes)
-        : m_impl(object ? &object->weakImpl() : nullptr)
+        : m_impl(object ? &object->weakImpl() : nullPtr())
 #if ASSERT_ENABLED
         , m_shouldEnableAssertions(shouldEnableAssertions == EnableWeakPtrThreadingAssertions::Yes)
 #endif
@@ -99,7 +99,7 @@ public:
             "IsDeprecatedWeakRefSmartPointerException specialization is no longer needed for this class, please remove it.");
 
         ASSERT(canSafelyBeUsed());
-        return m_impl ? static_cast<T*>(m_impl->template get<T>()) : nullptr;
+        return m_impl ? static_cast<T*>(m_impl->template get<T>()) : nullPtr();
     }
 
     WeakRef<T> releaseNonNull()
@@ -110,7 +110,7 @@ public:
     bool operator!() const { return !m_impl || !*m_impl; }
     explicit operator bool() const { return m_impl && *m_impl; }
 
-    WeakPtr& operator=(std::nullptr_t) { m_impl = nullptr; return *this; }
+    WeakPtr& operator=(std::nullptr_t) { m_impl = nullPtr(); return *this; }
     template<typename U> WeakPtr& operator=(const WeakPtr<U, WeakPtrImpl, PtrTraits>&);
     template<typename U> WeakPtr& operator=(WeakPtr<U, WeakPtrImpl, PtrTraits>&&);
     template<typename U> WeakPtr& operator=(const WeakRef<U, WeakPtrImpl>&);
@@ -146,7 +146,7 @@ public:
         return *result;
     }
 
-    void clear() { m_impl = nullptr; }
+    void clear() { m_impl = nullPtr(); }
 
     EnableWeakPtrThreadingAssertions enableWeakPtrThreadingAssertions() const
     {
@@ -311,7 +311,7 @@ inline WeakPtr<match_constness_t<Source, Target>, WeakPtrImpl, PtrTraits> dynami
     static_assert(!std::same_as<Source, Target>, "Unnecessary cast to same type");
     static_assert(std::derived_from<Target, Source>, "Should be a downcast");
     if (!is<Target>(source))
-        return nullptr;
+        return nullPtr();
     return WeakPtr<match_constness_t<Source, Target>, WeakPtrImpl, PtrTraits> { unsafeRefPtrDowncast<match_constness_t<Source, Target>, WeakPtrImpl>(source.releaseImpl()), source.enableWeakPtrThreadingAssertions() };
 }
 

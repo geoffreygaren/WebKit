@@ -602,7 +602,7 @@ ALWAYS_INLINE const uint8_t* find8(const uint8_t* pointer, uint8_t character, si
             return pointer + index;
     }
     if (runway == length)
-        return nullptr;
+        return nullPtr();
 
     ASSERT(index < length);
     // We rely on memchr already having SIMD optimization, so we don’t have to write our own.
@@ -626,7 +626,7 @@ ALWAYS_INLINE const UnsignedType* findImpl(const UnsignedType* pointer, Unsigned
     auto* end = pointer + length;
     auto* cursor = SIMD::find<UnsignedType, threshold>(std::span { pointer, end }, vectorMatch, scalarMatch);
     if (cursor == end)
-        return nullptr;
+        return nullPtr();
     return cursor;
 }
 
@@ -651,7 +651,7 @@ ALWAYS_INLINE const Float16* findFloat16(const Float16* pointer, Float16 target,
         if (pointer[index] == target)
             return pointer + index;
     }
-    return nullptr;
+    return nullPtr();
 }
 
 WTF_EXPORT_PRIVATE const float* findFloatAlignedImpl(const float* pointer, float target, size_t length);
@@ -671,7 +671,7 @@ ALWAYS_INLINE const float* findFloat(const float* pointer, float target, size_t 
             return pointer + index;
     }
     if (runway == length)
-        return nullptr;
+        return nullPtr();
 
     ASSERT(index < length);
     return findFloatAlignedImpl(pointer + index, target, length - index);
@@ -683,7 +683,7 @@ ALWAYS_INLINE const float* findFloat(const float* pointer, float target, size_t 
         if (pointer[index] == target)
             return pointer + index;
     }
-    return nullptr;
+    return nullPtr();
 }
 #endif
 
@@ -704,7 +704,7 @@ ALWAYS_INLINE const double* findDouble(const double* pointer, double target, siz
             return pointer + index;
     }
     if (runway == length)
-        return nullptr;
+        return nullPtr();
 
     ASSERT(index < length);
     return findDoubleAlignedImpl(pointer + index, target, length - index);
@@ -716,7 +716,7 @@ ALWAYS_INLINE const double* findDouble(const double* pointer, double target, siz
         if (pointer[index] == target)
             return pointer + index;
     }
-    return nullptr;
+    return nullPtr();
 }
 #endif
 
@@ -739,7 +739,7 @@ ALWAYS_INLINE const Latin1Character* find8NonASCII(std::span<const Latin1Charact
             return pointer + index;
     }
     if (runway == length)
-        return nullptr;
+        return nullPtr();
 
     ASSERT(index < length);
     return find8NonASCIIAlignedImpl({ pointer + index, length - index });
@@ -760,7 +760,7 @@ ALWAYS_INLINE const char16_t* find16NonASCII(std::span<const char16_t> data)
             return pointer + index;
     }
     if (runway == length)
-        return nullptr;
+        return nullPtr();
 
     ASSERT(index < length);
     return find16NonASCIIAlignedImpl({ pointer + index, length - index });
@@ -1364,7 +1364,7 @@ ALWAYS_INLINE bool charactersContain(std::span<const CharacterType> span)
 #if CPU(ARM64) || CPU(X86_64)
     constexpr size_t stride = SIMD::stride<CharacterType>;
     using UnsignedType = SameSizeUnsignedInteger<CharacterType>;
-    using BulkType = decltype(SIMD::load(static_cast<const UnsignedType*>(nullptr)));
+    using BulkType = decltype(SIMD::load(static_cast<const UnsignedType*>(nullPtr())));
     if (length >= stride) {
         size_t index = 0;
         BulkType accumulated { };

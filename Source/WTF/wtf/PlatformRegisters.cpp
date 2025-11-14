@@ -58,7 +58,7 @@ void* threadStatePCInternal(PlatformRegisters& regs)
     // authing the value as it is using a custom ptrauth signing scheme.
     _STRUCT_ARM_THREAD_STATE64* ts = &(regs);
     if (!(ts->__opaque_flags & __DARWIN_ARM_THREAD_STATE64_FLAGS_KERNEL_SIGNED_PC))
-        return nullptr;
+        return nullPtr();
 #endif // CPU(ARM64E) && HAVE(HARDENED_MACH_EXCEPTIONS)
 
     void* candidatePC = arm_thread_state64_get_pc_fptr(regs);

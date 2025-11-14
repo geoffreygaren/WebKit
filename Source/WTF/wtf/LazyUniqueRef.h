@@ -84,7 +84,7 @@ public:
     {
         ASSERT(m_pointer);
         if (m_pointer & lazyTag)
-            return nullptr;
+            return nullPtr();
         return std::bit_cast<T*>(m_pointer);
     }
 

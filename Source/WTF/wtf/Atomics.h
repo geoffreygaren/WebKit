@@ -314,14 +314,6 @@ inline void dependentLoadLoadFence() { compilerFence(); }
 inline void dependentLoadLoadFence() { loadLoadFence(); }
 #endif
 
-// We use this primitive to hide an atomic variable from the optimizer.
-template<typename T>
-inline T opaque(T value)
-{
-    asm ("" : "+r"(value) ::);
-    return value;
-}
-
 // We use this primitive on ARM to express memory ordering efficiently.
 template<typename T>
 inline T* addOpaqueZero(T* pointer, unsigned opaqueZero)

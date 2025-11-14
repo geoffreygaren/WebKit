@@ -91,7 +91,7 @@ void ParallelHelperClient::runTaskInParallel(RefPtr<SharedTask<void ()>>&& task)
 
 void ParallelHelperClient::finishWithLock()
 {
-    m_task = nullptr;
+    m_task = nullPtr();
     while (m_numActive)
         m_pool->m_workCompleteCondition.wait(*m_pool->m_lock);
 }
@@ -99,7 +99,7 @@ void ParallelHelperClient::finishWithLock()
 RefPtr<SharedTask<void ()>> ParallelHelperClient::claimTask()
 {
     if (!m_task)
-        return nullptr;
+        return nullPtr();
     
     m_numActive++;
     return m_task;
@@ -117,7 +117,7 @@ void ParallelHelperClient::runTask(const RefPtr<SharedTask<void ()>>& task)
         RELEASE_ASSERT(m_numActive);
         // No new task could have been installed, since we were still active.
         RELEASE_ASSERT(!m_task || m_task == task);
-        m_task = nullptr;
+        m_task = nullPtr();
         m_numActive--;
         if (!m_numActive)
             m_pool->m_workCompleteCondition.notifyAll();
@@ -209,13 +209,13 @@ private:
     WorkResult work() final
     {
         m_client->runTask(m_task);
-        m_client = nullptr;
-        m_task = nullptr;
+        m_client = nullPtr();
+        m_task = nullPtr();
         return WorkResult::Continue;
     }
 
     const CheckedRef<ParallelHelperPool> m_pool;
-    ParallelHelperClient* m_client { nullptr };
+    ParallelHelperClient* m_client { nullPtr() };
     RefPtr<SharedTask<void ()>> m_task;
 };
 
@@ -246,7 +246,7 @@ ParallelHelperClient* ParallelHelperPool::getClientWithTask()
             return client;
     }
 
-    return nullptr;
+    return nullPtr();
 }
 
 } // namespace WTF

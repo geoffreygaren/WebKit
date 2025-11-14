@@ -101,8 +101,8 @@ public:
     private:
         void reset()
         {
-            m_left = nullptr;
-            m_right = nullptr;
+            m_left = nullPtr();
+            m_right = nullPtr();
             m_parentAndRed = 1; // initialize to red
         }
         
@@ -159,7 +159,7 @@ public:
     };
 
     RedBlackTree()
-        : m_root(nullptr)
+        : m_root(nullPtr())
     {
     }
     
@@ -306,7 +306,7 @@ public:
     
     NodeType* findLeastGreaterThanOrEqual(const KeyType& key) const
     {
-        NodeType* best = nullptr;
+        NodeType* best = nullPtr();
         unsigned depth = 0;
         for (NodeType* current = m_root; current;) {
             RELEASE_ASSERT(++depth <= s_maximumTreeDepth);
@@ -324,7 +324,7 @@ public:
     
     NodeType* findGreatestLessThanOrEqual(const KeyType& key) const
     {
-        NodeType* best = nullptr;
+        NodeType* best = nullPtr();
         unsigned depth = 0;
         for (NodeType* current = m_root; current;) {
             RELEASE_ASSERT(++depth <= s_maximumTreeDepth);
@@ -365,7 +365,7 @@ public:
     NodeType* first() const
     {
         if (!m_root)
-            return nullptr;
+            return nullPtr();
         return treeMinimum(m_root);
     }
     
@@ -441,7 +441,7 @@ private:
         ASSERT(!z->parent());
         ASSERT(z->color() == Red);
         
-        NodeType* y = nullptr;
+        NodeType* y = nullPtr();
         NodeType* x = m_root;
         unsigned depth = 0;
         while (x) {

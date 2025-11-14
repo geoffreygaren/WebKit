@@ -93,7 +93,7 @@ public:
     private:
         template <typename, typename, EnableWeakPtrThreadingAssertions> friend class WeakHashSet;
 
-        const WeakHashSet* m_set { nullptr };
+        const WeakHashSet* m_set { nullPtr() };
         typename WeakPtrImplSet::const_iterator m_position;
         typename WeakPtrImplSet::const_iterator m_endPosition;
     };
@@ -130,7 +130,7 @@ public:
     {
         auto iterator = begin();
         if (iterator == end())
-            return nullptr;
+            return nullPtr();
         return static_cast<T*>(m_set.take(iterator.m_position)->template get<T>());
     }
 

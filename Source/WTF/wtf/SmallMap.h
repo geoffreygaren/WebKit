@@ -83,7 +83,7 @@ public:
             if (auto it = map->find(key); it != map->end())
                 return std::addressof(it->value);
         }
-        return nullptr;
+        return nullPtr();
     }
 
     void forEach(NOESCAPE const auto& callback) const

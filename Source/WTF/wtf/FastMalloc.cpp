@@ -82,7 +82,7 @@ void fastSetMaxSingleAllocationSize(size_t size)
 
 #define FAIL_IF_EXCEEDS_LIMIT(size) do { \
         if ((size) > maxSingleAllocationSize) [[unlikely]] \
-            return nullptr; \
+            return nullPtr(); \
     } while (false)
 
 #else // !defined(NDEBUG)
@@ -105,7 +105,7 @@ char* fastStrDup(const char* src)
 void* fastMemDup(const void* mem, size_t bytes)
 {
     if (!mem || !bytes)
-        return nullptr;
+        return nullPtr();
 
     void* result = fastMalloc(bytes);
     memcpy(result, mem, bytes);
@@ -123,7 +123,7 @@ char* fastCompactStrDup(const char* src)
 void* fastCompactMemDup(const void* mem, size_t bytes)
 {
     if (!mem || !bytes)
-        return nullptr;
+        return nullPtr();
 
     void* result = fastCompactMalloc(bytes);
     memcpy(result, mem, bytes);
@@ -233,7 +233,7 @@ TryMallocReturnValue tryFastZeroedMalloc(size_t n)
 {
     void* result;
     if (!tryFastMalloc(n).getValue(result))
-        return nullptr;
+        return nullPtr();
     memset(result, 0, n);
     return result;
 }
@@ -668,7 +668,7 @@ TryMallocReturnValue tryFastCalloc(size_t numElements, size_t elementSize)
     CheckedSize checkedSize = elementSize;
     checkedSize *= numElements;
     if (checkedSize.hasOverflowed())
-        return nullptr;
+        return nullPtr();
     return tryFastZeroedMalloc(checkedSize);
 }
 
@@ -780,7 +780,7 @@ TryMallocReturnValue tryFastCompactCalloc(size_t numElements, size_t elementSize
     CheckedSize checkedSize = elementSize;
     checkedSize *= numElements;
     if (checkedSize.hasOverflowed())
-        return nullptr;
+        return nullPtr();
     return tryFastCompactZeroedMalloc(checkedSize);
 }
 

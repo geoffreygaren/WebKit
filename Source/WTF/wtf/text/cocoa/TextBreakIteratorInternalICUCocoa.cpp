@@ -64,7 +64,7 @@ static RetainPtr<CFStringRef> topLanguagePreference()
 {
     auto languagesArray = adoptCF(CFLocaleCopyPreferredLanguages());
     if (!languagesArray || !CFArrayGetCount(languagesArray.get()))
-        return nullptr;
+        return nullPtr();
     return static_cast<CFStringRef>(CFArrayGetValueAtIndex(languagesArray.get(), 0));
 }
 

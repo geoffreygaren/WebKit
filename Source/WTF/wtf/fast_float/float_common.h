@@ -202,7 +202,7 @@ struct span {
   const T* ptr;
   size_t length;
   constexpr span(const T* _ptr, size_t _length) : ptr(_ptr), length(_length) {}
-  constexpr span() : ptr(nullptr), length(0) {}
+  constexpr span() : ptr(nullPtr()), length(0) {}
 
   constexpr size_t len() const noexcept {
     return length;
@@ -622,7 +622,7 @@ static constexpr int int_cmp_len()
 template<typename UC>
 static constexpr UC const * str_const_nan()
 {
-    return nullptr;
+    return nullPtr();
 }
 template<>
 constexpr char const * str_const_nan<char>()
@@ -647,7 +647,7 @@ constexpr char32_t const * str_const_nan<char32_t>()
 template<typename UC>
 static constexpr UC const * str_const_inf()
 {
-    return nullptr;
+    return nullPtr();
 }
 template<>
 constexpr char const * str_const_inf<char>()

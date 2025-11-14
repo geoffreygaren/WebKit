@@ -63,7 +63,7 @@ public:
 
     ~CompactUniquePtrTuple()
     {
-        setPointer(nullptr);
+        setPointer(nullPtr());
     }
 
     template<typename U, typename UDeleter>
@@ -80,14 +80,14 @@ public:
     std::unique_ptr<T, Deleter> moveToUniquePtr()
     {
         T* pointer = m_data.pointer();
-        m_data.setPointer(nullptr);
+        m_data.setPointer(nullPtr());
         return std::unique_ptr<T, Deleter>(pointer);
     }
 
     void setPointer(std::nullptr_t)
     {
         deletePointer();
-        m_data.setPointer(nullptr);
+        m_data.setPointer(nullPtr());
     }
 
     template<typename U, typename UDeleter>

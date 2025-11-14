@@ -123,7 +123,7 @@ public:
 
     Function& operator=(std::nullptr_t)
     {
-        m_callableWrapper = nullptr;
+        m_callableWrapper = nullPtr();
         return *this;
     }
 

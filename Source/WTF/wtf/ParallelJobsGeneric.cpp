@@ -34,7 +34,7 @@
 
 namespace WTF {
 
-Vector< RefPtr<ParallelEnvironment::ThreadPrivate> >* ParallelEnvironment::s_threadPool = nullptr;
+Vector< RefPtr<ParallelEnvironment::ThreadPrivate> >* ParallelEnvironment::s_threadPool = nullPtr();
 
 ParallelEnvironment::ParallelEnvironment(ThreadFunction threadFunction, size_t sizeOfParameter, int requestedJobNumber) :
     m_threadFunction(threadFunction),
@@ -103,7 +103,7 @@ bool ParallelEnvironment::ThreadPrivate::tryLockFor(ParallelEnvironment* parent)
                 if (m_running) {
                     (*m_threadFunction)(m_parameters);
                     m_running = false;
-                    m_parent = nullptr;
+                    m_parent = nullPtr();
                     m_threadCondition.notifyOne();
                 }
 

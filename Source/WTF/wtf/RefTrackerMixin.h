@@ -108,7 +108,7 @@ struct RefTrackerMixin final {
     }
 
     // This guards against seeing an unconstructed object (say, if we are zero-initialized)
-    RefTrackerMixin* originalThis = nullptr;
+    RefTrackerMixin* originalThis = nullPtr();
 };
 
 #define REFTRACKER_DECL(T, initializer) \

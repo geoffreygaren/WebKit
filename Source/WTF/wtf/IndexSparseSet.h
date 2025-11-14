@@ -195,11 +195,11 @@ auto IndexSparseSet<EntryType, EntryTypeTraits, OverflowHandler>::get(unsigned v
 {
     unsigned position = m_map[value];
     if (position >= m_values.size())
-        return nullptr;
+        return nullPtr();
 
     EntryType& entry = m_values[position];
     if (EntryTypeTraits::key(entry) != value)
-        return nullptr;
+        return nullPtr();
     
     return &entry;
 }

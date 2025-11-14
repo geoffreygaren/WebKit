@@ -118,8 +118,8 @@ Collator::Collator(const char* locale, bool shouldSortLowercaseFirst)
             m_collator = cachedCollator;
             m_locale = cachedCollatorLocale;
             m_shouldSortLowercaseFirst = shouldSortLowercaseFirst;
-            cachedCollator = nullptr;
-            cachedCollatorLocale = nullptr;
+            cachedCollator = nullPtr();
+            cachedCollatorLocale = nullPtr();
             return;
         }
     }
@@ -237,7 +237,7 @@ static UCharIterator createLatin1Iterator(std::span<const Latin1Character> chara
     iterator.current = currentLatin1;
     iterator.next = nextLatin1;
     iterator.previous = previousLatin1;
-    iterator.reservedFn = nullptr;
+    iterator.reservedFn = nullPtr();
     iterator.getState = getStateLatin1;
     iterator.setState = setStateLatin1;
     return iterator;

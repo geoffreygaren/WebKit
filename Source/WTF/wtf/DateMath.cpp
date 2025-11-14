@@ -202,7 +202,7 @@ static int32_t calculateUTCOffset()
 
     SYSTEMTIME systemTime;
     ::GetSystemTime(&systemTime);
-    rc = ::GetTimeZoneInformationForYear(systemTime.wYear, nullptr, &timeZoneInformation);
+    rc = ::GetTimeZoneInformationForYear(systemTime.wYear, nullPtr(), &timeZoneInformation);
     if (rc == TIME_ZONE_ID_INVALID)
         return 0;
 
@@ -279,7 +279,7 @@ static double calculateDSTOffset(time_t localTime, double utcOffset)
     SYSTEMTIME utcSystemTime, localSystemTime;
     if (!::FileTimeToSystemTime(&utcFileTime, &utcSystemTime))
         return 0;
-    if (!::SystemTimeToTzSpecificLocalTime(nullptr, &utcSystemTime, &localSystemTime))
+    if (!::SystemTimeToTzSpecificLocalTime(nullPtr(), &utcSystemTime, &localSystemTime))
         return 0;
 
     double diff = ((localSystemTime.wHour - offsetHour) * secondsPerHour) + ((localSystemTime.wMinute - offsetMinute) * 60);
@@ -1011,7 +1011,7 @@ static std::optional<Vector<char16_t, 32>> validateTimeZone(StringView timeZone)
     auto buffer = timeZone.upconvertedCharacters();
     const char16_t* characters = buffer;
     Vector<char16_t, 32> canonicalBuffer;
-    auto status = callBufferProducingFunction(ucal_getCanonicalTimeZoneID, characters, timeZone.length(), canonicalBuffer, nullptr);
+    auto status = callBufferProducingFunction(ucal_getCanonicalTimeZoneID, characters, timeZone.length(), canonicalBuffer, nullPtr());
     if (!U_SUCCESS(status))
         return std::nullopt;
     return canonicalBuffer;

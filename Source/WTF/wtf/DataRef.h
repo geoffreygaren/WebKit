@@ -100,7 +100,7 @@ public:
     {
     }
     bool isHashTableEmptyValue() const { return m_data.isHashTableEmptyValue(); }
-    static T* hashTableEmptyValue() { return nullptr; }
+    static T* hashTableEmptyValue() { return nullPtr(); }
 
 private:
     Ref<T> m_data;

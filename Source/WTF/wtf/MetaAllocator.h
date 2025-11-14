@@ -52,7 +52,7 @@ public:
         MetaAllocatorHandle* handle = m_allocations.findGreatestLessThanOrEqual(address);
         if (handle && handle->start().untaggedPtr() <= address && address < handle->end().untaggedPtr())
             return handle;
-        return nullptr;
+        return nullPtr();
     }
 
     RedBlackTree<MetaAllocatorHandle, void*> m_allocations;
@@ -197,7 +197,7 @@ private:
     
     Lock& m_lock;
 
-    MetaAllocatorTracker* m_tracker { nullptr };
+    MetaAllocatorTracker* m_tracker { nullPtr() };
 
 #ifndef NDEBUG
     size_t m_mallocBalance;

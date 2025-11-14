@@ -83,7 +83,7 @@ public:
     {
         const std::lock_guard<std::recursive_mutex> lock(m_mutex);
         if (!zone || !m_zoneNames.count(zone))
-            return nullptr;
+            return nullPtr();
         void* memory = malloc(size);
         m_zoneAllocations[zone].emplace(memory, size);
         return memory;
@@ -92,7 +92,7 @@ public:
     {
         const std::lock_guard<std::recursive_mutex> lock(m_mutex);
         if (!zone || !m_zoneNames.count(zone))
-            return nullptr;
+            return nullPtr();
         void* memory = calloc(numItems, size);
         if (memory)
             m_zoneAllocations[zone].emplace(memory, numItems * size);
@@ -102,12 +102,12 @@ public:
     {
         const std::lock_guard<std::recursive_mutex> lock(m_mutex);
         if (!zone || !m_zoneNames.count(zone))
-            return nullptr;
+            return nullPtr();
         if (!memory)
             return zoneMalloc(zone, size);
         if (!size) {
             zoneFree(zone, memory);
-            return nullptr;
+            return nullPtr();
         }
         void* ptr = realloc(memory, size);
         if (ptr) {
@@ -121,7 +121,7 @@ public:
     {
         const std::lock_guard<std::recursive_mutex> lock(m_mutex);
         if (!zone || !m_zoneNames.count(zone))
-            return nullptr;
+            return nullPtr();
         void* memory = aligned_alloc(alignment, size);
         m_zoneAllocations[zone].emplace(memory, size);
         return memory;
@@ -228,7 +228,7 @@ private:
                         grandTotalBytesAllocated += totalBytesAllocated;
                         setCounter(zonePtr, zoneName.c_str(), totalBytesAllocated);
                     }
-                    setCounter(nullptr, "Total bytes", grandTotalBytesAllocated);
+                    setCounter(nullPtr(), "Total bytes", grandTotalBytesAllocated);
 
                     if (!counterIdsToSet.empty())
                         sysprof_collector_set_counters(counterIdsToSet.data(), counterValuesToSet.data(), counterIdsToSet.size());

@@ -308,7 +308,7 @@ public:
     void complete()
     {
         ASSERT(m_callback);
-        m_callback = nullptr;
+        m_callback = nullPtr();
     }
 
     // Disconnect and forget an outstanding promise. The resolve/reject methods will never be called.
@@ -317,7 +317,7 @@ public:
         ASSERT(m_callback);
         if (!m_callback)
             return;
-        RefPtr callback = std::exchange(m_callback, nullptr);
+        RefPtr callback = std::exchange(m_callback, nullPtr());
         callback->disconnect();
     }
 
@@ -576,7 +576,7 @@ private:
                         return WTFMove(*resolveValue);
                     }));
                 }
-                m_producer = nullptr;
+                m_producer = nullPtr();
             }
         }
 
@@ -592,7 +592,7 @@ private:
                 m_producer->reject();
             else
                 m_producer->reject(std::forward<RejectValueType_>(rejectValue));
-            m_producer = nullptr;
+            m_producer = nullPtr();
             if constexpr (!std::is_void_v<ResolveValueT>)
                 m_resolveValues.clear();
         }
@@ -633,7 +633,7 @@ private:
                 m_producer->resolve(WTF::map(std::exchange(m_results, { }), [](auto&& result) {
                     return WTFMove(*result);
                 }));
-                m_producer = nullptr;
+                m_producer = nullPtr();
             }
         }
 
@@ -803,7 +803,7 @@ private:
         {
             assertIsCurrent(*ThenCallbackBase::m_targetQueue);
             ThenCallbackBase::disconnect();
-            m_settleFunction = nullptr;
+            m_settleFunction = nullPtr();
         }
 
         void processResult(NativePromise& promise, ResultParam result) override
@@ -826,7 +826,7 @@ private:
                     completionProducer->resolve({ "<chained completion promise>", 0 });
             }
 
-            m_settleFunction = nullptr;
+            m_settleFunction = nullPtr();
         }
 
         void setCompletionPromise(std::unique_ptr<typename ReturnPromiseType::Producer>&& completionProducer)
@@ -839,7 +839,7 @@ private:
         RefPtr<NativePromiseBase> completionPromise() override
         {
             Locker lock { m_lock };
-            return m_completionProducer ? m_completionProducer->promise().ptr() : nullptr;
+            return m_completionProducer ? m_completionProducer->promise().ptr() : nullPtr();
         }
 #endif
 
@@ -1288,7 +1288,7 @@ private:
         const Result* operator->() const
         {
             if (!hasResult())
-                return nullptr;
+                return nullPtr();
             return &(this->operator*());
         }
         template <typename Arg>

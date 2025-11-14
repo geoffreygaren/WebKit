@@ -361,7 +361,7 @@ public:
         }
         
     private:
-        const BitVector* m_bitVector { nullptr };
+        const BitVector* m_bitVector { nullPtr() };
         size_t m_index { 0 };
     };
 

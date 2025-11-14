@@ -129,7 +129,7 @@ private:
             void* ptr;
             T value;
         } u;
-        u.ptr = nullptr;
+        u.ptr = nullPtr();
         u.value = value;
         return u.ptr;
     }

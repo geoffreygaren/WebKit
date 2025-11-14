@@ -51,10 +51,10 @@ const float* findFloatAlignedImpl(const float* pointer, float target, size_t len
         if (simde_vget_lane_u64(simde_vreinterpret_u64_u16(simde_vmovn_u32(mask)), 0)) {
             simde_uint32x4_t ranked = simde_vornq_u32(indexMask, mask);
             uint32_t index = simde_vminvq_u32(ranked);
-            return (index < length) ? cursor + index : nullptr;
+            return (index < length) ? cursor + index : nullPtr();
         }
         if (length <= stride)
-            return nullptr;
+            return nullPtr();
         length -= stride;
         cursor += stride;
     }
@@ -82,10 +82,10 @@ const double* findDoubleAlignedImpl(const double* pointer, double target, size_t
         if (simde_vget_lane_u64(simde_vreinterpret_u64_u32(reducedMask), 0)) {
             simde_uint32x2_t ranked = simde_vorn_u32(indexMask, reducedMask);
             uint32_t index = simde_vminv_u32(ranked);
-            return (index < length) ? cursor + index : nullptr;
+            return (index < length) ? cursor + index : nullPtr();
         }
         if (length <= stride)
-            return nullptr;
+            return nullPtr();
         length -= stride;
         cursor += stride;
     }
@@ -112,10 +112,10 @@ const Latin1Character* find8NonASCIIAlignedImpl(std::span<const Latin1Character>
         if (simde_vmaxvq_u8(mask)) {
             simde_uint8x16_t ranked = simde_vornq_u8(indexMask, mask);
             uint8_t index = simde_vminvq_u8(ranked);
-            return std::bit_cast<const Latin1Character*>((index < length) ? cursor + index : nullptr);
+            return std::bit_cast<const Latin1Character*>((index < length) ? cursor + index : nullPtr());
         }
         if (length <= stride)
-            return nullptr;
+            return nullPtr();
         length -= stride;
         cursor += stride;
     }
@@ -144,10 +144,10 @@ const char16_t* find16NonASCIIAlignedImpl(std::span<const char16_t> data)
         if (simde_vget_lane_u64(simde_vreinterpret_u64_u8(simde_vmovn_u16(mask)), 0)) {
             simde_uint16x8_t ranked = simde_vornq_u16(indexMask, mask);
             uint16_t index = simde_vminvq_u16(ranked);
-            return std::bit_cast<const char16_t*>((index < length) ? cursor + index : nullptr);
+            return std::bit_cast<const char16_t*>((index < length) ? cursor + index : nullPtr());
         }
         if (length <= stride)
-            return nullptr;
+            return nullPtr();
         length -= stride;
         cursor += stride;
     }

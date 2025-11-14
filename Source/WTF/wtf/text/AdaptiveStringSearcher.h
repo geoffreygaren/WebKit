@@ -81,7 +81,7 @@ WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
         const SubjectChar searchCharacter = static_cast<SubjectChar>(patternFirstChar);
         const auto* start = subjectPtr + index;
         const auto searchLength = maxN - index;
-        const SubjectChar* charPos = nullptr;
+        const SubjectChar* charPos = nullPtr();
         ASSERT(maxN - index >= 0);
         if constexpr (sizeof(SubjectChar) == 2)
             charPos = std::bit_cast<const SubjectChar*>(find16(std::bit_cast<const uint16_t*>(start), searchCharacter, searchLength));

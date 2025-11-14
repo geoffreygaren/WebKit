@@ -50,7 +50,7 @@ private:
 class TaskCancellationGroupHandle {
 public:
     bool isCancelled() const { return !m_impl; }
-    void clear() { m_impl = nullptr; }
+    void clear() { m_impl = nullPtr(); }
 private:
     friend class TaskCancellationGroup;
     explicit TaskCancellationGroupHandle(TaskCancellationGroupImpl& impl)

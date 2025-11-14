@@ -47,7 +47,7 @@ void currentProcessMemoryStatus(ProcessMemoryStatus& memoryStatus)
         return;
 
     size_t pageSize = WTF::pageSize();
-    char* end = nullptr;
+    char* end = nullPtr();
     unsigned long long intValue = strtoull(line, &end, 10);
     memoryStatus.size = intValue * pageSize;
     intValue = strtoull(end, &end, 10);

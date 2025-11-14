@@ -81,8 +81,8 @@ class FunctionPtr<tag, Out(In...), attr> : public FunctionPtrBase {
 public:
     using Ptr = typename FunctionCallConvention<attr, Out(In...)>::Type;
 
-    constexpr FunctionPtr() : m_ptr(nullptr) { }
-    constexpr FunctionPtr(std::nullptr_t) : m_ptr(nullptr) { }
+    constexpr FunctionPtr() : m_ptr(nullPtr()) { }
+    constexpr FunctionPtr(std::nullptr_t) : m_ptr(nullPtr()) { }
 
     constexpr FunctionPtr(Out(*ptr)(In...))
         : m_ptr(encode(ptr))
@@ -154,7 +154,7 @@ public:
 
     FunctionPtr& operator=(std::nullptr_t)
     {
-        m_ptr = nullptr;
+        m_ptr = nullPtr();
         return *this;
     }
 

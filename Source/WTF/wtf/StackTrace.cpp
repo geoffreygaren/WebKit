@@ -42,7 +42,7 @@ void WTFGetBacktrace(void** stack, int* size)
 #if HAVE(BACKTRACE)
     *size = backtrace(stack, *size);
 #elif OS(WINDOWS)
-    *size = RtlCaptureStackBackTrace(0, *size, stack, nullptr);
+    *size = RtlCaptureStackBackTrace(0, *size, stack, nullPtr());
 #else
     UNUSED_PARAM(stack);
     *size = 0;
@@ -54,7 +54,7 @@ namespace WTF {
 #if USE(LIBBACKTRACE)
 static struct backtrace_state* backtraceState()
 {
-    static NeverDestroyed<struct backtrace_state*> backtraceState = backtrace_create_state(nullptr, 1, nullptr, nullptr);
+    static NeverDestroyed<struct backtrace_state*> backtraceState = backtrace_create_state(nullPtr(), 1, nullPtr(), nullPtr());
     return backtraceState;
 }
 
@@ -76,7 +76,7 @@ char** symbolize(void* const* addresses, int size)
 {
     struct backtrace_state* state = backtraceState();
     if (!state)
-        return nullptr;
+        return nullPtr();
 
     char** symbols = static_cast<char**>(malloc(sizeof(char*) * size));
 
@@ -84,12 +84,12 @@ char** symbolize(void* const* addresses, int size)
         uintptr_t pc = reinterpret_cast<uintptr_t>(addresses[i]);
         char* symbol;
 
-        backtrace_pcinfo(state, pc, backtraceFullCallback, nullptr, &symbol);
+        backtrace_pcinfo(state, pc, backtraceFullCallback, nullPtr(), &symbol);
         if (!symbol)
-            backtrace_syminfo(backtraceState(), pc, backtraceSyminfoCallback, nullptr, &symbol);
+            backtrace_syminfo(backtraceState(), pc, backtraceSyminfoCallback, nullPtr(), &symbol);
 
         if (symbol) {
-            char* demangled = abi::__cxa_demangle(symbol, nullptr, nullptr, nullptr);
+            char* demangled = abi::__cxa_demangle(symbol, nullPtr(), nullPtr(), nullPtr());
             if (demangled)
                 symbols[i] = demangled;
             else
@@ -134,14 +134,14 @@ String StackTrace::toString() const
 auto StackTraceSymbolResolver::demangle(void* pc) -> std::optional<DemangleEntry>
 {
 #if HAVE(DLADDR)
-    const char* mangledName = nullptr;
-    const char* cxaDemangled = nullptr;
+    const char* mangledName = nullPtr();
+    const char* cxaDemangled = nullPtr();
     Dl_info info;
     if (dladdr(pc, &info) && info.dli_sname)
         mangledName = info.dli_sname;
     if (mangledName) {
         int status = 0;
-        cxaDemangled = abi::__cxa_demangle(mangledName, nullptr, nullptr, &status);
+        cxaDemangled = abi::__cxa_demangle(mangledName, nullPtr(), nullPtr(), &status);
         UNUSED_PARAM(status);
     }
     if (mangledName || cxaDemangled)

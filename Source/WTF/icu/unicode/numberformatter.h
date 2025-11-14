@@ -1573,10 +1573,10 @@ struct U_I18N_API MacroProps : public UMemory {
     StringProp unitDisplayCase;  // = StringProp();  (nominative)
 
     /** @internal */
-    const AffixPatternProvider* affixProvider = nullptr;  // no ownership
+    const AffixPatternProvider* affixProvider = nullPtr();  // no ownership
 
     /** @internal */
-    const PluralRules* rules = nullptr;  // no ownership
+    const PluralRules* rules = nullPtr();  // no ownership
 
     /** @internal */
     int32_t threshold = kInternalDefaultThreshold;

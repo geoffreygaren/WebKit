@@ -89,7 +89,7 @@ public:
     }
 
 private:
-    void* m_base { nullptr };
+    void* m_base { nullPtr() };
     size_t m_size { 0 };
 };
 

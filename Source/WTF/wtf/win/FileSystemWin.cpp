@@ -103,7 +103,7 @@ CString fileSystemRepresentation(const String& path)
 static String storageDirectory(DWORD pathIdentifier)
 {
     Vector<char16_t> buffer(MAX_PATH);
-    if (FAILED(SHGetFolderPathW(nullptr, pathIdentifier | CSIDL_FLAG_CREATE, nullptr, 0, wcharFrom(buffer.mutableSpan().data()))))
+    if (FAILED(SHGetFolderPathW(nullPtr(), pathIdentifier | CSIDL_FLAG_CREATE, nullPtr(), 0, wcharFrom(buffer.mutableSpan().data()))))
         return String();
 
     buffer.shrink(wcslen(wcharFrom(buffer.span().data())));
@@ -168,7 +168,7 @@ std::pair<String, FileHandle> openTemporaryFile(StringView, StringView suffix)
 
     String proposedPath = generateTemporaryPath([&handle](const String& proposedPath) {
         // use CREATE_NEW to avoid overwriting an existing file with the same name
-        handle = FileHandle::adopt(::CreateFileW(proposedPath.wideCharacters().span().data(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr));
+        handle = FileHandle::adopt(::CreateFileW(proposedPath.wideCharacters().span().data(), GENERIC_READ | GENERIC_WRITE, 0, nullPtr(), CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullPtr()));
 
         return handle || GetLastError() == ERROR_ALREADY_EXISTS;
     });
@@ -204,7 +204,7 @@ FileHandle openFile(const String& path, FileOpenMode mode, FileAccessPermission,
         creationDisposition = CREATE_NEW;
 
     String destination = path;
-    return FileHandle::adopt(CreateFile(destination.wideCharacters().span().data(), desiredAccess, shareMode, nullptr, creationDisposition, FILE_ATTRIBUTE_NORMAL, nullptr), lockMode);
+    return FileHandle::adopt(CreateFile(destination.wideCharacters().span().data(), desiredAccess, shareMode, nullPtr(), creationDisposition, FILE_ATTRIBUTE_NORMAL, nullPtr()), lockMode);
 }
 
 String localUserSpecificStorageDirectory()

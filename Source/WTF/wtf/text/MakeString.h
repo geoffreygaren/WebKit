@@ -48,7 +48,7 @@ RefPtr<StringImpl> tryMakeStringImplFromAdaptersInternal(unsigned length, bool a
         std::span<Latin1Character> buffer;
         RefPtr result = StringImpl::tryCreateUninitialized(length, buffer);
         if (!result)
-            return nullptr;
+            return nullPtr();
 
         if (buffer.data())
             stringTypeAdapterAccumulator(buffer, adapters...);
@@ -59,7 +59,7 @@ RefPtr<StringImpl> tryMakeStringImplFromAdaptersInternal(unsigned length, bool a
     std::span<char16_t> buffer;
     RefPtr result = StringImpl::tryCreateUninitialized(length, buffer);
     if (!result)
-        return nullptr;
+        return nullPtr();
 
     if (buffer.data())
         stringTypeAdapterAccumulator(buffer, adapters...);

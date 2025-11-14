@@ -45,6 +45,17 @@
 
 namespace WTF {
 
+// Use this function to hide a value from the compiler.
+template<typename T> T inline opaque(T pointer)
+{
+    asm volatile("" : "+r"(pointer) ::);
+    return pointer;
+}
+
+// Use this function to indicate an invalid pointer. This function works around the
+// fact that store-load forwarding of nullptr can turn *nullptr into undefined behavior.
+inline nullptr_t nullPtr() { return opaque(nullptr); }
+
 namespace detail {
 
 // IsRefcountedSmartPointer implementation.
@@ -225,3 +236,5 @@ constexpr std::size_t parameterCount(ReturnType(*)(Args...))
 }
 
 } // namespace NTF
+
+using WTF::nullPtr;

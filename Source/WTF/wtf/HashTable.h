@@ -242,8 +242,8 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
         void checkValidity(const const_iterator&) const { }
 #endif
 
-        PointerType m_position { nullptr };
-        PointerType m_endPosition { nullptr };
+        PointerType m_position { nullPtr() };
+        PointerType m_endPosition { nullPtr() };
 
 #if CHECK_HASHTABLE_ITERATORS
     public:
@@ -575,8 +575,8 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
         bool shouldExpand() const { return HashTableSizePolicy::shouldExpand(keyCount() + deletedCount(), tableSize()); }
         bool mustRehashInPlace() const { return keyCount() * minLoad < tableSize() * 2; }
         bool shouldShrink() const { return keyCount() * minLoad < tableSize() && tableSize() > KeyTraits::minimumTableSize; }
-        ValueType* expand(ValueType* entry = nullptr);
-        void shrink() { rehash(tableSize() / 2, nullptr); }
+        ValueType* expand(ValueType* entry = nullPtr());
+        void shrink() { rehash(tableSize() / 2, nullPtr()); }
         void shrinkToBestSize();
     
         void deleteReleasedWeakBuckets();
@@ -625,7 +625,7 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
         unsigned deletedCount() const { ASSERT(m_table); return reinterpret_cast_ptr<unsigned*>(m_table)[deletedCountOffset]; }
         void setDeletedCount(unsigned count) const { ASSERT(m_table); reinterpret_cast_ptr<unsigned*>(m_table)[deletedCountOffset] = count; }
 
-        ValueType* m_table { nullptr };
+        ValueType* m_table { nullPtr() };
 
 #if CHECK_HASHTABLE_ITERATORS
     public:
@@ -643,7 +643,7 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
 
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits, typename Malloc>
     inline HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits, Malloc>::HashTable()
-        : m_table(nullptr)
+        : m_table(nullPtr())
 #if CHECK_HASHTABLE_ITERATORS
         , m_iterators(0)
         , m_mutex(makeUnique<Lock>())
@@ -670,7 +670,7 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
 
         ValueType* table = m_table;
         if (!table)
-            return nullptr;
+            return nullPtr();
 
         unsigned sizeMask = tableSizeMask();
         unsigned h = HashTranslator::hash(key);
@@ -694,10 +694,10 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
                     return entry;
                 
                 if (isEmptyBucket(*entry))
-                    return nullptr;
+                    return nullPtr();
             } else {
                 if (isEmptyBucket(*entry))
-                    return nullptr;
+                    return nullPtr();
                 
                 if (!isDeletedBucket(*entry) && HashTranslator::equal(Extractor::extract(*entry), key))
                     return entry;
@@ -779,7 +779,7 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
         ++m_stats->numAccesses;
 #endif
 
-        ValueType* deletedEntry = nullptr;
+        ValueType* deletedEntry = nullPtr();
 
         while (true) {
             ValueType* entry = table + i;
@@ -860,7 +860,7 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
         invalidateIterators(this);
 
         if (!m_table)
-            expand(nullptr);
+            expand(nullPtr());
 
         internalCheckTableConsistency();
 
@@ -880,7 +880,7 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
         ++m_stats->numAccesses;
 #endif
 
-        ValueType* deletedEntry = nullptr;
+        ValueType* deletedEntry = nullPtr();
         ValueType* entry;
         while (true) {
             entry = table + i;
@@ -1249,7 +1249,7 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits, typename Malloc>
     void HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits, Malloc>::shrinkToBestSize()
     {
-        rehash(computeBestTableSize(keyCount()), nullptr);
+        rehash(computeBestTableSize(keyCount()), nullPtr());
     }
 
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits, typename Malloc>
@@ -1291,7 +1291,7 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
         setDeletedCount(0);
         setKeyCount(oldKeyCount);
 
-        Value* newEntry = nullptr;
+        Value* newEntry = nullPtr();
         for (unsigned i = 0; i != oldTableSize; ++i) {
             auto& oldEntry = oldTable[i];
             if (isDeletedBucket(oldEntry)) {
@@ -1334,14 +1334,14 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
         if (!m_table)
             return;
 
-        deallocateTable(std::exchange(m_table, nullptr));
+        deallocateTable(std::exchange(m_table, nullPtr()));
     }
 
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits, typename Malloc>
     HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits, Malloc>::HashTable(const HashTable& other)
-        : m_table(nullptr)
+        : m_table(nullPtr())
 #if CHECK_HASHTABLE_ITERATORS
-        , m_iterators(nullptr)
+        , m_iterators(nullPtr())
         , m_mutex(makeUnique<Lock>())
 #endif
 #if DUMP_HASHTABLE_STATS_PER_TABLE
@@ -1387,17 +1387,17 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
     template<typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits, typename Malloc>
     inline HashTable<Key, Value, Extractor, HashFunctions, Traits, KeyTraits, Malloc>::HashTable(HashTable&& other)
 #if CHECK_HASHTABLE_ITERATORS
-        : m_iterators(nullptr)
+        : m_iterators(nullPtr())
         , m_mutex(makeUnique<Lock>())
 #endif
     {
         invalidateIterators(&other);
 
-        m_table = std::exchange(other.m_table, nullptr);
+        m_table = std::exchange(other.m_table, nullPtr());
 
 #if DUMP_HASHTABLE_STATS_PER_TABLE
         m_stats = WTFMove(other.m_stats);
-        other.m_stats = nullptr;
+        other.m_stats = nullPtr();
 #endif
     }
 
@@ -1464,22 +1464,22 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
         typename HashTableType::const_iterator* next;
         for (auto* p = table->m_iterators; p; p = next) {
             next = p->m_next;
-            p->m_table = nullptr;
-            p->m_next = nullptr;
-            p->m_previous = nullptr;
+            p->m_table = nullPtr();
+            p->m_next = nullPtr();
+            p->m_previous = nullPtr();
         }
-        table->m_iterators = nullptr;
+        table->m_iterators = nullPtr();
     }
 
     template<typename HashTableType, typename Key, typename Value, typename Extractor, typename HashFunctions, typename Traits, typename KeyTraits>
     void addIterator(const HashTableType* table, HashTableConstIterator<HashTableType, Key, Value, Extractor, HashFunctions, Traits, KeyTraits>* it)
     {
         it->m_table = table;
-        it->m_previous = nullptr;
+        it->m_previous = nullPtr();
 
         // Insert iterator at head of doubly-linked list of iterators.
         if (!table) {
-            it->m_next = nullptr;
+            it->m_next = nullPtr();
         } else {
             Locker locker { *table->m_mutex };
             ASSERT(table->m_iterators != it);
@@ -1515,9 +1515,9 @@ DECLARE_ALLOCATOR_WITH_HEAP_IDENTIFIER(HashTable);
             }
         }
 
-        it->m_table = nullptr;
-        it->m_next = nullptr;
-        it->m_previous = nullptr;
+        it->m_table = nullPtr();
+        it->m_next = nullPtr();
+        it->m_previous = nullPtr();
     }
 
 #endif // CHECK_HASHTABLE_ITERATORS

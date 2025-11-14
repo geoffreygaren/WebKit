@@ -61,7 +61,7 @@ private:
         : m_runLoop(runLoop)
     {
         if (mode)
-            lazyInitialize(m_mode, adoptCF(CFStringCreateCopy(nullptr, mode)));
+            lazyInitialize(m_mode, adoptCF(CFStringCreateCopy(nullPtr(), mode)));
     }
 
 #if PLATFORM(COCOA)
