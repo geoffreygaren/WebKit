@@ -52,7 +52,7 @@ public:
     bool addCurrentThread() { return m_threadGroup->addCurrentThread() == ThreadGroupAddResult::NewlyAdded; }
 
     WordLock& getLock() { return m_threadGroup->getLock(); }
-    const ListHashSet<Ref<Thread>>& threads(const AbstractLocker& locker) const { return m_threadGroup->threads(locker); }
+    ThreadGroupSnapshot snapshot(const AbstractLocker& locker) const { return m_threadGroup->snapshot(locker); }
 
 private:
     void gatherFromCurrentThread(ConservativeRoots&, JITStubRoutineSet&, CodeBlockSet&, CurrentThreadState&);

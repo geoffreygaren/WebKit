@@ -34,6 +34,28 @@ namespace WTF {
 
 enum class ThreadGroupAddResult { NewlyAdded, AlreadyAdded, NotAdded };
 
+class ThreadGroupSnapshot {
+public:
+    WTF_MAKE_NONCOPYABLE(ThreadGroupSnapshot);
+    ThreadGroupSnapshot(Vector<Ref<Thread>>&& threads, Vector<Locker<WordLock>>&& threadLockers)
+        : m_threads(WTFMove(threads))
+        , m_threadLockers(WTFMove(threadLockers))
+    {
+    }
+
+    ThreadGroupSnapshot(ThreadGroupSnapshot&& other)
+        : m_threads(WTFMove(other.m_threads))
+        , m_threadLockers(WTFMove(other.m_threadLockers))
+    {
+    }
+
+    Vector<Ref<Thread>>& threads() LIFETIME_BOUND { return m_threads; }
+
+private:
+    Vector<Ref<Thread>> m_threads;
+    Vector<Locker<WordLock>> m_threadLockers;
+};
+
 class ThreadGroup final : public std::enable_shared_from_this<ThreadGroup> {
     WTF_DEPRECATED_MAKE_FAST_ALLOCATED(ThreadGroup);
     WTF_MAKE_NONCOPYABLE(ThreadGroup);
@@ -49,7 +71,7 @@ public:
     WTF_EXPORT_PRIVATE ThreadGroupAddResult add(const AbstractLocker&, Thread&);
     WTF_EXPORT_PRIVATE ThreadGroupAddResult addCurrentThread();
 
-    const ListHashSet<Ref<Thread>>& threads(const AbstractLocker&) const { return m_threads; }
+    ThreadGroupSnapshot snapshot(const AbstractLocker&) const;
 
     WordLock& getLock() { return m_lock; }
 
@@ -72,3 +94,4 @@ private:
 
 using WTF::ThreadGroup;
 using WTF::ThreadGroupAddResult;
+using WTF::ThreadGroupSnapshot;

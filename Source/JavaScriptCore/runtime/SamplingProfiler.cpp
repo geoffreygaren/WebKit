@@ -206,7 +206,8 @@ protected:
     bool isValidFramePointer(void* callFrame)
     {
         uint8_t* fpCast = std::bit_cast<uint8_t*>(callFrame);
-        for (auto& thread : m_vm.heap.machineThreads().threads(m_machineThreadsLocker)) {
+        auto snapshot = m_vm.heap.machineThreads().snapshot(m_machineThreadsLocker);
+        for (auto& thread : snapshot.threads()) {
             uint8_t* stackBase = static_cast<uint8_t*>(thread->stack().origin());
             uint8_t* stackLimit = static_cast<uint8_t*>(thread->stack().end());
             RELEASE_ASSERT(stackBase);

@@ -477,7 +477,8 @@ void activateSignalHandlersFor(Signal signal)
         activeExceptions |= toMachMask(signal);
         // activeExceptions should be a subset of addedExceptions.
         ASSERT(!(activeExceptions & ~handlers.addedExceptions));
-        for (auto& thread : activeThreads().threads(locker))
+        auto snapshot = activeThreads().snapshot(locker);
+        for (auto& thread : snapshot.threads())
             setExceptionPorts(locker, thread.get());
         return;
     }

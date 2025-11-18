@@ -35,6 +35,23 @@ ThreadGroup::~ThreadGroup()
         thread->removeFromThreadGroup(locker, *this);
 }
 
+ThreadGroupSnapshot ThreadGroup::snapshot(const AbstractLocker&) const
+{
+    Vector<Ref<Thread>> threads;
+    Vector<Locker<WordLock>> threadLockers;
+
+    for (auto& thread : m_threads) {
+        Locker<WordLock> locker(thread->m_mutex);
+        if (thread->hasExited())
+            continue;
+
+        threads.append(thread);
+        threadLockers.append(WTFMove(locker));
+    }
+    return ThreadGroupSnapshot(WTFMove(threads), WTFMove(threadLockers));
+}
+
+// FIXME: Need a compaction strategy
 ThreadGroupAddResult ThreadGroup::add(const AbstractLocker& locker, Thread& thread)
 {
     return thread.addToThreadGroup(locker, *this);

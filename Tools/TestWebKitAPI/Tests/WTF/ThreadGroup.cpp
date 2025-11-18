@@ -68,24 +68,25 @@ static void testThreadGroup(Mode mode)
 
     {
         Locker threadGroupLocker { threadGroup->getLock() };
+        auto snapshot = threadGroup->snapshot(threadGroupLocker);
         EXPECT_EQ(threads.size(), numberOfThreads);
-        EXPECT_EQ(threadGroup->threads(threadGroupLocker).size(), numberOfThreads);
+        EXPECT_EQ(snapshot.threads().size(), numberOfThreads);
         {
             Locker locker { lock };
             restarting = true;
             restartCondition.notifyAll();
         }
 
-        // While holding ThreadGroup lock, threads do not exit.
+        // While holding a ThreadGroupSnapshot, threads do not exit.
         WTF::sleep(100_ms);
-        EXPECT_EQ(threadGroup->threads(threadGroupLocker).size(), numberOfThreads);
+        EXPECT_EQ(threadGroup->snapshot(threadGroupLocker).threads().size(), numberOfThreads);
     }
     {
         for (auto& thread : threads)
             thread->waitForCompletion();
 
         Locker threadGroupLocker { threadGroup->getLock() };
-        EXPECT_EQ(threadGroup->threads(threadGroupLocker).size(), 0u);
+        EXPECT_EQ(threadGroup->snapshot(threadGroupLocker).threads().size(), 0u);
     }
 }
 
@@ -107,7 +108,7 @@ TEST(WTF, ThreadGroupDoNotAddDeadThread)
     EXPECT_TRUE(threadGroup->add(thread.get()) == ThreadGroupAddResult::NotAdded);
 
     Locker threadGroupLocker { threadGroup->getLock() };
-    EXPECT_EQ(threadGroup->threads(threadGroupLocker).size(), 0u);
+    EXPECT_EQ(threadGroup->snapshot(threadGroupLocker).threads().size(), 0u);
 }
 
 TEST(WTF, ThreadGroupAddDuplicateThreads)
@@ -127,7 +128,7 @@ TEST(WTF, ThreadGroupAddDuplicateThreads)
 
     {
         Locker threadGroupLocker { threadGroup->getLock() };
-        EXPECT_EQ(threadGroup->threads(threadGroupLocker).size(), 1u);
+        EXPECT_EQ(threadGroup->snapshot(threadGroupLocker).threads().size(), 1u);
     }
 
     {
@@ -138,7 +139,7 @@ TEST(WTF, ThreadGroupAddDuplicateThreads)
     thread->waitForCompletion();
     {
         Locker threadGroupLocker { threadGroup->getLock() };
-        EXPECT_EQ(threadGroup->threads(threadGroupLocker).size(), 0u);
+        EXPECT_EQ(threadGroup->snapshot(threadGroupLocker).threads().size(), 0u);
     }
 }
 
