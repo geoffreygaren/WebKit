@@ -69,8 +69,7 @@ public:
 
     bool isValid() const;
 
-    id<MTLSamplerState> cachedSampler() const;
-    id<MTLSamplerState> samplerState() const;
+    id<MTLSamplerState> samplerState() const { return m_samplerState; }
     const WGPUSamplerDescriptor& descriptor() const { return m_descriptor; }
     bool isComparison() const { return descriptor().compare != WGPUCompareFunction_Undefined; }
     bool isFiltering() const { return descriptor().minFilter == WGPUFilterMode_Linear || descriptor().magFilter == WGPUFilterMode_Linear || descriptor().mipmapFilter == WGPUMipmapFilterMode_Linear; }
@@ -81,24 +80,13 @@ private:
     Sampler(UniqueSamplerIdentifier&&, const WGPUSamplerDescriptor&, Device&);
     Sampler(Device&);
 
+    id<MTLSamplerState> tryGetOrCreateSamplerState() const;
+
     std::optional<UniqueSamplerIdentifier> m_samplerIdentifier;
     WGPUSamplerDescriptor m_descriptor { };
 
     const Ref<Device> m_device;
-    // static is intentional here as the limit is per process
-    static Lock samplerStateLock;
-    using CachedSamplerStateContainer = HashMap<GenericHashKey<UniqueSamplerIdentifier>, WeakObjCPtr<id<MTLSamplerState>>>;
-    struct SamplerStateWithReferences {
-        RetainPtr<id<MTLSamplerState>> samplerState;
-        HashSet<uintptr_t> apiSamplerList;
-    };
-    using RetainedSamplerStateContainer = HashMap<GenericHashKey<UniqueSamplerIdentifier>, SamplerStateWithReferences>;
-    using CachedKeyContainer = ListHashSet<GenericHashKey<UniqueSamplerIdentifier>>;
-    static std::unique_ptr<CachedSamplerStateContainer> cachedSamplerStates WTF_GUARDED_BY_LOCK(samplerStateLock);
-    static std::unique_ptr<RetainedSamplerStateContainer> retainedSamplerStates WTF_GUARDED_BY_LOCK(samplerStateLock);
-    static std::unique_ptr<CachedKeyContainer> lastAccessedKeys;
-
-    mutable __weak id<MTLSamplerState> m_cachedSamplerState { nil };
+    mutable id<MTLSamplerState> m_samplerState { nil };
 };
 
 } // namespace WebGPU

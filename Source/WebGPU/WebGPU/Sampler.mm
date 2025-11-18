@@ -35,10 +35,10 @@
 
 namespace WebGPU {
 
-__attribute__((no_destroy)) std::unique_ptr<Sampler::CachedSamplerStateContainer> Sampler::cachedSamplerStates = nullptr;
-__attribute__((no_destroy)) std::unique_ptr<Sampler::RetainedSamplerStateContainer> Sampler::retainedSamplerStates = nullptr;
-__attribute__((no_destroy)) std::unique_ptr<Sampler::CachedKeyContainer> Sampler::lastAccessedKeys = nullptr;
-Lock Sampler::samplerStateLock;
+using CachedSamplerStates = HashMap<GenericHashKey<Sampler::UniqueSamplerIdentifier>, WeakObjCPtr<id<MTLSamplerState>>>;
+
+static Lock samplerStateLock;
+static __attribute__((no_destroy)) std::unique_ptr<CachedSamplerStates> cachedSamplerStates WTF_GUARDED_BY_LOCK(samplerStateLock);
 
 static bool validateCreateSampler(Device& device, const WGPUSamplerDescriptor& descriptor)
 {
@@ -224,8 +224,8 @@ Sampler::Sampler(UniqueSamplerIdentifier&& samplerIdentifier, const WGPUSamplerD
     : m_samplerIdentifier(samplerIdentifier)
     , m_descriptor(descriptor)
     , m_device(device)
+    , m_samplerState(tryGetOrCreateSamplerState())
 {
-    m_cachedSamplerState = samplerState();
 }
 
 Sampler::Sampler(Device& device)
@@ -235,15 +235,6 @@ Sampler::Sampler(Device& device)
 
 Sampler::~Sampler()
 {
-    if (!m_samplerIdentifier)
-        return;
-
-    Locker locker { samplerStateLock };
-    if (auto it = retainedSamplerStates->find(*m_samplerIdentifier); it != retainedSamplerStates->end()) {
-        it->value.apiSamplerList.remove(reinterpret_cast<uintptr_t>(this));
-        if (!it->value.apiSamplerList.size())
-            retainedSamplerStates->remove(it);
-    }
 }
 
 void Sampler::setLabel(String&& label)
@@ -256,67 +247,42 @@ bool Sampler::isValid() const
     return !!m_samplerIdentifier;
 }
 
-id<MTLSamplerState> Sampler::samplerState() const
+id<MTLSamplerState> Sampler::tryGetOrCreateSamplerState() const
 {
     if (!m_samplerIdentifier)
         return nil;
 
-    if (m_cachedSamplerState)
-        return m_cachedSamplerState;
-
-    Locker locker { samplerStateLock };
-    if (!cachedSamplerStates) {
-        cachedSamplerStates = WTF::makeUnique<CachedSamplerStateContainer>();
-        retainedSamplerStates = WTF::makeUnique<RetainedSamplerStateContainer>();
-        lastAccessedKeys = WTF::makeUnique<CachedKeyContainer>();
-    }
-
-    id<MTLSamplerState> samplerState = nil;
     auto samplerIdentifier = *m_samplerIdentifier;
-    if (auto it = retainedSamplerStates->find(samplerIdentifier); it != retainedSamplerStates->end()) {
-        samplerState = it->value.samplerState.get();
-        it->value.apiSamplerList.add(reinterpret_cast<uintptr_t>(this));
-        lastAccessedKeys->appendOrMoveToLast(samplerIdentifier);
-        if ((m_cachedSamplerState = samplerState))
-            return samplerState;
-    }
 
     id<MTLDevice> device = m_device->device();
     if (!device)
         return nil;
+
+    Locker locker { samplerStateLock };
+    if (!cachedSamplerStates)
+        cachedSamplerStates = WTF::makeUnique<CachedSamplerStates>();
+
+    if (auto weakSamplerState = cachedSamplerStates->get(samplerIdentifier)) {
+        if (auto samplerState = weakSamplerState.get())
+            return samplerState.get();
+    }
+
     auto maxArgumentBufferSamplerCount = std::min<NSUInteger>(2048, device.maxArgumentBufferSamplerCount);
     if (cachedSamplerStates->size() >= maxArgumentBufferSamplerCount / 2) {
         cachedSamplerStates->removeIf([&] (auto& pair) {
-            if (!pair.value.get().get()) {
-                lastAccessedKeys->remove(pair.key);
-                return true;
-            }
-            return false;
+            return !pair.value.get().get();
         });
     }
+
     if (cachedSamplerStates->size() >= maxArgumentBufferSamplerCount)
         return nil;
 
-    samplerState = [device newSamplerStateWithDescriptor:createMetalDescriptorFromDescriptor(m_descriptor)];
+    id<MTLSamplerState> samplerState = [device newSamplerStateWithDescriptor:createMetalDescriptorFromDescriptor(m_descriptor)];
     if (!samplerState)
         return nil;
 
     cachedSamplerStates->set(samplerIdentifier, samplerState);
-    auto addResult = retainedSamplerStates->add(samplerIdentifier, SamplerStateWithReferences {
-        .samplerState = samplerState,
-        .apiSamplerList = { }
-    });
-    addResult.iterator->value.apiSamplerList.add(reinterpret_cast<uintptr_t>(this));
-    lastAccessedKeys->appendOrMoveToLast(samplerIdentifier);
-
-    m_cachedSamplerState = samplerState;
-
     return samplerState;
-}
-
-id<MTLSamplerState> Sampler::cachedSampler() const
-{
-    return m_cachedSamplerState;
 }
 
 } // namespace WebGPU

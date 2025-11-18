@@ -1466,7 +1466,7 @@ bool BindGroup::rebindSamplersIfNeeded() const
     for (auto& [samplerRefPtr, shaderStageArray] : m_samplers) {
         auto sampler = samplerRefPtr;
         ASSERT(sampler);
-        if (!sampler || sampler->cachedSampler())
+        if (!sampler || sampler->samplerState())
             continue;
 
         WTFLogAlways("Rebinding of samplers required, if this occurs frequently the application is using too many unique samplers");
