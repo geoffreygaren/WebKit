@@ -3630,7 +3630,7 @@ template <class TreeBuilder> typename TreeBuilder::ImportSpecifier Parser<LexerT
 template <typename LexerType>
 template <class TreeBuilder> typename TreeBuilder::ImportAttributesList Parser<LexerType>::parseImportAttributes(TreeBuilder& context)
 {
-    UncheckedKeyHashSet<UniquedStringImpl*> keys;
+    SUPPRESS_UNCOUNTED_MEMBER UncheckedKeyHashSet<UniquedStringImpl*> keys;
     auto attributesList = context.createImportAttributesList();
     consumeOrFail(OPENBRACE, "Expected opening '{' at the start of import attribute");
     while (!match(CLOSEBRACE)) {

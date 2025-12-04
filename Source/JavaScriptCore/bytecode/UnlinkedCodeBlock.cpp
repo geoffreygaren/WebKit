@@ -284,7 +284,7 @@ bool UnlinkedCodeBlock::hasIdentifier(UniquedStringImpl* uid)
     if (numberOfIdentifiers() > 100) {
         if (numberOfIdentifiers() != m_cachedIdentifierUids.size()) {
             Locker locker(m_cachedIdentifierUidsLock);
-            UncheckedKeyHashSet<UniquedStringImpl*> cachedIdentifierUids;
+            SUPPRESS_UNCOUNTED_MEMBER UncheckedKeyHashSet<UniquedStringImpl*> cachedIdentifierUids;
             for (unsigned i = 0; i < numberOfIdentifiers(); ++i) {
                 const Identifier& identifier = this->identifier(i);
                 cachedIdentifierUids.add(identifier.impl());

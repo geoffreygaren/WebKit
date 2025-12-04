@@ -517,7 +517,7 @@ private:
 
 #if ASSERT_ENABLED
     Lock m_cachedIdentifierUidsLock;
-    UncheckedKeyHashSet<UniquedStringImpl*> m_cachedIdentifierUids;
+    SUPPRESS_UNCOUNTED_MEMBER UncheckedKeyHashSet<UniquedStringImpl*> m_cachedIdentifierUids;
 #endif
 
 protected:

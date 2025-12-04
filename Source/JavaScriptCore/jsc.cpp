@@ -605,7 +605,7 @@ private:
 
     private:
         Vector<AtomString> m_strings; // To keep the UniqueStringImpls alive.
-        UncheckedKeyHashSet<UniquedStringImpl*> m_names;
+        SUPPRESS_UNCOUNTED_MEMBER UncheckedKeyHashSet<UniquedStringImpl*> m_names;
     };
 
     void finishCreation(VM& vm, const Vector<String>& arguments)

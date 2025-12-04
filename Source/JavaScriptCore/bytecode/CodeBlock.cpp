@@ -2888,7 +2888,7 @@ bool CodeBlock::hasIdentifier(UniquedStringImpl* uid)
         if (m_cachedIdentifierUids.size() != numberOfIdentifiers) {
             Locker locker(m_cachedIdentifierUidsLock);
             createRareDataIfNecessary();
-            UncheckedKeyHashSet<UniquedStringImpl*> cachedIdentifierUids;
+            SUPPRESS_UNCOUNTED_MEMBER UncheckedKeyHashSet<UniquedStringImpl*> cachedIdentifierUids;
             cachedIdentifierUids.reserveInitialCapacity(numberOfIdentifiers);
             for (unsigned index = 0; index < unlinkedIdentifiers; ++index) {
                 const Identifier& identifier = unlinkedCode->identifier(index);

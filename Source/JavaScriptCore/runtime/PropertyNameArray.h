@@ -87,7 +87,7 @@ private:
     bool isUidMatchedToTypeMode(UniquedStringImpl* identifier);
 
     RefPtr<PropertyNameArray> m_data;
-    UncheckedKeyHashSet<UniquedStringImpl*> m_set;
+    SUPPRESS_UNCOUNTED_MEMBER UncheckedKeyHashSet<UniquedStringImpl*> m_set;
     VM& m_vm;
     PropertyNameMode m_propertyNameMode;
     PrivateSymbolMode m_privateSymbolMode;

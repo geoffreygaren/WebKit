@@ -3308,7 +3308,7 @@ Vector<Identifier> BytecodeGenerator::getParameterNames() const
 std::optional<PrivateNameEnvironment> BytecodeGenerator::getAvailablePrivateAccessNames()
 {
     PrivateNameEnvironment result;
-    UncheckedKeyHashSet<UniquedStringImpl*> excludedNames;
+    SUPPRESS_UNCOUNTED_MEMBER UncheckedKeyHashSet<UniquedStringImpl*> excludedNames;
     for (unsigned i = m_privateNamesStack.size(); i--; ) {
         auto& map = m_privateNamesStack[i];
         for (auto& entry : map)  {

@@ -1063,7 +1063,7 @@ void ProxyObject::performGetOwnPropertyNames(JSGlobalObject* globalObject, Prope
         return;
     }
 
-    UncheckedKeyHashSet<UniquedStringImpl*> uncheckedResultKeys;
+    SUPPRESS_UNCOUNTED_MEMBER UncheckedKeyHashSet<UniquedStringImpl*> uncheckedResultKeys;
     forEachInArrayLike(globalObject, asObject(trapResult), [&] (JSValue value) -> bool {
         if (!value.isString() && !value.isSymbol()) {
             throwTypeError(globalObject, scope, "Proxy handler's 'ownKeys' method must return an array-like object containing only Strings and Symbols"_s);
@@ -1092,8 +1092,8 @@ void ProxyObject::performGetOwnPropertyNames(JSGlobalObject* globalObject, Prope
     PropertyNameArrayBuilder targetKeys(vm, PropertyNameMode::StringsAndSymbols, PrivateSymbolMode::Exclude);
     target->methodTable()->getOwnPropertyNames(target, globalObject, targetKeys, DontEnumPropertiesMode::Include);
     RETURN_IF_EXCEPTION(scope, void());
-    UncheckedKeyHashSet<UniquedStringImpl*> targetNonConfigurableKeys;
-    UncheckedKeyHashSet<UniquedStringImpl*> targetConfigurableKeys;
+    SUPPRESS_UNCOUNTED_MEMBER UncheckedKeyHashSet<UniquedStringImpl*> targetNonConfigurableKeys;
+    SUPPRESS_UNCOUNTED_MEMBER UncheckedKeyHashSet<UniquedStringImpl*> targetConfigurableKeys;
     for (const Identifier& ident : targetKeys) {
         PropertyDescriptor descriptor;
         bool isPropertyDefined = target->getOwnPropertyDescriptor(globalObject, ident.impl(), descriptor); 
