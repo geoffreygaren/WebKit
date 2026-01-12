@@ -75,10 +75,10 @@ static RetainPtr<NSAttributedString> copyAttributedStringFromHTML(NSString *html
     [webView selectAll:nil];
     [webView _synchronouslyExecuteEditCommand:@"Copy" argument:nil];
 
-    NSData *rtfData = readRTFDataFromPasteboard();
+    RetainPtr rtfData = readRTFDataFromPasteboard();
     EXPECT_NOT_NULL(rtfData);
 
-    auto attributedString = adoptNS([[NSAttributedString alloc] initWithData:rtfData options:@{ } documentAttributes:nil error:nullptr]);
+    auto attributedString = adoptNS([[NSAttributedString alloc] initWithData:rtfData.get() options:@{ } documentAttributes:nil error:nullptr]);
     EXPECT_NOT_NULL(attributedString.get());
 
     return attributedString;

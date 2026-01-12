@@ -114,9 +114,9 @@ static id findAccessibleObjectById(id obj, NSString *idAttribute)
     NSArray *children = [obj accessibilityAttributeValue:NSAccessibilityChildrenAttribute];
     NSUInteger childrenCount = [children count];
     for (NSUInteger i = 0; i < childrenCount; ++i) {
-        id result = findAccessibleObjectById([children objectAtIndex:i], idAttribute);
+        RetainPtr<id> result = findAccessibleObjectById([children objectAtIndex:i], idAttribute);
         if (result)
-            return result;
+            return result.autorelease();
     }
     END_AX_OBJC_EXCEPTIONS
 
@@ -126,20 +126,20 @@ static id findAccessibleObjectById(id obj, NSString *idAttribute)
 void AccessibilityController::injectAccessibilityPreference(JSStringRef domain, JSStringRef key, JSStringRef value)
 {
     auto page = InjectedBundle::singleton().page()->page();
-    NSNumber *numberValue = @([[NSString stringWithJSStringRef:value] integerValue]);
-    NSData *encodedData = [NSKeyedArchiver archivedDataWithRootObject:numberValue requiringSecureCoding:YES error:nil];
+    RetainPtr numberValue = @([[NSString stringWithJSStringRef:value] integerValue]);
+    NSData *encodedData = [NSKeyedArchiver archivedDataWithRootObject:numberValue.get() requiringSecureCoding:YES error:nil];
     NSString *encodedString = [encodedData base64EncodedStringWithOptions:0];
     WKAccessibilityTestingInjectPreference(page, toWK(domain).get(), toWK(key).get(), toWK(encodedString).get());
 }
 
 RefPtr<AccessibilityUIElement> AccessibilityController::accessibleElementById(JSContextRef context, JSStringRef idAttribute)
 {
-    PlatformUIElement root = static_cast<PlatformUIElement>(_WKAccessibilityRootObjectForTesting(WKBundleFrameForJavaScriptContext(context)));
+    RetainPtr root = static_cast<PlatformUIElement>(_WKAccessibilityRootObjectForTesting(WKBundleFrameForJavaScriptContext(context)));
 
     NSString *attributeName = [NSString stringWithJSStringRef:idAttribute];
     RetainPtr<id> result;
     executeOnAXThreadAndWait([&root, &attributeName, &result] {
-        result = findAccessibleObjectById(root, attributeName);
+        result = findAccessibleObjectById(root.get(), attributeName);
     });
 
     if (result)
@@ -170,8 +170,8 @@ void AccessibilityController::overrideClient(JSStringRef clientType)
 
 void AccessibilityController::printTrees(JSContextRef context)
 {
-    PlatformUIElement root = static_cast<PlatformUIElement>(_WKAccessibilityRootObjectForTesting(WKBundleFrameForJavaScriptContext(context)));
-    [root accessibilityPerformAction:@"AXLogTrees"];
+    RetainPtr root = static_cast<PlatformUIElement>(_WKAccessibilityRootObjectForTesting(WKBundleFrameForJavaScriptContext(context)));
+    [root.get() accessibilityPerformAction:@"AXLogTrees"];
 }
 
 // AXThread implementation

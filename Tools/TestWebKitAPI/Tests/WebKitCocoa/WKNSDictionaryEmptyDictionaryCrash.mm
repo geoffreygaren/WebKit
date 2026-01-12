@@ -34,8 +34,8 @@ namespace TestWebKitAPI {
 
 TEST(WebKit, WKNSDictionaryEmptyDictionaryCrash)
 {
-    NSDictionary *dictionary = (NSDictionary *)WKMutableDictionaryCreate();
-    RELEASE_ASSERT([dictionary objectForKey:@"key"] == nil);
+    RetainPtr dictionary = (NSDictionary *)WKMutableDictionaryCreate();
+    RELEASE_ASSERT([dictionary.get() objectForKey:@"key"] == nil);
 }
 
 } // namespace TestWebKitAPI

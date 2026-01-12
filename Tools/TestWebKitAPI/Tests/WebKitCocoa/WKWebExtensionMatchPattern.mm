@@ -473,82 +473,82 @@ TEST(WKWebExtensionMatchPattern, PatternCacheAndEquality)
     // They should still be equal, just not via pointer equality.
     {
         NSError *error;
-        auto* a = toPatternAlloc(@"<all_urls>", &error);
-        auto* b = toPatternAlloc(@"<all_urls>");
+        RetainPtr a = toPatternAlloc(@"<all_urls>", &error);
+        RetainPtr b = toPatternAlloc(@"<all_urls>");
 
         EXPECT_NULL(error);
-        EXPECT_NE(a, b);
-        EXPECT_NS_EQUAL(a, b);
+        EXPECT_NE(a.get(), b.get());
+        EXPECT_NS_EQUAL(a.get(), b.get());
     }
 
     {
         NSError *error;
-        auto* a = toPatternAlloc(@"<all_urls>", &error);
-        auto* b = toPattern(@"<all_urls>");
+        RetainPtr a = toPatternAlloc(@"<all_urls>", &error);
+        RetainPtr b = toPattern(@"<all_urls>");
 
         EXPECT_NULL(error);
-        EXPECT_NE(a, b);
-        EXPECT_NS_EQUAL(a, b);
+        EXPECT_NE(a.get(), b.get());
+        EXPECT_NS_EQUAL(a.get(), b.get());
     }
 
     {
         NSError *error;
-        auto* a = toPatternAlloc(@"*://*/*", &error);
-        auto* b = toPatternAlloc(@"*://*/*");
+        RetainPtr a = toPatternAlloc(@"*://*/*", &error);
+        RetainPtr b = toPatternAlloc(@"*://*/*");
 
         EXPECT_NULL(error);
-        EXPECT_NE(a, b);
-        EXPECT_NS_EQUAL(a, b);
+        EXPECT_NE(a.get(), b.get());
+        EXPECT_NS_EQUAL(a.get(), b.get());
     }
 
     {
         NSError *error;
-        auto* a = toPatternAlloc(@"*://*/*", &error);
-        auto* b = toPattern(@"*://*/*");
+        RetainPtr a = toPatternAlloc(@"*://*/*", &error);
+        RetainPtr b = toPattern(@"*://*/*");
 
         EXPECT_NULL(error);
-        EXPECT_NE(a, b);
-        EXPECT_NS_EQUAL(a, b);
+        EXPECT_NE(a.get(), b.get());
+        EXPECT_NS_EQUAL(a.get(), b.get());
     }
 
     {
         NSError *error;
-        auto* a = toPatternAlloc(@"*://*/*", &error);
-        auto* b = toPattern(@"*", @"*", @"/*");
+        RetainPtr a = toPatternAlloc(@"*://*/*", &error);
+        RetainPtr b = toPattern(@"*", @"*", @"/*");
 
         EXPECT_NULL(error);
-        EXPECT_NE(a, b);
-        EXPECT_NS_EQUAL(a, b);
+        EXPECT_NE(a.get(), b.get());
+        EXPECT_NS_EQUAL(a.get(), b.get());
     }
 
     {
         NSError *error;
-        auto* a = toPatternAlloc(@"*://*/*", &error);
-        auto* b = toPatternAlloc(@"*", @"*", @"/*");
+        RetainPtr a = toPatternAlloc(@"*://*/*", &error);
+        RetainPtr b = toPatternAlloc(@"*", @"*", @"/*");
 
         EXPECT_NULL(error);
-        EXPECT_NE(a, b);
-        EXPECT_NS_EQUAL(a, b);
+        EXPECT_NE(a.get(), b.get());
+        EXPECT_NS_EQUAL(a.get(), b.get());
     }
 
     {
         NSError *error;
-        auto* a = toPatternAlloc(@"*", @"*", @"/*", &error);
-        auto* b = toPattern(@"*", @"*", @"/*");
+        RetainPtr a = toPatternAlloc(@"*", @"*", @"/*", &error);
+        RetainPtr b = toPattern(@"*", @"*", @"/*");
 
         EXPECT_NULL(error);
-        EXPECT_NE(a, b);
-        EXPECT_NS_EQUAL(a, b);
+        EXPECT_NE(a.get(), b.get());
+        EXPECT_NS_EQUAL(a.get(), b.get());
     }
 
     {
         NSError *error;
-        auto* a = toPatternAlloc(@"*", @"*", @"/*", &error);
-        auto* b = toPatternAlloc(@"*", @"*", @"/*");
+        RetainPtr a = toPatternAlloc(@"*", @"*", @"/*", &error);
+        RetainPtr b = toPatternAlloc(@"*", @"*", @"/*");
 
         EXPECT_NULL(error);
-        EXPECT_NE(a, b);
-        EXPECT_NS_EQUAL(a, b);
+        EXPECT_NE(a.get(), b.get());
+        EXPECT_NS_EQUAL(a.get(), b.get());
     }
 }
 

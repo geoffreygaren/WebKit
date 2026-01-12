@@ -201,9 +201,9 @@ static NSData *msoListMarkupWithoutProperHTMLElement()
 TEST(PasteWebArchive, StripsMSOListWhenMissingMSOHTMLElement)
 {
     auto *url = [NSURL URLWithString:@"file:///some-file.html"];
-    auto *markup = msoListMarkupWithoutProperHTMLElement();
+    RetainPtr markup = msoListMarkupWithoutProperHTMLElement();
 
-    auto mainResource = adoptNS([[WebResource alloc] initWithData:markup URL:url MIMEType:@"text/html" textEncodingName:@"utf-8" frameName:nil]);
+    auto mainResource = adoptNS([[WebResource alloc] initWithData:markup.get() URL:url MIMEType:@"text/html" textEncodingName:@"utf-8" frameName:nil]);
     auto archive = adoptNS([[WebArchive alloc] initWithMainResource:mainResource.get() subresources:nil subframeArchives:nil]);
 
     [[NSPasteboard generalPasteboard] declareTypes:@[WebArchivePboardType] owner:nil];

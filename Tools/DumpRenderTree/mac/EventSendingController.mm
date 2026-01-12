@@ -800,10 +800,10 @@ static NSInteger swizzledEventButtonNumber()
                                      eventNumber:++eventNumber 
                                       clickCount:(leftMouseButtonDown ? clickCount : 0) 
                                         pressure:0.0]);
-    CGEventRef cgEvent = [event CGEvent];
-    CGEventSetIntegerValueField(cgEvent, kCGMouseEventDeltaX, newMousePosition.x - lastMousePosition.x);
-    CGEventSetIntegerValueField(cgEvent, kCGMouseEventDeltaY, -1 * (newMousePosition.y - lastMousePosition.y));
-    event = retainPtr([NSEvent eventWithCGEvent:cgEvent]);
+    RetainPtr<CGEventRef> cgEvent = [event CGEvent];
+    CGEventSetIntegerValueField(cgEvent.get(), kCGMouseEventDeltaX, newMousePosition.x - lastMousePosition.x);
+    CGEventSetIntegerValueField(cgEvent.get(), kCGMouseEventDeltaY, -1 * (newMousePosition.y - lastMousePosition.y));
+    event = retainPtr([NSEvent eventWithCGEvent:cgEvent.get()]);
     lastMousePosition = newMousePosition;
 #else
     lastMousePosition = [view convertPoint:NSMakePoint(x, y) toView:nil];

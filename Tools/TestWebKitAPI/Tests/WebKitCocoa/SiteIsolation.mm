@@ -714,8 +714,8 @@ TEST(SiteIsolation, BasicPostMessageWindowOpen)
         completionHandler(WKNavigationResponsePolicyAllow);
     };
 
-    auto configuration = server.httpsProxyConfiguration();
-    enableSiteIsolation(configuration);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
 
     __block RetainPtr<NSString> alert;
     auto uiDelegate = adoptNS([TestUIDelegate new]);
@@ -731,7 +731,7 @@ TEST(SiteIsolation, BasicPostMessageWindowOpen)
         return openedWebView.get();
     };
 
-    openerWebView = adoptNS([[WKWebView alloc] initWithFrame:CGRectZero configuration:configuration]);
+    openerWebView = adoptNS([[WKWebView alloc] initWithFrame:CGRectZero configuration:configuration.get()]);
     openerWebView.get().navigationDelegate = openerNavigationDelegate.get();
     openerWebView.get().UIDelegate = uiDelegate.get();
     openerWebView.get().configuration.preferences.javaScriptCanOpenWindowsAutomatically = YES;
@@ -762,9 +762,9 @@ static std::pair<WebViewAndDelegates, WebViewAndDelegates> openerAndOpenedViews(
     __block WebViewAndDelegates opened;
     opener.navigationDelegate = adoptNS([TestNavigationDelegate new]);
     [opener.navigationDelegate allowAnyTLSCertificate];
-    auto configuration = server.httpsProxyConfiguration();
-    enableSiteIsolation(configuration);
-    opener.webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration]);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
+    opener.webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
     opener.webView.get().navigationDelegate = opener.navigationDelegate.get();
     opener.uiDelegate = adoptNS([TestUIDelegate new]);
     opener.uiDelegate.get().createWebViewWithConfiguration = ^(WKWebViewConfiguration *configuration, WKNavigationAction *action, WKWindowFeatures *windowFeatures) {
@@ -2067,9 +2067,9 @@ TEST(SiteIsolation, DragEvents)
 
     auto navigationDelegate = adoptNS([TestNavigationDelegate new]);
     [navigationDelegate allowAnyTLSCertificate];
-    auto configuration = server.httpsProxyConfiguration();
-    enableSiteIsolation(configuration);
-    auto simulator = adoptNS([[DragAndDropSimulator alloc] initWithWebViewFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration]);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
+    auto simulator = adoptNS([[DragAndDropSimulator alloc] initWithWebViewFrame:NSMakeRect(0, 0, 400, 400) configuration:configuration.get()]);
     RetainPtr webView = [simulator webView];
     webView.get().navigationDelegate = navigationDelegate.get();
 
@@ -2103,14 +2103,14 @@ TEST(SiteIsolation, DragEvents)
         EXPECT_TRUE(y >= 65 && y <= 75) << "Expected dragenter y coordinate around 71, got " << y;
     }
 
-    NSString *lastDragOverEvent = nil;
+    RetainPtr<NSString> lastDragOverEvent = nil;
     for (NSString *event in events) {
         if ([event hasPrefix:@"dragover:"])
             lastDragOverEvent = event;
     }
     EXPECT_NOT_NULL(lastDragOverEvent);
     if (lastDragOverEvent) {
-        NSString *dragoverCoords = [lastDragOverEvent substringFromIndex:[@"dragover:" length]];
+        NSString *dragoverCoords = [lastDragOverEvent.get() substringFromIndex:[@"dragover:" length]];
         NSArray *dragoverComponents = [dragoverCoords componentsSeparatedByString:@","];
         if (dragoverComponents.count == 2) {
             int x = [dragoverComponents[0] intValue];
@@ -2292,9 +2292,9 @@ TEST(SiteIsolation, AppKitText)
         { "/mainframe"_s, { "<iframe id='iframe' src='https://domain2.com/subframe'></iframe>"_s } },
         { "/subframe"_s, { "<html><body><input id='input' value='test'></input></body></html>"_s } }
     }, HTTPServer::Protocol::HttpsProxy);
-    auto configuration = server.httpsProxyConfiguration();
-    enableSiteIsolation(configuration);
-    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration]);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
+    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
     auto navigationDelegate = adoptNS([TestNavigationDelegate new]);
     [navigationDelegate allowAnyTLSCertificate];
     webView.get().navigationDelegate = navigationDelegate.get();
@@ -3938,12 +3938,12 @@ TEST(SiteIsolation, AdvancedPrivacyProtectionsHideScreenMetricsFromBindings)
     }, HTTPServer::Protocol::HttpsProxy);
     auto navigationDelegate = adoptNS([TestNavigationDelegate new]);
     [navigationDelegate allowAnyTLSCertificate];
-    auto configuration = server.httpsProxyConfiguration();
-    enableSiteIsolation(configuration);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
     auto preferences = adoptNS([WKWebpagePreferences new]);
     [preferences _setNetworkConnectionIntegrityPolicy:_WKWebsiteNetworkConnectionIntegrityPolicyEnhancedTelemetry | _WKWebsiteNetworkConnectionIntegrityPolicyEnabled];
-    [configuration setDefaultWebpagePreferences:preferences.get()];
-    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectZero configuration:configuration]);
+    [configuration.get() setDefaultWebpagePreferences:preferences.get()];
+    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectZero configuration:configuration.get()]);
     webView.get().navigationDelegate = navigationDelegate.get();
     [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/example"]]];
     [navigationDelegate waitForDidFinishNavigation];
@@ -6050,13 +6050,13 @@ TEST(SiteIsolation, SharedProcessLoadIsolatedSiteInSubframeOfNewWindow)
     auto [webView, navigationDelegate] = siteIsolatedViewWithSharedProcess(server);
     webView.get().configuration.preferences.javaScriptCanOpenWindowsAutomatically = YES;
 
-    __block auto *sharedNavigationDelegate = navigationDelegate.get();
+    __block RetainPtr sharedNavigationDelegate = navigationDelegate;
     __block RetainPtr<TestWKWebView> opendWebView;
     auto uiDelegate = adoptNS([[TestUIDelegate new] init]);
     webView.get().UIDelegate = uiDelegate.get();
     uiDelegate.get().createWebViewWithConfiguration = ^(WKWebViewConfiguration *configuration, WKNavigationAction *action, WKWindowFeatures *windowFeatures) {
         opendWebView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 400, 200) configuration:configuration]);
-        opendWebView.get().navigationDelegate = sharedNavigationDelegate;
+        opendWebView.get().navigationDelegate = sharedNavigationDelegate.get();
         return opendWebView.get();
     };
 
@@ -6543,11 +6543,11 @@ TEST(SiteIsolation, SharedProcessAfterUserInteractionInSharedProcesss)
 
     __block RetainPtr<TestWKWebView> opendWebView;
     auto uiDelegate = adoptNS([[TestUIDelegate new] init]);
-    auto *sharedNavigationDelegate = navigationDelegate.get();
+    RetainPtr sharedNavigationDelegate = navigationDelegate;
     webView.get().UIDelegate = uiDelegate.get();
     uiDelegate.get().createWebViewWithConfiguration = ^(WKWebViewConfiguration *configuration, WKNavigationAction *action, WKWindowFeatures *windowFeatures) {
         opendWebView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 400, 200) configuration:configuration]);
-        opendWebView.get().navigationDelegate = sharedNavigationDelegate;
+        opendWebView.get().navigationDelegate = sharedNavigationDelegate.get();
         return opendWebView.get();
     };
 
@@ -6942,9 +6942,9 @@ TEST(SiteIsolation, DragSourceEndedAtCoordinateTransformation)
 
     RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
     [navigationDelegate allowAnyTLSCertificate];
-    auto configuration = server.httpsProxyConfiguration();
-    enableSiteIsolation(configuration);
-    RetainPtr simulator = adoptNS([[DragAndDropSimulator alloc] initWithWebViewFrame:NSMakeRect(0, 0, 600, 600) configuration:configuration]);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
+    RetainPtr simulator = adoptNS([[DragAndDropSimulator alloc] initWithWebViewFrame:NSMakeRect(0, 0, 600, 600) configuration:configuration.get()]);
     RetainPtr webView = [simulator webView];
     webView.get().navigationDelegate = navigationDelegate.get();
 
@@ -7084,13 +7084,13 @@ TEST(SiteIsolation, LocalIframeOpensBlobURLFromFileMainFrame)
     { "/blob-popup-local-iframe.html"_s, { iframeHTML } },
     }, HTTPServer::Protocol::Http, nullptr, nullptr, 8001);
 
-    auto configuration = server.httpsProxyConfiguration();
-    enableSiteIsolation(configuration);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
 
     RetainPtr messageHandler = adoptNS([TestMessageHandler new]);
-    [[configuration userContentController] addScriptMessageHandler:messageHandler.get() name:@"testHandler"];
+    [[configuration.get() userContentController] addScriptMessageHandler:messageHandler.get() name:@"testHandler"];
 
-    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration]);
+    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
 
     __block RetainPtr<WKWebView> blobWindow;
     __block bool blobWindowOpened = false;

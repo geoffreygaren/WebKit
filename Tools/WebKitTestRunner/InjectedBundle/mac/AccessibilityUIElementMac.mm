@@ -285,8 +285,8 @@ static JSRetainPtr<JSStringRef> descriptionOfElements(const Vector<RefPtr<Access
 {
     NSMutableString *allElementString = [NSMutableString string];
     for (auto element : elements) {
-        NSString *attributes = [NSString stringWithJSStringRef:element->allAttributes().get()];
-        [allElementString appendFormat:@"%@\n------------\n", attributes];
+        RetainPtr attributes = [NSString stringWithJSStringRef:element->allAttributes().get()];
+        [allElementString appendFormat:@"%@\n------------\n", attributes.get()];
     }
 
     return [allElementString createJSStringRef];
@@ -593,9 +593,9 @@ void AccessibilityUIElement::elementAtPointResolvingRemoteFrame(JSContextRef con
 unsigned AccessibilityUIElement::indexOfChild(AccessibilityUIElement* element)
 {
     unsigned index;
-    id platformElement = element->platformUIElement();
+    RetainPtr platformElement = element->platformUIElement();
     s_controller->executeOnAXThreadAndWait([&platformElement, &index, this] {
-        index = [m_element accessibilityIndexOfChild:platformElement];
+        index = [m_element accessibilityIndexOfChild:platformElement.get()];
     });
     return index;
 }
@@ -1064,7 +1064,7 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::stringValue()
 {
     BEGIN_AX_OBJC_EXCEPTIONS
     RetainPtr<id> value;
-    auto role = attributeValue(NSAccessibilityRoleAttribute);
+    RetainPtr role = attributeValue(NSAccessibilityRoleAttribute);
     if ([role isEqualToString:@"AXDateTimeArea"])
         value = attributeValue(@"AXStringValue");
     else
@@ -1484,8 +1484,8 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::boundsForRange(unsigned locatio
         rect = [value rectValue];
 
     // don't return position information because it is platform dependent
-    NSMutableString* boundsDescription = makeBoundsDescription(rect, false /* exposePosition */);
-    return [boundsDescription createJSStringRef];
+    RetainPtr boundsDescription = makeBoundsDescription(rect, false /* exposePosition */);
+    return [boundsDescription.get() createJSStringRef];
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -1500,8 +1500,8 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::boundsForRangeWithPagePosition(
     if ([value isKindOfClass:[NSValue class]])
         rect = [value rectValue];
 
-    NSMutableString* boundsDescription = makeBoundsDescription(rect, true /* exposePosition */);
-    return [boundsDescription createJSStringRef];
+    RetainPtr boundsDescription = makeBoundsDescription(rect, true /* exposePosition */);
+    return [boundsDescription.get() createJSStringRef];
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -1559,8 +1559,8 @@ bool AccessibilityUIElement::attributedStringRangeIsMisspelled(unsigned location
 unsigned AccessibilityUIElement::uiElementCountForSearchPredicate(JSContextRef context, AccessibilityUIElement *startElement, bool isDirectionNext, JSValueRef searchKey, JSStringRef searchText, bool visibleOnly, bool immediateDescendantsOnly)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSDictionary *parameter = searchPredicateForSearchCriteria(context, startElement, nullptr, isDirectionNext, UINT_MAX, searchKey, searchText, visibleOnly, immediateDescendantsOnly);
-    auto value = attributeValueForParameter(@"AXUIElementsForSearchPredicate", parameter);
+    RetainPtr parameter = searchPredicateForSearchCriteria(context, startElement, nullptr, isDirectionNext, UINT_MAX, searchKey, searchText, visibleOnly, immediateDescendantsOnly);
+    auto value = attributeValueForParameter(@"AXUIElementsForSearchPredicate", parameter.get());
     if ([value isKindOfClass:[NSArray class]])
         return [value count];
     END_AX_OBJC_EXCEPTIONS
@@ -1571,8 +1571,8 @@ unsigned AccessibilityUIElement::uiElementCountForSearchPredicate(JSContextRef c
 RefPtr<AccessibilityUIElement> AccessibilityUIElement::uiElementForSearchPredicate(JSContextRef context, AccessibilityUIElement *startElement, bool isDirectionNext, JSValueRef searchKey, JSStringRef searchText, bool visibleOnly, bool immediateDescendantsOnly)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSDictionary *parameter = searchPredicateForSearchCriteria(context, startElement, nullptr, isDirectionNext, 1, searchKey, searchText, visibleOnly, immediateDescendantsOnly);
-    auto searchResults = attributeValueForParameter(@"AXUIElementsForSearchPredicate", parameter);
+    RetainPtr parameter = searchPredicateForSearchCriteria(context, startElement, nullptr, isDirectionNext, 1, searchKey, searchText, visibleOnly, immediateDescendantsOnly);
+    auto searchResults = attributeValueForParameter(@"AXUIElementsForSearchPredicate", parameter.get());
     if (![searchResults isKindOfClass:[NSArray class]] || ![searchResults count])
         return nullptr;
 
@@ -1590,8 +1590,8 @@ RefPtr<AccessibilityUIElement> AccessibilityUIElement::uiElementForSearchPredica
 JSRetainPtr<JSStringRef> AccessibilityUIElement::selectTextWithCriteria(JSContextRef context, JSStringRef ambiguityResolution, JSValueRef searchStrings, JSStringRef replacementString, JSStringRef activity)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSDictionary *parameterizedAttribute = selectTextParameterizedAttributeForCriteria(context, ambiguityResolution, searchStrings, replacementString, activity);
-    auto result = attributeValueForParameter(@"AXSelectTextWithCriteria", parameterizedAttribute);
+    RetainPtr parameterizedAttribute = selectTextParameterizedAttributeForCriteria(context, ambiguityResolution, searchStrings, replacementString, activity);
+    auto result = attributeValueForParameter(@"AXSelectTextWithCriteria", parameterizedAttribute.get());
     if ([result isKindOfClass:[NSString class]])
         return [result.get() createJSStringRef];
     END_AX_OBJC_EXCEPTIONS
@@ -1603,8 +1603,8 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::selectTextWithCriteria(JSContex
 JSValueRef AccessibilityUIElement::searchTextWithCriteria(JSContextRef context, JSValueRef searchStrings, JSStringRef startFrom, JSStringRef direction)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSDictionary *parameterizedAttribute = searchTextParameterizedAttributeForCriteria(context, searchStrings, startFrom, direction);
-    auto result = attributeValueForParameter(@"AXSearchTextWithCriteria", parameterizedAttribute);
+    RetainPtr parameterizedAttribute = searchTextParameterizedAttributeForCriteria(context, searchStrings, startFrom, direction);
+    auto result = attributeValueForParameter(@"AXSearchTextWithCriteria", parameterizedAttribute.get());
     if ([result isKindOfClass:[NSArray class]])
         return makeJSArray(context, makeVector<RefPtr<AccessibilityTextMarkerRange>>(result.get()));
     END_AX_OBJC_EXCEPTIONS
@@ -1615,8 +1615,8 @@ JSValueRef AccessibilityUIElement::searchTextWithCriteria(JSContextRef context, 
 JSValueRef AccessibilityUIElement::performTextOperation(JSContextRef context, JSStringRef operationType, JSValueRef markerRanges, JSValueRef replacementStrings, bool shouldSmartReplace)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSDictionary *parameterizedAttribute = textOperationParameterizedAttribute(context, operationType, markerRanges, replacementStrings, shouldSmartReplace);
-    auto result = attributeValueForParameter(@"AXTextOperation", parameterizedAttribute);
+    RetainPtr parameterizedAttribute = textOperationParameterizedAttribute(context, operationType, markerRanges, replacementStrings, shouldSmartReplace);
+    auto result = attributeValueForParameter(@"AXTextOperation", parameterizedAttribute.get());
     if ([result isKindOfClass:[NSArray class]])
         return makeValueRefForValue(context, result.get());
     END_AX_OBJC_EXCEPTIONS
@@ -1769,8 +1769,8 @@ RefPtr<AccessibilityUIElement> AccessibilityUIElement::horizontalScrollbar() con
         return nullptr;
 
     BEGIN_AX_OBJC_EXCEPTIONS
-    if (id scrollbar = attributeValue(NSAccessibilityHorizontalScrollBarAttribute).unsafeGet())
-        return AccessibilityUIElement::create(scrollbar);
+    if (RetainPtr scrollbar = attributeValue(NSAccessibilityHorizontalScrollBarAttribute).unsafeGet())
+        return AccessibilityUIElement::create(scrollbar.get());
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -1782,8 +1782,8 @@ RefPtr<AccessibilityUIElement> AccessibilityUIElement::verticalScrollbar() const
         return nullptr;
 
     BEGIN_AX_OBJC_EXCEPTIONS
-    if (id scrollbar = attributeValue(NSAccessibilityVerticalScrollBarAttribute).unsafeGet())
-        return AccessibilityUIElement::create(scrollbar);
+    if (RetainPtr scrollbar = attributeValue(NSAccessibilityVerticalScrollBarAttribute).unsafeGet())
+        return AccessibilityUIElement::create(scrollbar.get());
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -2104,8 +2104,8 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::popupValue() const
 RefPtr<AccessibilityUIElement> AccessibilityUIElement::focusableAncestor()
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    if (id ancestor = attributeValue(@"AXFocusableAncestor").unsafeGet())
-        return AccessibilityUIElement::create(ancestor);
+    if (RetainPtr ancestor = attributeValue(@"AXFocusableAncestor").unsafeGet())
+        return AccessibilityUIElement::create(ancestor.get());
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -2114,8 +2114,8 @@ RefPtr<AccessibilityUIElement> AccessibilityUIElement::focusableAncestor()
 RefPtr<AccessibilityUIElement> AccessibilityUIElement::editableAncestor()
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    if (id ancestor = attributeValue(@"AXEditableAncestor").unsafeGet())
-        return AccessibilityUIElement::create(ancestor);
+    if (RetainPtr ancestor = attributeValue(@"AXEditableAncestor").unsafeGet())
+        return AccessibilityUIElement::create(ancestor.get());
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -2124,8 +2124,8 @@ RefPtr<AccessibilityUIElement> AccessibilityUIElement::editableAncestor()
 RefPtr<AccessibilityUIElement> AccessibilityUIElement::highestEditableAncestor()
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    if (id ancestor = attributeValue(@"AXHighestEditableAncestor").unsafeGet())
-        return AccessibilityUIElement::create(ancestor);
+    if (RetainPtr ancestor = attributeValue(@"AXHighestEditableAncestor").unsafeGet())
+        return AccessibilityUIElement::create(ancestor.get());
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -2257,8 +2257,8 @@ RefPtr<AccessibilityTextMarkerRange> AccessibilityUIElement::styleTextMarkerRang
 RefPtr<AccessibilityTextMarkerRange> AccessibilityUIElement::textMarkerRangeForSearchPredicate(JSContextRef context, AccessibilityTextMarkerRange *startRange, bool forward, JSValueRef searchKey, JSStringRef searchText, bool visibleOnly, bool immediateDescendantsOnly)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSDictionary *parameter = searchPredicateForSearchCriteria(context, nullptr, startRange, forward, 1, searchKey, searchText, visibleOnly, immediateDescendantsOnly);
-    auto searchResults = attributeValueForParameter(@"AXRangesForSearchPredicate", parameter);
+    RetainPtr parameter = searchPredicateForSearchCriteria(context, nullptr, startRange, forward, 1, searchKey, searchText, visibleOnly, immediateDescendantsOnly);
+    auto searchResults = attributeValueForParameter(@"AXRangesForSearchPredicate", parameter.get());
     if (![searchResults isKindOfClass:[NSArray class]] || ![searchResults count])
         return nullptr;
 
@@ -2277,8 +2277,8 @@ RefPtr<AccessibilityTextMarkerRange> AccessibilityUIElement::textMarkerRangeForS
 RefPtr<AccessibilityTextMarkerRange> AccessibilityUIElement::misspellingTextMarkerRange(AccessibilityTextMarkerRange* start, bool forward)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSDictionary *parameters = misspellingSearchParameterizedAttributeForCriteria(start, forward);
-    auto textMarkerRange = attributeValueForParameter(@"AXMisspellingTextMarkerRange", parameters);
+    RetainPtr parameters = misspellingSearchParameterizedAttributeForCriteria(start, forward);
+    auto textMarkerRange = attributeValueForParameter(@"AXMisspellingTextMarkerRange", parameters.get());
     return AccessibilityTextMarkerRange::create(textMarkerRange.get());
     END_AX_OBJC_EXCEPTIONS
 
@@ -2565,7 +2565,7 @@ static void appendColorDescription(RetainPtr<NSMutableString> string, NSString* 
 static JSRetainPtr<JSStringRef> createJSStringRef(id string, bool includeDidSpellCheck)
 {
     auto mutableString = adoptNS([[NSMutableString alloc] init]);
-    id attributeEnumerationBlock = ^(NSDictionary<NSString *, id> *attributes, NSRange range, BOOL *stop) {
+    RetainPtr<id> attributeEnumerationBlock = ^(NSDictionary<NSString *, id> *attributes, NSRange range, BOOL *stop) {
         [mutableString appendFormat:@"Attributes in range %@:\n", NSStringFromRange(range)];
         BOOL misspelled = [[attributes objectForKey:NSAccessibilityMisspelledTextAttribute] boolValue];
         if (misspelled)
@@ -2615,7 +2615,7 @@ static JSRetainPtr<JSStringRef> createJSStringRef(id string, bool includeDidSpel
         if ([attributes objectForKey:NSAccessibilityTableAttribute])
             [mutableString appendFormat:@"%@: {present}\n", NSAccessibilityTableAttribute];
     };
-    [string enumerateAttributesInRange:NSMakeRange(0, [string length]) options:(NSAttributedStringEnumerationOptions)0 usingBlock:attributeEnumerationBlock];
+    [string enumerateAttributesInRange:NSMakeRange(0, [string length]) options:(NSAttributedStringEnumerationOptions)0 usingBlock:attributeEnumerationBlock.get()];
     [mutableString appendString:[string string]];
     return [mutableString createJSStringRef];
 }
@@ -2653,14 +2653,14 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::attributedStringForTextMarkerRa
     if (!markerRange || !markerRange->platformTextMarkerRange())
         return nullptr;
 
-    id parameter = nil;
+    RetainPtr<id> parameter = nil;
     if (includeSpellCheck)
         parameter = @{ @"AXSpellCheck": includeSpellCheck ? @YES : @NO, @"AXTextMarkerRange": markerRange->platformTextMarkerRange() };
     else
         parameter = markerRange->platformTextMarkerRange();
 
     BEGIN_AX_OBJC_EXCEPTIONS
-    auto string = attributeValueForParameter(@"AXAttributedStringForTextMarkerRangeWithOptions", parameter);
+    auto string = attributeValueForParameter(@"AXAttributedStringForTextMarkerRangeWithOptions", parameter.get());
     if ([string isKindOfClass:[NSAttributedString class]])
         return createJSStringRef(string.get(), /* IncludeDidSpellCheck */ false);
     END_AX_OBJC_EXCEPTIONS

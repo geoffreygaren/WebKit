@@ -282,19 +282,19 @@ TEST(WKWebExtensionController, BackgroundWithServiceWorkerPreferredEnvironment)
         }
     };
 
-    auto *serviceWorkerScript = Util::constructScript(@[
+    RetainPtr serviceWorkerScript = Util::constructScript(@[
         @"browser.test.assertTrue('ServiceWorkerGlobalScope' in self && self instanceof ServiceWorkerGlobalScope, 'Global scope should be ServiceWorkerGlobalScope');",
 
         @"browser.test.notifyPass()"
     ]);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.notifyFail('This background script should not be used')"
     ]);
 
     auto *resources = @{
-        @"service_worker.js": serviceWorkerScript,
-        @"background.js": backgroundScript,
+        @"service_worker.js": serviceWorkerScript.get(),
+        @"background.js": backgroundScript.get(),
         @"background.html": @"<script src='background.js'></script>",
     };
 
@@ -318,24 +318,24 @@ TEST(WKWebExtensionController, BackgroundWithPageDocumentPreferredEnvironment)
         }
     };
 
-    auto *serviceWorkerScript = Util::constructScript(@[
+    RetainPtr serviceWorkerScript = Util::constructScript(@[
         @"browser.test.notifyFail('Service worker should not be used')"
     ]);
 
-    auto *notUsedbackgroundScript = Util::constructScript(@[
+    RetainPtr notUsedbackgroundScript = Util::constructScript(@[
         @"browser.test.notifyFail('This background script should not be used')"
     ]);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertTrue('Window' in self && self instanceof Window, 'Global scope should be Window')",
 
         @"browser.test.notifyPass()"
     ]);
 
     auto *resources = @{
-        @"service_worker.js": serviceWorkerScript,
-        @"other-background.js": notUsedbackgroundScript,
-        @"background.js": backgroundScript,
+        @"service_worker.js": serviceWorkerScript.get(),
+        @"other-background.js": notUsedbackgroundScript.get(),
+        @"background.js": backgroundScript.get(),
         @"background.html": @"<script src='background.js'></script>",
     };
 
@@ -357,19 +357,19 @@ TEST(WKWebExtensionController, BackgroundWithScriptsDocumentPreferredEnvironment
         }
     };
 
-    auto *serviceWorkerScript = Util::constructScript(@[
+    RetainPtr serviceWorkerScript = Util::constructScript(@[
         @"browser.test.notifyFail('Service worker should not be used')"
     ]);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertTrue('Window' in self && self instanceof Window, 'Global scope should be Window')",
 
         @"browser.test.notifyPass()"
     ]);
 
     auto *resources = @{
-        @"service_worker.js": serviceWorkerScript,
-        @"background.js": backgroundScript,
+        @"service_worker.js": serviceWorkerScript.get(),
+        @"background.js": backgroundScript.get(),
     };
 
     Util::loadAndRunExtension(manifest, resources);
@@ -391,11 +391,11 @@ TEST(WKWebExtensionController, BackgroundWithMultipleDocumentModuleScripts)
         }
     };
 
-    auto *module1 = Util::constructScript(@[
+    RetainPtr module1 = Util::constructScript(@[
         @"self.testValue = 'Test value set in Module 1';"
     ]);
 
-    auto *module2 = Util::constructScript(@[
+    RetainPtr module2 = Util::constructScript(@[
         @"import { valueFromModule3 } from './module3.js'",
 
         @"browser.test.assertEq(self.testValue, 'Test value set in Module 1', 'Module 1 value should be accessible')",
@@ -404,14 +404,14 @@ TEST(WKWebExtensionController, BackgroundWithMultipleDocumentModuleScripts)
         @"browser.test.notifyPass();"
     ]);
 
-    auto *module3 = Util::constructScript(@[
+    RetainPtr module3 = Util::constructScript(@[
         @"export const valueFromModule3 = 'Value from Module 3';"
     ]);
 
     auto *resources = @{
-        @"module1.js": module1,
-        @"module2.js": module2,
-        @"module3.js": module3,
+        @"module1.js": module1.get(),
+        @"module2.js": module2.get(),
+        @"module3.js": module3.get(),
     };
 
     Util::loadAndRunExtension(manifest, resources);
@@ -432,19 +432,19 @@ TEST(WKWebExtensionController, BackgroundWithMultipleServiceWorkerScripts)
         }
     };
 
-    auto *script1 = Util::constructScript(@[
+    RetainPtr script1 = Util::constructScript(@[
         @"self.testValue = 'Test value set in Script 1'"
     ]);
 
-    auto *script2 = Util::constructScript(@[
+    RetainPtr script2 = Util::constructScript(@[
         @"browser.test.assertEq(self.testValue, 'Test value set in Script 1')",
 
         @"browser.test.notifyPass()"
     ]);
 
     auto *resources = @{
-        @"script1.js": script1,
-        @"script2.js": script2,
+        @"script1.js": script1.get(),
+        @"script2.js": script2.get(),
     };
 
     Util::loadAndRunExtension(manifest, resources);
@@ -466,11 +466,11 @@ TEST(WKWebExtensionController, BackgroundWithMultipleServiceWorkerModuleScripts)
         }
     };
 
-    auto *module1 = Util::constructScript(@[
+    RetainPtr module1 = Util::constructScript(@[
         @"self.testValue = 'Test value set in Module 1'"
     ]);
 
-    auto *module2 = Util::constructScript(@[
+    RetainPtr module2 = Util::constructScript(@[
         @"import { valueFromModule3 } from './module3.js'",
 
         @"browser.test.assertEq(self.testValue, 'Test value set in Module 1')",
@@ -479,14 +479,14 @@ TEST(WKWebExtensionController, BackgroundWithMultipleServiceWorkerModuleScripts)
         @"browser.test.notifyPass()"
     ]);
 
-    auto *module3 = Util::constructScript(@[
+    RetainPtr module3 = Util::constructScript(@[
         @"export const valueFromModule3 = 'Value from Module 3'"
     ]);
 
     auto *resources = @{
-        @"module1.js": module1,
-        @"module2.js": module2,
-        @"module3.js": module3,
+        @"module1.js": module1.get(),
+        @"module2.js": module2.get(),
+        @"module3.js": module3.get(),
     };
 
     Util::loadAndRunExtension(manifest, resources);
@@ -500,7 +500,7 @@ TEST(WKWebExtensionController, ContentScriptLoading)
 
     auto *manifest = @{ @"manifest_version": @3, @"content_scripts": @[ @{ @"js": @[ @"content.js" ], @"matches": @[ @"*://localhost/*" ] } ] };
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         // Exposed to content scripts
         @"browser.test.assertEq(typeof browser.runtime.id, 'string')",
         @"browser.test.assertEq(typeof browser.runtime.getManifest(), 'object')",
@@ -514,7 +514,7 @@ TEST(WKWebExtensionController, ContentScriptLoading)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"content.js": contentScript });
+    auto manager = Util::loadExtension(manifest, @{ @"content.js": contentScript.get() });
 
     WKWebExtensionMatchPattern *matchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://localhost/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
@@ -560,7 +560,7 @@ TEST(WKWebExtensionController, CSSUserOrigin)
 
     auto *styleSheet = @"body { color: green !important }";
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"let computedColor = window.getComputedStyle(document.body).color",
         @"browser.test.assertEq(computedColor, 'rgb(0, 128, 0)', 'Color should be green')",
 
@@ -569,15 +569,15 @@ TEST(WKWebExtensionController, CSSUserOrigin)
 
     auto resources = @{
         @"style.css": styleSheet,
-        @"content.js": contentScript
+        @"content.js": contentScript.get()
     };
 
     auto manager = Util::loadExtension(manifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -605,7 +605,7 @@ TEST(WKWebExtensionController, CSSAuthorOrigin)
 
     auto *styleSheet = @"body { color: green !important }";
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"let computedColor = getComputedStyle(document.body).color",
         @"browser.test.assertEq(computedColor, 'rgb(0, 128, 0)', 'Color should be green')",
 
@@ -614,15 +614,15 @@ TEST(WKWebExtensionController, CSSAuthorOrigin)
 
     auto resources = @{
         @"style.css": styleSheet,
-        @"content.js": contentScript
+        @"content.js": contentScript.get()
     };
 
     auto manager = Util::loadExtension(manifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -633,11 +633,11 @@ TEST(WKWebExtensionController, ContentSecurityPolicyV2BlockingImageLoad)
         { "/image.svg"_s, { { { "Content-Type"_s, "image/svg+xml"_s } }, "<svg xmlns='http://www.w3.org/2000/svg'></svg>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"var img = document.createElement('img')",
-        [NSString stringWithFormat:@"img.src = '%@image.svg'", urlRequest.URL.absoluteString],
+        [NSString stringWithFormat:@"img.src = '%@image.svg'", urlRequest.get().URL.absoluteString],
 
         @"img.onerror = () => {",
         @"  browser.test.notifyPass()",
@@ -666,7 +666,7 @@ TEST(WKWebExtensionController, ContentSecurityPolicyV2BlockingImageLoad)
     };
 
     Util::loadAndRunExtension(manifest, @{
-        @"background.js": backgroundScript
+        @"background.js": backgroundScript.get()
     });
 }
 
@@ -676,11 +676,11 @@ TEST(WKWebExtensionController, ContentSecurityPolicyV3BlockingImageLoad)
         { "/image.svg"_s, { { { "Content-Type"_s, "image/svg+xml"_s } }, "<svg xmlns='http://www.w3.org/2000/svg'></svg>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"var img = document.createElement('img')",
-        [NSString stringWithFormat:@"img.src = '%@image.svg'", urlRequest.URL.absoluteString],
+        [NSString stringWithFormat:@"img.src = '%@image.svg'", urlRequest.get().URL.absoluteString],
 
         @"img.onerror = () => {",
         @"  browser.test.notifyPass()",
@@ -711,7 +711,7 @@ TEST(WKWebExtensionController, ContentSecurityPolicyV3BlockingImageLoad)
     };
 
     Util::loadAndRunExtension(manifest, @{
-        @"background.js": backgroundScript
+        @"background.js": backgroundScript.get()
     });
 }
 
@@ -721,7 +721,7 @@ TEST(WKWebExtensionController, WebAccessibleResources)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"var imgGood = document.createElement('img')",
         @"imgGood.src = browser.runtime.getURL('good.svg')",
 
@@ -773,16 +773,16 @@ TEST(WKWebExtensionController, WebAccessibleResources)
     };
 
     auto *resources = @{
-        @"content.js": contentScript,
+        @"content.js": contentScript.get(),
         @"good.svg": @"<svg xmlns='http://www.w3.org/2000/svg'></svg>",
         @"bad.svg": @"<svg xmlns='http://www.w3.org/2000/svg'></svg>"
     };
 
     auto manager = Util::loadExtension(manifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -793,7 +793,7 @@ TEST(WKWebExtensionController, WebAccessibleResourcesWithLeadingSlash)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"var img = document.createElement('img')",
         @"img.src = browser.runtime.getURL('img.svg')",
 
@@ -826,15 +826,15 @@ TEST(WKWebExtensionController, WebAccessibleResourcesWithLeadingSlash)
     };
 
     auto *resources = @{
-        @"content.js": contentScript,
+        @"content.js": contentScript.get(),
         @"img.svg": @"<svg xmlns='http://www.w3.org/2000/svg'></svg>"
     };
 
     auto manager = Util::loadExtension(manifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -869,15 +869,15 @@ TEST(WKWebExtensionController, WebAccessibleResourceInSubframeFromAboutBlank)
         } ],
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Load Tab')",
     ]);
 
-    auto *iframeScript = Util::constructScript(@[
+    RetainPtr iframeScript = Util::constructScript(@[
         @"browser.test.notifyPass()",
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"(function() {",
         @"  const iframe = document.createElement('iframe')",
         @"  document.documentElement.appendChild(iframe)",
@@ -886,20 +886,20 @@ TEST(WKWebExtensionController, WebAccessibleResourceInSubframeFromAboutBlank)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript,
-        @"extension-frame.js": iframeScript,
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get(),
+        @"extension-frame.js": iframeScript.get(),
         @"extension-frame.html": @"<script type='module' src='extension-frame.js'></script>",
     };
 
     auto manager = Util::loadExtension(extensionManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -910,7 +910,7 @@ TEST(WKWebExtensionController, WebAccessibleResourcesV2)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"var imgGood = document.createElement('img')",
         @"imgGood.src = browser.runtime.getURL('good.svg')",
 
@@ -959,16 +959,16 @@ TEST(WKWebExtensionController, WebAccessibleResourcesV2)
     };
 
     auto *resources = @{
-        @"content.js": contentScript,
+        @"content.js": contentScript.get(),
         @"good.svg": @"<svg xmlns='http://www.w3.org/2000/svg'></svg>",
         @"bad.svg": @"<svg xmlns='http://www.w3.org/2000/svg'></svg>"
     };
 
     auto manager = Util::loadExtension(manifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }

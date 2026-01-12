@@ -55,7 +55,7 @@ static auto *changeBackgroundFontScript = @"document.body.style.fontSize = '555p
 
 TEST(WKWebExtensionAPIScripting, ErrorsExecuteScript)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.scripting.executeScript(), /a required argument is missing/i)",
         @"browser.test.assertThrows(() => browser.scripting.executeScript({}), /missing required keys: 'target'./i)",
         @"browser.test.assertThrows(() => browser.scripting.executeScript({'target' : { }}), /missing required keys: 'tabId'./i)",
@@ -83,12 +83,12 @@ TEST(WKWebExtensionAPIScripting, ErrorsExecuteScript)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(scriptingManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(scriptingManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIScripting, ErrorsCSS)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.scripting.insertCSS(), /a required argument is missing./i)",
         @"browser.test.assertThrows(() => browser.scripting.insertCSS({}), /missing required keys: 'target'./i)",
         @"browser.test.assertThrows(() => browser.scripting.insertCSS({ target: {} }), /missing required keys: 'tabId'./i)",
@@ -107,12 +107,12 @@ TEST(WKWebExtensionAPIScripting, ErrorsCSS)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(scriptingManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(scriptingManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIScripting, ErrorsRegisteredContentScript)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.scripting.registerContentScripts(), /a required argument is missing/i)",
         @"browser.test.assertThrows(() => browser.scripting.registerContentScripts({}), /an array is expected/i)",
         @"browser.test.assertThrows(() => browser.scripting.registerContentScripts([{}]), /it is missing required keys: 'id'/i)",
@@ -146,7 +146,7 @@ TEST(WKWebExtensionAPIScripting, ErrorsRegisteredContentScript)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(scriptingManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(scriptingManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIScripting, ExecuteScript)
@@ -155,7 +155,7 @@ TEST(WKWebExtensionAPIScripting, ExecuteScript)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webNavigation.onCompleted.addListener(async (details) => {",
         @"  const tabId = details.tabId",
 
@@ -209,12 +209,12 @@ TEST(WKWebExtensionAPIScripting, ExecuteScript)
 
     static auto *backgroundColor = @"document.body.style.background = 'pink'";
 
-    static auto *resources = @{ @"background.js": backgroundScript, @"backgroundColor.js": backgroundColor };
+    static auto *resources = @{ @"background.js": backgroundScript.get(), @"backgroundColor.js": backgroundColor };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    auto *url = urlRequest.URL;
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    auto *url = urlRequest.get().URL;
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithScheme:url.scheme host:url.host path:@"/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebNavigation];
@@ -222,7 +222,7 @@ TEST(WKWebExtensionAPIScripting, ExecuteScript)
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -233,7 +233,7 @@ TEST(WKWebExtensionAPIScripting, ExecuteScriptJSONTypes)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webNavigation.onCompleted.addListener(async (details) => {",
         @"  const tabId = details.tabId",
 
@@ -256,15 +256,15 @@ TEST(WKWebExtensionAPIScripting, ExecuteScriptJSONTypes)
         @"browser.test.sendMessage('Load Tab')",
     ]);
 
-    auto manager = Util::loadExtension(scriptingManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(scriptingManifest, @{ @"background.js": backgroundScript.get() });
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebNavigation];
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -276,7 +276,7 @@ TEST(WKWebExtensionAPIScripting, ExecuteScriptWithFrameIds)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, " "_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message, 'Hello from frame')",
 
@@ -322,7 +322,7 @@ TEST(WKWebExtensionAPIScripting, ExecuteScriptWithFrameIds)
     };
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"content.js": contentScript,
     };
 
@@ -344,7 +344,7 @@ TEST(WKWebExtensionAPIScripting, ExecuteScriptWithDocumentIds)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<span>Frame Document</span>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message, 'Hello from frame')",
 
@@ -394,7 +394,7 @@ TEST(WKWebExtensionAPIScripting, ExecuteScriptWithDocumentIds)
     };
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"content.js": contentScript,
     };
 
@@ -416,7 +416,7 @@ TEST(WKWebExtensionAPIScripting, InsertAndRemoveCSS)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='background-color: blue'></body>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const pinkValue = 'rgb(255, 192, 203)'",
         @"const blueValue = 'rgb(0, 0, 255)'",
         @"const transparentValue = 'rgba(0, 0, 0, 0)'",
@@ -490,22 +490,22 @@ TEST(WKWebExtensionAPIScripting, InsertAndRemoveCSS)
     static auto *fontSize = @"body { font-size: 104px }";
 
     static auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"backgroundColor.css": backgroundColor,
         @"fontSize.css": fontSize,
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    auto *url = urlRequest.URL;
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    auto *url = urlRequest.get().URL;
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithScheme:url.scheme host:url.host path:@"/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -517,7 +517,7 @@ TEST(WKWebExtensionAPIScripting, InsertAndRemoveCSSWithFrameIds)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='background-color: blue'></body>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const pinkValue = 'rgb(255, 192, 203)'",
         @"const blueValue = 'rgb(0, 0, 255)'",
         @"const transparentValue = 'rgba(0, 0, 0, 0)'",
@@ -563,22 +563,22 @@ TEST(WKWebExtensionAPIScripting, InsertAndRemoveCSSWithFrameIds)
     static auto *fontSize = @"body { font-size: 104px }";
 
     static auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"backgroundColor.css": backgroundColor,
         @"fontSize.css": fontSize,
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    auto *url = urlRequest.URL;
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    auto *url = urlRequest.get().URL;
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithScheme:url.scheme host:url.host path:@"/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -589,7 +589,7 @@ TEST(WKWebExtensionAPIScripting, CSSUserOrigin)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='color: red'></body>"_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {",
         @"  if (tab.status === 'complete') {",
         @"    await browser.test.assertSafeResolve(() => browser.scripting.insertCSS({ target: { tabId }, css: 'body { color: green !important }', origin: 'user' }))",
@@ -605,18 +605,18 @@ TEST(WKWebExtensionAPIScripting, CSSUserOrigin)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -627,7 +627,7 @@ TEST(WKWebExtensionAPIScripting, CSSAuthorOrigin)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<style> body { color: red } </style>"_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {",
         @"  if (tab.status === 'complete') {",
         @"    await browser.test.assertSafeResolve(() => browser.scripting.insertCSS({ target: { tabId }, css: 'body { color: green !important }', origin: 'author' }))",
@@ -643,18 +643,18 @@ TEST(WKWebExtensionAPIScripting, CSSAuthorOrigin)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -665,7 +665,7 @@ TEST(WKWebExtensionAPIScripting, World)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<script> const world = 'MAIN'; </script>"_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"function testWorld() {",
         @"  if (world)",
         @"    browser.test.notifyPass()",
@@ -688,18 +688,18 @@ TEST(WKWebExtensionAPIScripting, World)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -710,7 +710,7 @@ TEST(WKWebExtensionAPIScripting, RegisterContentScripts)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"function getBackgroundColor() { return window.getComputedStyle(document.body).getPropertyValue('background-color') }",
 
         @"function getFontSize() { return window.getComputedStyle(document.body).getPropertyValue('font-size') }",
@@ -754,15 +754,15 @@ TEST(WKWebExtensionAPIScripting, RegisterContentScripts)
     ]);
 
     static auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"changeBackgroundColorScript.js": changeBackgroundColorScript,
         @"changeBackgroundFontScript.js": changeBackgroundFontScript,
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    auto *url = urlRequest.URL;
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    auto *url = urlRequest.get().URL;
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithScheme:url.scheme host:url.host path:@"/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebNavigation];
@@ -770,7 +770,7 @@ TEST(WKWebExtensionAPIScripting, RegisterContentScripts)
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -781,7 +781,7 @@ TEST(WKWebExtensionAPIScripting, RegisterContentScriptsWithCSSUserOrigin)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='color: red'></body>"_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webNavigation.onCompleted.addListener(async (details) => {",
         @"  const tabId = details.tabId",
 
@@ -810,19 +810,19 @@ TEST(WKWebExtensionAPIScripting, RegisterContentScriptsWithCSSUserOrigin)
     auto *css = @"body { color: green !important }";
 
     auto resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"changeColor.css": css
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -833,7 +833,7 @@ TEST(WKWebExtensionAPIScripting, RegisterContentScriptsWithCSSAuthorOrigin)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<style> body { color: red } </style>"_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webNavigation.onCompleted.addListener(async (details) => {",
         @"  const tabId = details.tabId",
 
@@ -862,19 +862,19 @@ TEST(WKWebExtensionAPIScripting, RegisterContentScriptsWithCSSAuthorOrigin)
     auto *css = @"body { color: green !important }";
 
     auto resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"changeColor.css": css
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -885,7 +885,7 @@ TEST(WKWebExtensionAPIScripting, RegisterContentScriptsMatchOriginAsFallback)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<iframe src='about:blank'></iframe>"_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.scripting.registerContentScripts([{",
         @"    id: 'applyStylesAndScript',",
         @"    matches: ['*://localhost/*'],",
@@ -900,7 +900,7 @@ TEST(WKWebExtensionAPIScripting, RegisterContentScriptsMatchOriginAsFallback)
 
     auto *contentStyle = @"body { background-color: green !important }";
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.test.assertEq(document.body.dataset.injected, undefined, 'Script should not have run before')",
         @"document.body.dataset.injected = 'true'",
 
@@ -911,19 +911,19 @@ TEST(WKWebExtensionAPIScripting, RegisterContentScriptsMatchOriginAsFallback)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript,
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get(),
         @"applyStyles.css": contentStyle
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Scripts Registered"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager runUntilTestMessage:@"Main Frame Injected"];
     [manager runUntilTestMessage:@"Sub-Frame Injected"];
@@ -936,7 +936,7 @@ TEST(WKWebExtensionAPIScripting, UpdateContentScripts)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='background-color: blue'></body>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"function getBackgroundColor() { return window.getComputedStyle(document.body).getPropertyValue('background-color') }",
 
         @"function getFontSize() { return window.getComputedStyle(document.body).getPropertyValue('font-size') }",
@@ -991,15 +991,15 @@ TEST(WKWebExtensionAPIScripting, UpdateContentScripts)
     ]);
 
     static auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"changeBackgroundColorScript.js": changeBackgroundColorScript,
         @"changeBackgroundFontScript.js": changeBackgroundFontScript,
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    auto *url = urlRequest.URL;
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    auto *url = urlRequest.get().URL;
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithScheme:url.scheme host:url.host path:@"/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebNavigation];
@@ -1007,14 +1007,14 @@ TEST(WKWebExtensionAPIScripting, UpdateContentScripts)
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIScripting, UpdateContentScriptsWithMinimalParametersShouldNotCrash)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.scripting.registerContentScripts([{ id: '1', matches: ['*://localhost/*'], js: ['script.js'] }])",
         @"await browser.scripting.updateContentScripts([{ id: '1', allFrames: true }])",
 
@@ -1025,7 +1025,7 @@ TEST(WKWebExtensionAPIScripting, UpdateContentScriptsWithMinimalParametersShould
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"script.js": @"document.body.style.backgroundColor = 'red'",
     };
 
@@ -1038,7 +1038,7 @@ TEST(WKWebExtensionAPIScripting, GetContentScripts)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webNavigation.onCompleted.addListener(async () => {",
 
         @"  var expectedResults = [{",
@@ -1077,15 +1077,15 @@ TEST(WKWebExtensionAPIScripting, GetContentScripts)
     ]);
 
     static auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"changeBackgroundColorScript.js": changeBackgroundColorScript,
         @"changeBackgroundFontScript.js": changeBackgroundFontScript,
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    auto *url = urlRequest.URL;
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    auto *url = urlRequest.get().URL;
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithScheme:url.scheme host:url.host path:@"/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebNavigation];
@@ -1093,7 +1093,7 @@ TEST(WKWebExtensionAPIScripting, GetContentScripts)
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1104,7 +1104,7 @@ TEST(WKWebExtensionAPIScripting, UnregisterContentScripts)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"function getBackgroundColor() { return window.getComputedStyle(document.body).getPropertyValue('background-color') }",
 
         @"  const pinkValue = 'rgb(255, 192, 203)'",
@@ -1149,15 +1149,15 @@ TEST(WKWebExtensionAPIScripting, UnregisterContentScripts)
     ]);
 
     static auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"changeBackgroundColorScript.js": changeBackgroundColorScript,
         @"changeBackgroundFontScript.js": changeBackgroundFontScript,
     };
 
     auto manager = Util::loadExtension(scriptingManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    auto *url = urlRequest.URL;
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    auto *url = urlRequest.get().URL;
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithScheme:url.scheme host:url.host path:@"/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebNavigation];
@@ -1165,7 +1165,7 @@ TEST(WKWebExtensionAPIScripting, UnregisterContentScripts)
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1176,7 +1176,7 @@ TEST(WKWebExtensionAPIScripting, RegisteredScriptIsInjectedAfterContextReloads)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webNavigation.onCompleted.addListener(async (details) => {",
         @"  const pinkValue = 'rgb(255, 192, 203)'",
         @"  function getBackgroundColor() { return window.getComputedStyle(document.body).getPropertyValue('background-color') }",
@@ -1203,7 +1203,7 @@ TEST(WKWebExtensionAPIScripting, RegisteredScriptIsInjectedAfterContextReloads)
     ]);
 
     static auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"changeBackgroundColorScript.js": changeBackgroundColorScript,
     };
 
@@ -1228,9 +1228,9 @@ TEST(WKWebExtensionAPIScripting, RegisteredScriptIsInjectedAfterContextReloads)
 
     EXPECT_TRUE(manager.get().context.hasInjectedContent);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1241,7 +1241,7 @@ TEST(WKWebExtensionAPIScripting, PersistentRegisteredScriptIsInjectedAfterContex
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webNavigation.onCompleted.addListener(async (details) => {",
         @"  const pinkValue = 'rgb(255, 192, 203)'",
         @"  function getBackgroundColor() { return window.getComputedStyle(document.body).getPropertyValue('background-color') }",
@@ -1268,7 +1268,7 @@ TEST(WKWebExtensionAPIScripting, PersistentRegisteredScriptIsInjectedAfterContex
     ]);
 
     static auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"changeBackgroundColorScript.js": changeBackgroundColorScript,
     };
 
@@ -1293,9 +1293,9 @@ TEST(WKWebExtensionAPIScripting, PersistentRegisteredScriptIsInjectedAfterContex
 
     EXPECT_TRUE(manager.get().context.hasInjectedContent);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1306,7 +1306,7 @@ TEST(WKWebExtensionAPIScripting, RegisteredScriptExcludeMatches)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webNavigation.onCompleted.addListener(async () => {",
 
         @"  var expectedResults = [{",
@@ -1334,7 +1334,7 @@ TEST(WKWebExtensionAPIScripting, RegisteredScriptExcludeMatches)
     ]);
 
     static auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"changeBackgroundColorScript.js": changeBackgroundColorScript,
     };
 
@@ -1345,8 +1345,8 @@ TEST(WKWebExtensionAPIScripting, RegisteredScriptExcludeMatches)
     auto *exampleURL = [NSURL URLWithString:@"https://example.com/"];
     EXPECT_FALSE([testContext hasInjectedContentForURL:exampleURL]);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    auto *url = urlRequest.URL;
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    auto *url = urlRequest.get().URL;
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithScheme:url.scheme host:url.host path:@"/*"];
     [testContext setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebNavigation];
@@ -1354,7 +1354,7 @@ TEST(WKWebExtensionAPIScripting, RegisteredScriptExcludeMatches)
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1378,7 +1378,7 @@ TEST(WKWebExtensionAPIScripting, InjectedOnlyOnce)
         } ]
     };
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"if (document.body.dataset.injected)",
         @"    browser.test.notifyFail('Script injected more than once')",
 
@@ -1388,14 +1388,14 @@ TEST(WKWebExtensionAPIScripting, InjectedOnlyOnce)
     ]);
 
     auto *resources = @{
-        @"content_script.js": contentScript
+        @"content_script.js": contentScript.get()
     };
 
     auto manager = Util::loadExtension(contentScriptsManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager runUntilTestMessage:@"script-injected"];
 
@@ -1422,7 +1422,7 @@ TEST(WKWebExtensionAPIScripting, MainWorld)
         } ]
     };
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.test.assertEq(window.secretValue, 'This is a secret.')",
 
         // Externally connectable exposes a limited browser but not chrome.
@@ -1434,14 +1434,14 @@ TEST(WKWebExtensionAPIScripting, MainWorld)
     ]);
 
     auto *resources = @{
-        @"content_script.js": contentScript
+        @"content_script.js": contentScript.get()
     };
 
     auto manager = Util::loadExtension(contentScriptsManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1466,7 +1466,7 @@ TEST(WKWebExtensionAPIScripting, IsolatedWorld)
         } ]
     };
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.test.assertEq(window.secretValue, undefined)",
 
         // Both chrome and browser should be exposed.
@@ -1477,14 +1477,14 @@ TEST(WKWebExtensionAPIScripting, IsolatedWorld)
     ]);
 
     auto *resources = @{
-        @"content_script.js": contentScript
+        @"content_script.js": contentScript.get()
     };
 
     auto manager = Util::loadExtension(contentScriptsManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1513,7 +1513,7 @@ TEST(WKWebExtensionAPIScripting, MatchAboutBlank)
 
     auto *contentStyle = @"body { background-color: red !important; }";
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.test.assertEq(document.body.dataset.injected, undefined, 'Script should not have run before')",
         @"document.body.dataset.injected = 'true'",
 
@@ -1524,15 +1524,15 @@ TEST(WKWebExtensionAPIScripting, MatchAboutBlank)
     ]);
 
     auto *resources = @{
-        @"content.js": contentScript,
+        @"content.js": contentScript.get(),
         @"content.css": contentStyle
     };
 
     auto manager = Util::loadExtension(contentScriptsManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager runUntilTestMessage:@"Main Frame Injected"];
     [manager runUntilTestMessage:@"Sub-Frame Injected"];
@@ -1562,7 +1562,7 @@ TEST(WKWebExtensionAPIScripting, MatchOriginAsFallbackWithAboutBlank)
 
     auto *contentStyle = @"body { background-color: green !important; }";
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.test.assertEq(document.body.dataset.injected, undefined, 'Script should not have run before')",
         @"document.body.dataset.injected = 'true'",
 
@@ -1573,15 +1573,15 @@ TEST(WKWebExtensionAPIScripting, MatchOriginAsFallbackWithAboutBlank)
     ]);
 
     auto *resources = @{
-        @"content.js": contentScript,
+        @"content.js": contentScript.get(),
         @"content.css": contentStyle
     };
 
     auto manager = Util::loadExtension(contentScriptsManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager runUntilTestMessage:@"Main Frame Injected"];
     [manager runUntilTestMessage:@"Sub-Frame Injected"];
@@ -1609,7 +1609,7 @@ TEST(WKWebExtensionAPIScripting, MatchOriginAsFallbackWithData)
 
     auto *contentStyle = @"body { background-color: blue !important; }";
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.test.assertEq(document.body.dataset.injected, undefined, 'Script should not have run before')",
         @"document.body.dataset.injected = 'true'",
 
@@ -1620,15 +1620,15 @@ TEST(WKWebExtensionAPIScripting, MatchOriginAsFallbackWithData)
     ]);
 
     auto *resources = @{
-        @"content.js": contentScript,
+        @"content.js": contentScript.get(),
         @"content.css": contentStyle
     };
 
     auto manager = Util::loadExtension(contentScriptsManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager runUntilTestMessage:@"Main Frame Injected"];
     [manager runUntilTestMessage:@"Sub-Frame Injected"];
@@ -1636,7 +1636,7 @@ TEST(WKWebExtensionAPIScripting, MatchOriginAsFallbackWithData)
 
 TEST(WKWebExtensionAPIScripting, MatchOriginAsFallbackWithBlob)
 {
-    auto *pageScript = Util::constructScript(@[
+    RetainPtr pageScript = Util::constructScript(@[
         @"<script>",
         @"  const blob = new Blob(['<body></body>'], { type: 'text/html' })",
         @"  const blobURL = URL.createObjectURL(blob)",
@@ -1645,7 +1645,7 @@ TEST(WKWebExtensionAPIScripting, MatchOriginAsFallbackWithBlob)
     ]);
 
     TestWebKitAPI::HTTPServer server({
-        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript } }
+        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript.get() } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
     auto *contentScriptsManifest = @{
@@ -1666,7 +1666,7 @@ TEST(WKWebExtensionAPIScripting, MatchOriginAsFallbackWithBlob)
 
     auto *contentStyle = @"body { background-color: green !important; }";
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.test.assertEq(document.body.dataset.injected, undefined, 'Script should not have run before')",
         @"document.body.dataset.injected = 'true'",
 
@@ -1677,15 +1677,15 @@ TEST(WKWebExtensionAPIScripting, MatchOriginAsFallbackWithBlob)
     ]);
 
     auto *resources = @{
-        @"content.js": contentScript,
+        @"content.js": contentScript.get(),
         @"content.css": contentStyle
     };
 
     auto manager = Util::loadExtension(contentScriptsManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager runUntilTestMessage:@"Main Frame Injected"];
     [manager runUntilTestMessage:@"Sub-Frame Injected"];
@@ -1716,28 +1716,28 @@ TEST(WKWebExtensionAPIScripting, RemoveAllUserScriptsDoesNotRemoveWebExtensionSc
         } ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Remove Scripts and Load Tab')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.test.notifyPass()"
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get()
     };
 
     auto manager = Util::loadExtension(contentScriptsManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Remove Scripts and Load Tab"];
 
     [manager.get().defaultTab.webView.configuration.userContentController removeAllUserScripts];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1768,11 +1768,11 @@ TEST(WKWebExtensionAPIScripting, RemoveAllUserStyleSheetsDoesNotRemoveWebExtensi
         } ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Remove StyleSheets and Load Tab')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"const testElement = document.getElementById('test')",
         @"const style = window.getComputedStyle(testElement)",
         @"browser.test.assertEq(style.color, 'rgb(255, 0, 0)', 'CSS should still apply after removing user stylesheets')",
@@ -1781,20 +1781,20 @@ TEST(WKWebExtensionAPIScripting, RemoveAllUserStyleSheetsDoesNotRemoveWebExtensi
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"content.css": @"#test { color: red; }",
-        @"content.js": contentScript
+        @"content.js": contentScript.get()
     };
 
     auto manager = Util::loadExtension(contentScriptsManifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Remove StyleSheets and Load Tab"];
 
     [manager.get().defaultTab.webView.configuration.userContentController _removeAllUserStyleSheets];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1818,7 +1818,7 @@ TEST(WKWebExtensionAPIScripting, InjectScriptWithTrustedTypesCSP)
         } ]
     };
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"try {",
         @"  document.body.innerHTML = '<p>Injected</p>'",
         @"  browser.test.notifyPass()",
@@ -1827,18 +1827,18 @@ TEST(WKWebExtensionAPIScripting, InjectScriptWithTrustedTypesCSP)
         @"}",
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"content.js": contentScript });
+    auto manager = Util::loadExtension(manifest, @{ @"content.js": contentScript.get() });
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIScripting, MigrateScriptDataToNewFormat)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"var expectedResults = [{",
         @"  id: '1',",
         @"  js: ['content.js'],",
@@ -1859,7 +1859,7 @@ TEST(WKWebExtensionAPIScripting, MigrateScriptDataToNewFormat)
     ]);
 
     static auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"content.js": Util::constructScript(@[]),
     };
 

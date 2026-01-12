@@ -40,6 +40,7 @@
 #import "ObjcRuntimeExtras.h"
 #import "StructureInlines.h"
 #import <objc/runtime.h>
+#import <wtf/BlockPtr.h>
 #import <wtf/RetainPtr.h>
 
 WTF_ALLOW_UNSAFE_BUFFER_USAGE_BEGIN
@@ -98,8 +99,9 @@ class CallbackArgumentJSValue final : public CallbackArgument {
 class CallbackArgumentId final : public CallbackArgument {
     void set(NSInvocation *invocation, NSInteger argumentNumber, JSContext *context, JSValueRef argument, JSValueRef*) final
     {
-        id value = valueToObject(context, argument);
-        [invocation setArgument:&value atIndex:argumentNumber];
+        RetainPtr value = valueToObject(context, argument);
+        SUPPRESS_UNCOUNTED_LOCAL id rawPointer = value.get();
+        [invocation setArgument:&rawPointer atIndex:argumentNumber];
     }
 };
 
@@ -116,15 +118,17 @@ private:
         ASSERT(exception && !*exception);
         JSGlobalContextRef contextRef = [context JSGlobalContextRef];
 
-        id object = tryUnwrapObjcObject(contextRef, argument);
-        if (object && [object isKindOfClass:m_class.get()]) {
-            [invocation setArgument:&object atIndex:argumentNumber];
+        RetainPtr object = tryUnwrapObjcObject(contextRef, argument);
+        if (object && [object.get() isKindOfClass:m_class.get()]) {
+            RetainPtr<id> rawObject = object.get();
+            id rawPointer = rawObject.get();
+            [invocation setArgument:&rawPointer atIndex:argumentNumber];
             return;
         }
 
         if (JSValueIsNull(contextRef, argument) || JSValueIsUndefined(contextRef, argument)) {
-            object = nil;
-            [invocation setArgument:&object atIndex:argumentNumber];
+            id rawObject = nil;
+            [invocation setArgument:&rawObject atIndex:argumentNumber];
             return;
         }
 
@@ -138,10 +142,11 @@ class CallbackArgumentNSNumber final : public CallbackArgument {
     void set(NSInvocation *invocation, NSInteger argumentNumber, JSContext *context, JSValueRef argument, JSValueRef* exception) final
     {
         ASSERT(exception && !*exception);
-        id value = valueToNumber([context JSGlobalContextRef], argument, exception);
+        RetainPtr value = valueToNumber([context JSGlobalContextRef], argument, exception);
         if (*exception)
             return;
-        [invocation setArgument:&value atIndex:argumentNumber];
+        SUPPRESS_UNCOUNTED_LOCAL id rawPointer = value.get();
+        [invocation setArgument:&rawPointer atIndex:argumentNumber];
     }
 };
 
@@ -149,10 +154,11 @@ class CallbackArgumentNSString final : public CallbackArgument {
     void set(NSInvocation *invocation, NSInteger argumentNumber, JSContext *context, JSValueRef argument, JSValueRef* exception) final
     {
         ASSERT(exception && !*exception);
-        id value = valueToString([context JSGlobalContextRef], argument, exception);
+        RetainPtr value = valueToString([context JSGlobalContextRef], argument, exception);
         if (*exception)
             return;
-        [invocation setArgument:&value atIndex:argumentNumber];
+        SUPPRESS_UNCOUNTED_LOCAL id rawPointer = value.get();
+        [invocation setArgument:&rawPointer atIndex:argumentNumber];
     }
 };
 
@@ -160,10 +166,11 @@ class CallbackArgumentNSDate final : public CallbackArgument {
     void set(NSInvocation *invocation, NSInteger argumentNumber, JSContext *context, JSValueRef argument, JSValueRef* exception) final
     {
         ASSERT(exception && !*exception);
-        id value = valueToDate([context JSGlobalContextRef], argument, exception);
+        RetainPtr value = valueToDate([context JSGlobalContextRef], argument, exception);
         if (*exception)
             return;
-        [invocation setArgument:&value atIndex:argumentNumber];
+        SUPPRESS_UNCOUNTED_LOCAL id rawPointer = value.get();
+        [invocation setArgument:&rawPointer atIndex:argumentNumber];
     }
 };
 
@@ -171,10 +178,11 @@ class CallbackArgumentNSArray final : public CallbackArgument {
     void set(NSInvocation *invocation, NSInteger argumentNumber, JSContext *context, JSValueRef argument, JSValueRef* exception) final
     {
         ASSERT(exception && !*exception);
-        id value = valueToArray([context JSGlobalContextRef], argument, exception);
+        RetainPtr value = valueToArray([context JSGlobalContextRef], argument, exception);
         if (*exception)
             return;
-        [invocation setArgument:&value atIndex:argumentNumber];
+        SUPPRESS_UNCOUNTED_LOCAL id rawPointer = value.get();
+        [invocation setArgument:&rawPointer atIndex:argumentNumber];
     }
 };
 
@@ -182,10 +190,11 @@ class CallbackArgumentNSDictionary final : public CallbackArgument {
     void set(NSInvocation *invocation, NSInteger argumentNumber, JSContext *context, JSValueRef argument, JSValueRef* exception) final
     {
         ASSERT(exception && !*exception);
-        id value = valueToDictionary([context JSGlobalContextRef], argument, exception);
+        RetainPtr value = valueToDictionary([context JSGlobalContextRef], argument, exception);
         if (*exception)
             return;
-        [invocation setArgument:&value atIndex:argumentNumber];
+        SUPPRESS_UNCOUNTED_LOCAL id rawPointer = value.get();
+        [invocation setArgument:&rawPointer atIndex:argumentNumber];
     }
 };
 
@@ -245,24 +254,24 @@ public:
     static ResultType typeOfClass(const char* begin, const char* end)
     {
         StringRange copy(begin, end);
-        Class cls = objc_getClass(copy);
+        RetainPtr cls = objc_getClass(copy);
         if (!cls)
             return nullptr;
 
-        if (cls == [JSValue class])
+        if (cls.get() == [JSValue class])
             return makeUnique<CallbackArgumentJSValue>();
-        if (cls == [NSString class])
+        if (cls.get() == [NSString class])
             return makeUnique<CallbackArgumentNSString>();
-        if (cls == [NSNumber class])
+        if (cls.get() == [NSNumber class])
             return makeUnique<CallbackArgumentNSNumber>();
-        if (cls == [NSDate class])
+        if (cls.get() == [NSDate class])
             return makeUnique<CallbackArgumentNSDate>();
-        if (cls == [NSArray class])
+        if (cls.get() == [NSArray class])
             return makeUnique<CallbackArgumentNSArray>();
-        if (cls == [NSDictionary class])
+        if (cls.get() == [NSDictionary class])
             return makeUnique<CallbackArgumentNSDictionary>();
 
-        return makeUnique<CallbackArgumentOfClass>(cls);
+        return makeUnique<CallbackArgumentOfClass>(cls.get());
     }
 
     static ResultType typeBlock(const char*, const char*)
@@ -273,8 +282,8 @@ public:
     static ResultType typeStruct(const char* begin, const char* end)
     {
         StringRange copy(begin, end);
-        if (NSInvocation *invocation = valueToTypeInvocationFor(copy))
-            return makeUnique<CallbackArgumentStruct>(invocation, copy);
+        if (RetainPtr invocation = valueToTypeInvocationFor(copy))
+            return makeUnique<CallbackArgumentStruct>(invocation.get(), copy);
         return nullptr;
     }
 };
@@ -299,9 +308,11 @@ class CallbackResultVoid final : public CallbackResult {
 class CallbackResultId final : public CallbackResult {
     JSValueRef get(NSInvocation *invocation, JSContext *context, JSValueRef*) final
     {
-        id value;
-        [invocation getReturnValue:&value];
-        return objectToValue(context, value);
+        RetainPtr<id> value;
+        id rawValue = nullptr;
+        [invocation getReturnValue:&rawValue];
+        value = rawValue;
+        return objectToValue(context, value.get());
     }
 };
 
@@ -394,8 +405,8 @@ public:
     static ResultType typeStruct(const char* begin, const char* end)
     {
         StringRange copy(begin, end);
-        if (NSInvocation *invocation = typeToValueInvocationFor(copy))
-            return makeUnique<CallbackResultStruct>(invocation, copy);
+        if (RetainPtr invocation = typeToValueInvocationFor(copy))
+            return makeUnique<CallbackResultStruct>(invocation.get(), copy);
         return nullptr;
     }
 };
@@ -585,31 +596,30 @@ JSValueRef ObjCCallbackFunctionImpl::call(JSContext *context, JSObjectRef thisOb
     ASSERT(exception && !*exception);
     JSGlobalContextRef contextRef = [context JSGlobalContextRef];
 
-    id target;
     size_t firstArgument;
     switch (m_type) {
     case CallbackInitMethod: {
         RELEASE_ASSERT(!thisObject);
-        target = [m_instanceClass alloc];
-        if (!target || ![target isKindOfClass:m_instanceClass.get()]) {
+        RetainPtr target = [m_instanceClass alloc];
+        if (!target || ![target.get() isKindOfClass:m_instanceClass.get()]) {
             *exception = toRef(JSC::createTypeError(toJS(contextRef), "self type check failed for Objective-C instance method"_s));
             if (*exception)
                 return nullptr;
             return JSValueMakeUndefined(contextRef);
         }
-        [m_invocation setTarget:target];
+        [m_invocation setTarget:target.get()];
         firstArgument = 2;
         break;
     }
     case CallbackInstanceMethod: {
-        target = tryUnwrapObjcObject(contextRef, thisObject);
-        if (!target || ![target isKindOfClass:m_instanceClass.get()]) {
+        RetainPtr target = tryUnwrapObjcObject(contextRef, thisObject);
+        if (!target || ![target.get() isKindOfClass:m_instanceClass.get()]) {
             *exception = toRef(JSC::createTypeError(toJS(contextRef), "self type check failed for Objective-C instance method"_s));
             if (*exception)
                 return nullptr;
             return JSValueMakeUndefined(contextRef);
         }
-        [m_invocation setTarget:target];
+        [m_invocation setTarget:target.get()];
         firstArgument = 2;
         break;
     }
@@ -636,12 +646,12 @@ JSValueRef ObjCCallbackFunctionImpl::call(JSContext *context, JSObjectRef thisOb
         return nullptr;
 
     // Balance our call to -alloc with a call to -autorelease. We have to do this after calling -init
-    // because init family methods are allowed to release the allocated object and return something 
+    // because init family methods are allowed to release the allocated object and return something
     // else in its place.
     if (m_type == CallbackInitMethod) {
-        id objcResult = tryUnwrapObjcObject(contextRef, result);
+        RetainPtr objcResult = tryUnwrapObjcObject(contextRef, result);
         if (objcResult)
-            [objcResult autorelease];
+            [objcResult.get() autorelease];
     }
 
     return result;
@@ -652,8 +662,8 @@ JSValueRef ObjCCallbackFunctionImpl::call(JSContext *context, JSObjectRef thisOb
 static bool blockSignatureContainsClass()
 {
     static bool containsClass = ^{
-        id block = ^(NSString *string){ return string; };
-        return _Block_has_signature((__bridge void*)block) && strstr(_Block_signature((__bridge void*)block), "NSString");
+        BlockPtr block = makeBlockPtr(^(NSString *string){ return string; });
+        return _Block_has_signature((__bridge void*)block.get()) && strstr(_Block_signature((__bridge void*)block.get()), "NSString");
     }();
     return containsClass;
 }

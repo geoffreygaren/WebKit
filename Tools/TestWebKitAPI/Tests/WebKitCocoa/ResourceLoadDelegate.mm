@@ -285,12 +285,12 @@ TEST(ResourceLoadDelegate, LoadInfo)
     EXPECT_EQ(loadInfos[6].get().resourceLoadID, loadInfos[8].get().resourceLoadID);
     EXPECT_NE(loadInfos[6].get().resourceLoadID, loadInfos[0].get().resourceLoadID);
     auto checkFrames = ^(size_t index, _WKFrameHandle *expectedFrame, _WKFrameHandle *expectedParent, _WKResourceLoadInfoResourceType expectedType) {
-        _WKResourceLoadInfo *info = loadInfos[index].get();
-        EXPECT_EQ(!!info.frame, !!expectedFrame);
-        EXPECT_EQ(!!info.parentFrame, !!expectedParent);
-        EXPECT_EQ(info.frame.frameID, expectedFrame.frameID);
-        EXPECT_EQ(info.parentFrame.frameID, expectedParent.frameID);
-        EXPECT_EQ(info.resourceType, expectedType);
+        RetainPtr info = loadInfos[index].get();
+        EXPECT_EQ(!!info.get().frame, !!expectedFrame);
+        EXPECT_EQ(!!info.get().parentFrame, !!expectedParent);
+        EXPECT_EQ(info.get().frame.frameID, expectedFrame.frameID);
+        EXPECT_EQ(info.get().parentFrame.frameID, expectedParent.frameID);
+        EXPECT_EQ(info.get().resourceType, expectedType);
     };
     _WKFrameHandle *main = loadInfos[0].get().frame;
     _WKFrameHandle *sub = loadInfos[8].get().frame;
@@ -335,18 +335,18 @@ TEST(ResourceLoadDelegate, LoadInfo)
     EXPECT_WK_STREQ(NSStringFromClass([otherParameters[11] class]), "NSHTTPURLResponse");
     EXPECT_WK_STREQ([otherParameters[11] URL].path, "/fetchTarget");
 
-    _WKResourceLoadInfo *original = loadInfos[0].get();
+    RetainPtr original = loadInfos[0].get();
     NSError *error = nil;
-    NSData *archiveData = [NSKeyedArchiver archivedDataWithRootObject:original requiringSecureCoding:YES error:&error];
+    NSData *archiveData = [NSKeyedArchiver archivedDataWithRootObject:original.get() requiringSecureCoding:YES error:&error];
     EXPECT_FALSE(error);
     _WKResourceLoadInfo *deserialized = [NSKeyedUnarchiver unarchivedObjectOfClass:[_WKResourceLoadInfo class] fromData:archiveData error:&error];
     EXPECT_FALSE(error);
-    EXPECT_TRUE(deserialized.resourceLoadID == original.resourceLoadID);
-    EXPECT_TRUE(deserialized.frame.frameID == original.frame.frameID);
-    EXPECT_TRUE(deserialized.parentFrame.frameID == original.parentFrame.frameID);
-    EXPECT_WK_STREQ(deserialized.originalURL.absoluteString, original.originalURL.absoluteString);
-    EXPECT_WK_STREQ(deserialized.originalHTTPMethod, original.originalHTTPMethod);
-    EXPECT_EQ(deserialized.eventTimestamp.timeIntervalSince1970, original.eventTimestamp.timeIntervalSince1970);
+    EXPECT_TRUE(deserialized.resourceLoadID == original.get().resourceLoadID);
+    EXPECT_TRUE(deserialized.frame.frameID == original.get().frame.frameID);
+    EXPECT_TRUE(deserialized.parentFrame.frameID == original.get().parentFrame.frameID);
+    EXPECT_WK_STREQ(deserialized.originalURL.absoluteString, original.get().originalURL.absoluteString);
+    EXPECT_WK_STREQ(deserialized.originalHTTPMethod, original.get().originalHTTPMethod);
+    EXPECT_EQ(deserialized.eventTimestamp.timeIntervalSince1970, original.get().eventTimestamp.timeIntervalSince1970);
 }
 
 TEST(ResourceLoadDelegate, Challenge)

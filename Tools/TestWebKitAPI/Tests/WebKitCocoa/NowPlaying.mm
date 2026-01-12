@@ -54,12 +54,12 @@ SOFT_LINK_CONSTANT(MediaRemote, kMRMediaRemoteNowPlayingApplicationPIDUserInfoKe
 
 static bool userInfoHasNowPlayingApplicationPID(CFDictionaryRef userInfo, int32_t pid)
 {
-    CFNumberRef nowPlayingPidCF = (CFNumberRef)CFDictionaryGetValue(userInfo, kMRMediaRemoteNowPlayingApplicationPIDUserInfoKey);
+    RetainPtr nowPlayingPidCF = (CFNumberRef)CFDictionaryGetValue(userInfo, kMRMediaRemoteNowPlayingApplicationPIDUserInfoKey);
     if (!nowPlayingPidCF)
         return false;
 
     int32_t nowPlayingPid = 0;
-    if (!CFNumberGetValue(nowPlayingPidCF, kCFNumberSInt32Type, &nowPlayingPid))
+    if (!CFNumberGetValue(nowPlayingPidCF.get(), kCFNumberSInt32Type, &nowPlayingPid))
         return false;
 
     return pid == nowPlayingPid;

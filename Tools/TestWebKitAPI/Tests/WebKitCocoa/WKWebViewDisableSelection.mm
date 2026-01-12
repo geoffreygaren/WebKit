@@ -80,8 +80,8 @@ TEST(WKWebViewDisableSelection, DragDoesNotSelectWhenTextInteractionsAreDisabled
     RetainPtr<TestWKWebView> webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 1000, 400)]);
     [webView synchronouslyLoadTestPageNamed:@"try-text-select-with-disabled-text-interaction"];
 
-    NSString *selectedText = clickAndDragToSelectText(webView.get());
-    EXPECT_WK_STREQ("Hello", selectedText);
+    RetainPtr selectedText = clickAndDragToSelectText(webView.get());
+    EXPECT_WK_STREQ("Hello", selectedText.get());
     
     // Clear the selection by clicking once.
     [webView sendClicksAtPoint:NSMakePoint(200, 200) numberOfClicks:1];
@@ -90,8 +90,8 @@ TEST(WKWebViewDisableSelection, DragDoesNotSelectWhenTextInteractionsAreDisabled
     // Disable text selection then click and drag again. This should result in no text selected.
     [webView configuration].preferences.textInteractionEnabled = NO;
 
-    NSString *selectedText2 = clickAndDragToSelectText(webView.get());
-    EXPECT_WK_STREQ("", selectedText2);
+    RetainPtr selectedText2 = clickAndDragToSelectText(webView.get());
+    EXPECT_WK_STREQ("", selectedText2.get());
 }
 
 #endif // PLATFORM(MAC)

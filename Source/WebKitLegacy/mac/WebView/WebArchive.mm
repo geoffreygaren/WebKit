@@ -209,27 +209,27 @@ static BOOL isArrayOfClass(id object, Class elementClass)
 }
 
 - (instancetype)initWithCoder:(NSCoder *)decoder
-{    
-    WebResource *mainResource = nil;
-    NSArray *subresources = nil;
-    NSArray *subframeArchives = nil;
-    
+{
+    RetainPtr<WebResource *> mainResource = nil;
+    RetainPtr<NSArray *> subresources = nil;
+    RetainPtr<NSArray *> subframeArchives = nil;
+
     @try {
-        id object = [decoder decodeObjectForKey:WebMainResourceKey];
-        if ([object isKindOfClass:[WebResource class]])
-            mainResource = object;
+        RetainPtr object = [decoder decodeObjectForKey:WebMainResourceKey];
+        if ([object.get() isKindOfClass:[WebResource class]])
+            mainResource = object.get();
         object = [decoder decodeObjectForKey:WebSubresourcesKey];
-        if (isArrayOfClass(object, [WebResource class]))
-            subresources = object;
+        if (isArrayOfClass(object.get(), [WebResource class]))
+            subresources = object.get();
         object = [decoder decodeObjectForKey:WebSubframeArchivesKey];
-        if (isArrayOfClass(object, [WebArchive class]))
-            subframeArchives = object;
+        if (isArrayOfClass(object.get(), [WebArchive class]))
+            subframeArchives = object.get();
     } @catch(id) {
         [self release];
         return nil;
     }
 
-    return [self initWithMainResource:mainResource subresources:subresources subframeArchives:subframeArchives];
+    return [self initWithMainResource:mainResource.get() subresources:subresources.get() subframeArchives:subframeArchives.get()];
 }
 
 - (void)encodeWithCoder:(NSCoder *)encoder

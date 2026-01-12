@@ -518,22 +518,22 @@ Expected<RetainPtr<CMSampleBufferRef>, CString> toCMSampleBuffer(const MediaSamp
         return makeUnexpected("CMSampleBufferCreateReady failed: OOM");
 
     if (samples.isVideo() && samples.size()) {
-        auto attachmentsArray = PAL::CMSampleBufferGetSampleAttachmentsArray(rawSampleBuffer, true);
+        RetainPtr attachmentsArray = PAL::CMSampleBufferGetSampleAttachmentsArray(rawSampleBuffer, true);
         ASSERT(attachmentsArray);
         if (!attachmentsArray)
             return makeUnexpected("No sample attachment found");
-        ASSERT(size_t(CFArrayGetCount(attachmentsArray)) == samples.size());
-        for (CFIndex i = 0, count = CFArrayGetCount(attachmentsArray); i < count; ++i) {
-            CFMutableDictionaryRef attachments = checked_cf_cast<CFMutableDictionaryRef>(CFArrayGetValueAtIndex(attachmentsArray, i));
+        ASSERT(size_t(CFArrayGetCount(attachmentsArray.get())) == samples.size());
+        for (CFIndex i = 0, count = CFArrayGetCount(attachmentsArray.get()); i < count; ++i) {
+            RetainPtr attachments = checked_cf_cast<CFMutableDictionaryRef>(CFArrayGetValueAtIndex(attachmentsArray.get(), i));
             if (!(samples[i].flags & MediaSample::SampleFlags::IsSync))
-                CFDictionarySetValue(attachments, PAL::kCMSampleAttachmentKey_NotSync, kCFBooleanTrue);
+                CFDictionarySetValue(attachments.get(), PAL::kCMSampleAttachmentKey_NotSync, kCFBooleanTrue);
 
             if (samples[i].flags & MediaSample::SampleFlags::IsNonDisplaying)
-                CFDictionarySetValue(attachments, PAL::kCMSampleAttachmentKey_DoNotDisplay, kCFBooleanTrue);
+                CFDictionarySetValue(attachments.get(), PAL::kCMSampleAttachmentKey_DoNotDisplay, kCFBooleanTrue);
 
             // Attach HDR10+ (aka SMPTE ST 2094-40) metadata, if present:
             if (samples[i].hdrMetadataType == HdrMetadataType::SmpteSt209440 && samples[i].hdrMetadata)
-                CFDictionarySetValue(attachments, PAL::kCMSampleAttachmentKey_HDR10PlusPerFrameData, Ref { *samples[i].hdrMetadata }->createCFData().get());
+                CFDictionarySetValue(attachments.get(), PAL::kCMSampleAttachmentKey_HDR10PlusPerFrameData, Ref { *samples[i].hdrMetadata }->createCFData().get());
         }
     } else if (samples.isAudio() && samples.discontinuity())
         PAL::CMSetAttachment(rawSampleBuffer, PAL::kCMSampleBufferAttachmentKey_FillDiscontinuitiesWithSilence, *samples.discontinuity() ? kCFBooleanTrue : kCFBooleanFalse, kCMAttachmentMode_ShouldPropagate);

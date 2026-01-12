@@ -105,7 +105,7 @@ TEST(ScrollingCoordinatorTests, ScrollingTreeAfterDetachReattach)
 
     [webView waitForNextPresentationUpdate];
 
-    NSString *scrollingTreeBefore = scrollingTreeElidingLastCommittedScrollPosition([webView stringByEvaluatingJavaScript:@"internals.scrollingTreeAsText()"]);
+    RetainPtr scrollingTreeBefore = scrollingTreeElidingLastCommittedScrollPosition([webView stringByEvaluatingJavaScript:@"internals.scrollingTreeAsText()"]);
 
     NSWindow *hostWindow = [webView window];
     [webView removeFromSuperview];
@@ -113,9 +113,9 @@ TEST(ScrollingCoordinatorTests, ScrollingTreeAfterDetachReattach)
     [[hostWindow contentView] addSubview:webView.get()];
     [webView waitForNextPresentationUpdate];
 
-    NSString *scrollingTreeAfter = scrollingTreeElidingLastCommittedScrollPosition([webView stringByEvaluatingJavaScript:@"internals.scrollingTreeAsText()"]);
+    RetainPtr scrollingTreeAfter = scrollingTreeElidingLastCommittedScrollPosition([webView stringByEvaluatingJavaScript:@"internals.scrollingTreeAsText()"]);
 
-    EXPECT_TRUE([scrollingTreeBefore isEqualToString:scrollingTreeAfter]);
+    EXPECT_TRUE([scrollingTreeBefore.get() isEqualToString:scrollingTreeAfter.get()]);
 
     scrollY = waitForScrollEventAndReturnScrollY(webView.get(), [eventLocationInWindow](TestWKWebView *webView) {
         [webView wheelEventAtPoint:eventLocationInWindow wheelDelta:CGSizeMake(0, -101)];

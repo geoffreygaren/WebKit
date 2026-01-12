@@ -28,6 +28,7 @@
 
 #import <objc/runtime.h>
 #import <wtf/Assertions.h>
+#import <wtf/RetainPtr.h>
 
 static void swizzleAllMethods(Class imposter, Class original)
 {
@@ -63,11 +64,11 @@ static void swizzleAllMethods(Class imposter, Class original)
 
 void poseAsClass(const char* imposter, const char* original)
 {
-    Class imposterClass = objc_getClass(imposter);
-    Class originalClass = objc_getClass(original);
+    RetainPtr imposterClass = objc_getClass(imposter);
+    RetainPtr originalClass = objc_getClass(original);
 
     // Swizzle instance methods
-    swizzleAllMethods(imposterClass, originalClass);
+    swizzleAllMethods(imposterClass.get(), originalClass.get());
     // and then class methods
-    swizzleAllMethods(object_getClass(imposterClass), object_getClass(originalClass));
+    swizzleAllMethods(object_getClass(imposterClass.get()), object_getClass(originalClass.get()));
 }

@@ -165,8 +165,8 @@ void UIScriptControllerCocoa::findString(JSStringRef string, unsigned long optio
 
 JSObjectRef UIScriptControllerCocoa::contentsOfUserInterfaceItem(JSStringRef interfaceItem) const
 {
-    NSDictionary *contentDictionary = [webView() _contentsOfUserInterfaceItem:toWTFString(interfaceItem).createNSString().get()];
-    return JSValueToObject(m_context->jsContext(), [JSValue valueWithObject:contentDictionary inContext:[JSContext contextWithJSGlobalContextRef:m_context->jsContext()]].JSValueRef, nullptr);
+    RetainPtr contentDictionary = [webView() _contentsOfUserInterfaceItem:toWTFString(interfaceItem).createNSString().get()];
+    return JSValueToObject(m_context->jsContext(), [JSValue valueWithObject:contentDictionary.get() inContext:[JSContext contextWithJSGlobalContextRef:m_context->jsContext()]].JSValueRef, nullptr);
 }
 
 void UIScriptControllerCocoa::setDefaultCalendarType(JSStringRef calendarIdentifier, JSStringRef localeIdentifier)
@@ -276,8 +276,8 @@ void UIScriptControllerCocoa::insertAttachmentForFilePath(JSStringRef filePath, 
 {
     unsigned callbackID = m_context->prepareForAsyncTask(callback, CallbackTypeNonPersistent);
     auto testURL = adoptCF(WKURLCopyCFURL(kCFAllocatorDefault, TestController::singleton().currentTestURL()));
-    auto attachmentURL = [NSURL fileURLWithPath:toWTFString(filePath).createNSString().get() relativeToURL:(__bridge NSURL *)testURL.get()];
-    auto fileWrapper = adoptNS([[NSFileWrapper alloc] initWithURL:attachmentURL options:0 error:nil]);
+    RetainPtr attachmentURL = [NSURL fileURLWithPath:toWTFString(filePath).createNSString().get() relativeToURL:(__bridge NSURL *)testURL.get()];
+    auto fileWrapper = adoptNS([[NSFileWrapper alloc] initWithURL:attachmentURL.get() options:0 error:nil]);
     [webView() _insertAttachmentWithFileWrapper:fileWrapper.get() contentType:toWTFString(contentType).createNSString().get() completion:^(BOOL success) {
         if (!m_context)
             return;

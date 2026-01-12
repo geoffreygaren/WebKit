@@ -181,25 +181,21 @@ static bool secTrustRefsEqual(SecTrustRef trust1, SecTrustRef trust2)
     CFErrorRef error = NULL;
     bool equal;
 #if HAVE(WK_SECURE_CODING_SECTRUST)
-    CFPropertyListRef trust1Plist = SecTrustCopyPropertyListRepresentation(trust1, &error);
+    RetainPtr trust1Plist = adoptCF(SecTrustCopyPropertyListRepresentation(trust1, &error));
     EXPECT_FALSE(error);
-    CFPropertyListRef trust2Plist = SecTrustCopyPropertyListRepresentation(trust2, &error);
+    RetainPtr trust2Plist = adoptCF(SecTrustCopyPropertyListRepresentation(trust2, &error));
     EXPECT_FALSE(error);
-    EXPECT_TRUE(CFGetTypeID(trust1Plist) == CFDictionaryGetTypeID());
-    EXPECT_TRUE(CFGetTypeID(trust2Plist) == CFDictionaryGetTypeID());
-    equal = CFEqual(trust1Plist, trust2Plist);
+    EXPECT_TRUE(CFGetTypeID(trust1Plist.get()) == CFDictionaryGetTypeID());
+    EXPECT_TRUE(CFGetTypeID(trust2Plist.get()) == CFDictionaryGetTypeID());
+    equal = CFEqual(trust1Plist.get(), trust2Plist.get());
     EXPECT_TRUE(equal);
-    CFRelease(trust1Plist);
-    CFRelease(trust2Plist);
 #endif
 
-    SecKeyRef pk1 = SecTrustCopyPublicKey(trust1);
-    SecKeyRef pk2 = SecTrustCopyPublicKey(trust2);
+    RetainPtr pk1 = adoptCF(SecTrustCopyPublicKey(trust1));
+    RetainPtr pk2 = adoptCF(SecTrustCopyPublicKey(trust2));
     EXPECT_TRUE(pk1);
     EXPECT_TRUE(pk2);
-    equal = CFEqual(pk1, pk2);
-    CFRelease(pk1);
-    CFRelease(pk2);
+    equal = CFEqual(pk1.get(), pk2.get());
     EXPECT_TRUE(equal);
     if (!equal)
         return false;
@@ -209,54 +205,49 @@ static bool secTrustRefsEqual(SecTrustRef trust1, SecTrustRef trust2)
     if (!equal)
         return false;
 
-    CFDataRef ex1 = SecTrustCopyExceptions(trust1);
-    CFDataRef ex2 = SecTrustCopyExceptions(trust2);
+    RetainPtr ex1 = adoptCF(SecTrustCopyExceptions(trust1));
+    RetainPtr ex2 = adoptCF(SecTrustCopyExceptions(trust2));
     EXPECT_TRUE(ex1);
     EXPECT_TRUE(ex2);
-    equal = CFEqual(ex1, ex2);
+    equal = CFEqual(ex1.get(), ex2.get());
 
     CFPropertyListFormat format;
-    CFPropertyListRef ex1plist = CFPropertyListCreateWithData(
+    RetainPtr ex1plist = adoptCF(CFPropertyListCreateWithData(
         kCFAllocatorDefault,
-        ex1,
+        ex1.get(),
         kCFPropertyListImmutable,
         &format,
         &error
-    );
+    ));
     EXPECT_FALSE(error);
-    CFPropertyListRef ex2plist = CFPropertyListCreateWithData(
+    RetainPtr ex2plist = adoptCF(CFPropertyListCreateWithData(
         kCFAllocatorDefault,
-        ex2,
+        ex2.get(),
         kCFPropertyListImmutable,
         &format,
         &error
-    );
+    ));
     EXPECT_FALSE(error);
-    equal = CFEqual(ex1plist, ex2plist);
-    CFRelease(ex1);
-    CFRelease(ex2);
-    CFRelease(ex1plist);
-    CFRelease(ex2plist);
+    equal = CFEqual(ex1plist.get(), ex2plist.get());
     EXPECT_TRUE(equal);
     if (!equal)
         return false;
-    CFArrayRef array1, array2;
-    EXPECT_TRUE(SecTrustCopyPolicies(trust1, &array1) == errSecSuccess);
-    EXPECT_TRUE(SecTrustCopyPolicies(trust2, &array2) == errSecSuccess);
-    equal = CFEqual(array1, array2);
-    CFRelease(array1);
-    CFRelease(array2);
+    RetainPtr<CFArrayRef> array1, array2;
+    CFArrayRef array1Ptr, array2Ptr;
+    EXPECT_TRUE(SecTrustCopyPolicies(trust1, &array1Ptr) == errSecSuccess);
+    EXPECT_TRUE(SecTrustCopyPolicies(trust2, &array2Ptr) == errSecSuccess);
+    array1 = adoptCF(array1Ptr);
+    array2 = adoptCF(array2Ptr);
+    equal = CFEqual(array1.get(), array2.get());
     EXPECT_TRUE(equal);
     if (!equal)
         return false;
 
 #if HAVE(SECTRUST_COPYPROPERTIES)
-    array1 = SecTrustCopyProperties(trust1);
-    array2 = SecTrustCopyProperties(trust2);
+    array1 = adoptCF(SecTrustCopyProperties(trust1));
+    array2 = adoptCF(SecTrustCopyProperties(trust2));
     if (array1 && array2) {
-        equal = CFEqual(array1, array2);
-        CFRelease(array1);
-        CFRelease(array2);
+        equal = CFEqual(array1.get(), array2.get());
         EXPECT_TRUE(equal);
         if (!equal)
             return false;
@@ -655,24 +646,24 @@ inline bool operator==(const ObjCHolderForTesting& a, const ObjCHolderForTesting
 #endif
     });
 
-    id aObject = a.valueAsID();
-    id bObject = b.valueAsID();
+    RetainPtr aObject = a.valueAsID();
+    RetainPtr bObject = b.valueAsID();
 
     if (!aObject && !bObject)
         return true;
 
-    EXPECT_TRUE(aObject != nil);
-    EXPECT_TRUE(bObject != nil);
+    EXPECT_TRUE(aObject.get() != nil);
+    EXPECT_TRUE(bObject.get() != nil);
 
 #if USE(PASSKIT)
-    if ([aObject isKindOfClass:PAL::getCNPostalAddressClassSingleton()])
-        return CNPostalAddressTesting_isEqual(aObject, bObject);
+    if ([aObject.get() isKindOfClass:PAL::getCNPostalAddressClassSingleton()])
+        return CNPostalAddressTesting_isEqual(aObject.get(), bObject.get());
 #endif
 
-    if ([aObject isKindOfClass:NSURLCredential.class])
-        return NSURLCredentialTesting_isEqual(aObject, bObject);
+    if ([aObject.get() isKindOfClass:NSURLCredential.class])
+        return NSURLCredentialTesting_isEqual(aObject.get(), bObject.get());
 
-    return [aObject isEqual:bObject];
+    return [aObject.get() isEqual:bObject.get()];
 }
 
 class ObjCPingBackMessage {
@@ -1223,22 +1214,23 @@ TEST(IPCSerialization, Basic)
 #if HAVE(SEC_KEYCHAIN)
     ALLOW_DEPRECATED_DECLARATIONS_BEGIN
     // Store the certificate created above into the temp keychain
-    SecKeychainRef tempKeychain = getTempKeychain();
-    CFDataRef certData = NULL;
-    EXPECT_TRUE(SecItemExport(cert.get(), kSecFormatX509Cert, kSecItemPemArmour, nil, &certData) == errSecSuccess);
-    CFArrayRef itemsPtr = NULL;
-    EXPECT_TRUE(SecKeychainItemImport(certData, CFSTR(".pem"), NULL, NULL, 0, NULL, tempKeychain, &itemsPtr) == errSecSuccess);
-    EXPECT_NOT_NULL(itemsPtr);
-    auto items = adoptCF(itemsPtr);
-    EXPECT_GT(CFArrayGetCount(items.get()), 0);
+    RetainPtr tempKeychain = adoptCF(getTempKeychain());
+    RetainPtr<CFDataRef> certData;
+    CFDataRef certDataPtr = NULL;
+    EXPECT_TRUE(SecItemExport(cert.get(), kSecFormatX509Cert, kSecItemPemArmour, nil, &certDataPtr) == errSecSuccess);
+    certData = adoptCF(certDataPtr);
+    RetainPtr<CFArrayRef> itemsPtr;
+    CFArrayRef itemsPtrRaw = NULL;
+    EXPECT_TRUE(SecKeychainItemImport(certData.get(), CFSTR(".pem"), NULL, NULL, 0, NULL, tempKeychain.get(), &itemsPtrRaw) == errSecSuccess);
+    EXPECT_NOT_NULL(itemsPtrRaw);
+    itemsPtr = adoptCF(itemsPtrRaw);
+    EXPECT_GT(CFArrayGetCount(itemsPtr.get()), 0);
 
-    SecKeychainItemRef keychainItemRef = (SecKeychainItemRef)CFArrayGetValueAtIndex(items.get(), 0);
+    SecKeychainItemRef keychainItemRef = (SecKeychainItemRef)CFArrayGetValueAtIndex(itemsPtr.get(), 0);
     EXPECT_NOT_NULL(keychainItemRef);
     runTestCF({ keychainItemRef });
 
-    CFRelease(certData);
-
-    destroyTempKeychain(tempKeychain);
+    destroyTempKeychain(tempKeychain.get());
     ALLOW_DEPRECATED_DECLARATIONS_END
 #endif // HAVE(SEC_KEYCHAIN)
 
@@ -1724,11 +1716,11 @@ TEST(IPCSerialization, DDScannerResultPlist)
     sender.sendWithAsyncReplyWithoutUsingIPCConnection(ObjCPingBackMessage(holder), ^(ObjCHolderForTesting&& result) {
         EXPECT_TRUE(holder == result);
 
-        id resultObject = result.valueAsID();
+        RetainPtr resultObject = result.valueAsID();
         EXPECT_NOT_NULL(resultObject);
-        EXPECT_TRUE([resultObject isKindOfClass:PAL::getDDScannerResultClassSingleton()]);
+        EXPECT_TRUE([resultObject.get() isKindOfClass:PAL::getDDScannerResultClassSingleton()]);
 
-        NSDictionary *resultPlist = [resultObject _webKitPropertyListData];
+        NSDictionary *resultPlist = [resultObject.get() _webKitPropertyListData];
         NSDictionary *resultContextualData = resultPlist[@"C"];
         EXPECT_NOT_NULL(resultContextualData);
         EXPECT_TRUE([resultContextualData[@"C"] isEqualToString:@"addressBookUID-12345"]);
@@ -1988,11 +1980,12 @@ TEST(CoreIPCCFDictionary, InsertDifferentValueTypes)
     auto certificate = createCertificate();
     NSArray* certArray = @[(__bridge id) certificate.get()];
     auto policy = adoptCF(SecPolicyCreateBasicX509());
-    SecTrustRef trust;
-    SecTrustCreateWithCertificates((__bridge CFTypeRef) certArray, policy.get(), &trust);
+    SecTrustRef trustPtr;
+    SecTrustCreateWithCertificates((__bridge CFTypeRef) certArray, policy.get(), &trustPtr);
+    RetainPtr trust = adoptCF(trustPtr);
 
     auto secTrustKey = adoptCF(CFSTR("secTrustKey"));
-    auto secTrustValue = adoptCF(trust);
+    auto secTrustValue = trust;
     CFDictionaryAddValue(cfDictionary.get(), secTrustKey.get(), secTrustValue.get());
     EXPECT_EQ(CFDictionaryGetCount(cfDictionary.get()), 11);
 
@@ -2141,10 +2134,11 @@ TEST(CoreIPCCFDictionary, InsertDifferentKeyTypes)
     auto certificate = createCertificate();
     NSArray* certArray = @[(__bridge id) certificate.get()];
     auto policy = adoptCF(SecPolicyCreateBasicX509());
-    SecTrustRef trust;
-    SecTrustCreateWithCertificates((__bridge CFTypeRef) certArray, policy.get(), &trust);
+    SecTrustRef trustPtr;
+    SecTrustCreateWithCertificates((__bridge CFTypeRef) certArray, policy.get(), &trustPtr);
+    RetainPtr trust = adoptCF(trustPtr);
 
-    auto secTrustKey = adoptCF(trust);
+    auto secTrustKey = trust;
     auto secTrustValue = adoptCF(CFSTR("secTrustValue"));
     CFDictionaryAddValue(cfDictionary.get(), secTrustKey.get(), secTrustValue.get());
     EXPECT_EQ(CFDictionaryGetCount(cfDictionary.get()), 11);

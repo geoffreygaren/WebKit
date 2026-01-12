@@ -376,15 +376,15 @@ void AXObjectCache::postPlatformAnnouncementNotification(const String& message)
 
     processQueuedIsolatedNodeUpdates();
 
-    NSDictionary *userInfo = @{ NSAccessibilityPriorityKey: @(NSAccessibilityPriorityHigh),
+    RetainPtr userInfo = @{ NSAccessibilityPriorityKey: @(NSAccessibilityPriorityHigh),
         NSAccessibilityAnnouncementKey: message.createNSString().get(),
     };
-    NSAccessibilityPostNotificationWithUserInfo(NSApp, NSAccessibilityAnnouncementRequestedNotification, userInfo);
+    NSAccessibilityPostNotificationWithUserInfo(NSApp, NSAccessibilityAnnouncementRequestedNotification, userInfo.get());
 
     // To simplify monitoring of notifications in tests, repost as a simple NSNotification instead of forcing test infrastucture to setup an IPC client and do all the translation between WebCore types and platform specific IPC types and back.
     if (gShouldRepostNotificationsForTests) [[unlikely]] {
         if (RefPtr root = getOrCreate(m_document->protectedView().get()))
-            [root->wrapper() accessibilityPostedNotification:NSAccessibilityAnnouncementRequestedNotification userInfo:userInfo];
+            [root->wrapper() accessibilityPostedNotification:NSAccessibilityAnnouncementRequestedNotification userInfo:userInfo.get()];
     }
 }
 
@@ -394,18 +394,18 @@ void AXObjectCache::postPlatformARIANotifyNotification(AccessibilityObject& obje
 
     processQueuedIsolatedNodeUpdates();
 
-    NSDictionary *userInfo = @{
+    RetainPtr userInfo = @{
         NSAccessibilityARIAAnnouncementPriority: notifyPriorityToAXValueString(notificationData.priority).get(),
         NSAccessibilityARIAAnnouncementInterrupt: interruptBehaviorToAXValueString(notificationData.interrupt).get(),
         NSAccessibilityAnnouncementKey: notificationData.message.createNSString().get(),
         NSAccessibilityAnnouncementLanguageKey: notificationData.language.createNSString().get()
     };
 
-    NSAccessibilityPostNotificationWithUserInfo(object.wrapper(), NSAccessibilityAnnouncementRequestedNotification, userInfo);
+    NSAccessibilityPostNotificationWithUserInfo(object.wrapper(), NSAccessibilityAnnouncementRequestedNotification, userInfo.get());
 
     if (gShouldRepostNotificationsForTests) [[unlikely]] {
         if (RefPtr root = getOrCreate(m_document->protectedView().get()))
-            [root->wrapper() accessibilityPostedNotification:NSAccessibilityAnnouncementRequestedNotification userInfo:userInfo];
+            [root->wrapper() accessibilityPostedNotification:NSAccessibilityAnnouncementRequestedNotification userInfo:userInfo.get()];
     }
 }
 
@@ -460,8 +460,8 @@ void AXObjectCache::createIsolatedObjectIfNeeded(AccessibilityObject& object)
     // will consider itself detached due to the lack of an isolated object.
     //
     // Detect this and create an isolated object if necessary.
-    id wrapper = object.wrapper();
-    if (!wrapper || [wrapper hasIsolatedObject])
+    RetainPtr wrapper = object.wrapper();
+    if (!wrapper || [wrapper.get() hasIsolatedObject])
         return;
 
     if (object.isIgnored())
@@ -554,12 +554,12 @@ void AXObjectCache::postTextSelectionChangePlatformNotification(AccessibilityObj
         }
     }
     if (!selection.isNone()) {
-        if (auto textMarkerRange = textMarkerRangeFromVisiblePositions(this, selection.visibleStart(), selection.visibleEnd()))
-            [userInfo setObject:(id)textMarkerRange forKey:NSAccessibilitySelectedTextMarkerRangeAttribute];
+        if (RetainPtr textMarkerRange = textMarkerRangeFromVisiblePositions(this, selection.visibleStart(), selection.visibleEnd()))
+            [userInfo setObject:(id)textMarkerRange.get() forKey:NSAccessibilitySelectedTextMarkerRangeAttribute];
     }
 
-    if (id wrapper = axObject->wrapper()) {
-        [userInfo setObject:wrapper forKey:NSAccessibilityTextChangeElement];
+    if (RetainPtr wrapper = axObject->wrapper()) {
+        [userInfo setObject:wrapper.get() forKey:NSAccessibilityTextChangeElement];
         createIsolatedObjectIfNeeded(*axObject);
     }
 
@@ -619,12 +619,12 @@ void AXObjectCache::postUserInfoForChanges(AccessibilityObject& rootWebArea, Acc
 {
     auto userInfo = adoptNS([[NSMutableDictionary alloc] initWithCapacity:4]);
     [userInfo setObject:@(platformChangeTypeForWebCoreChangeType(AXTextStateChangeTypeEdit)) forKey:NSAccessibilityTextStateChangeTypeKey];
-    auto changesArray = changes.autorelease();
-    if (changesArray.count)
-        [userInfo setObject:changesArray forKey:NSAccessibilityTextChangeValues];
+    RetainPtr changesArray = changes.autorelease();
+    if ([changesArray.get() count])
+        [userInfo setObject:changesArray.get() forKey:NSAccessibilityTextChangeValues];
 
-    if (id wrapper = object.wrapper()) {
-        [userInfo setObject:wrapper forKey:NSAccessibilityTextChangeElement];
+    if (RetainPtr wrapper = object.wrapper()) {
+        [userInfo setObject:wrapper.get() forKey:NSAccessibilityTextChangeElement];
         createIsolatedObjectIfNeeded(object);
     }
 
@@ -645,10 +645,10 @@ void AXObjectCache::postTextReplacementPlatformNotification(AccessibilityObject*
     processQueuedIsolatedNodeUpdates();
 
     auto changes = adoptNS([[NSMutableArray alloc] initWithCapacity:2]);
-    if (NSDictionary *change = textReplacementChangeDictionary(*this, *axObject, deletionType, deletedText, position))
-        [changes addObject:change];
-    if (NSDictionary *change = textReplacementChangeDictionary(*this, *axObject, insertionType, insertedText, position))
-        [changes addObject:change];
+    if (RetainPtr change = textReplacementChangeDictionary(*this, *axObject, deletionType, deletedText, position))
+        [changes addObject:change.get()];
+    if (RetainPtr change = textReplacementChangeDictionary(*this, *axObject, insertionType, insertedText, position))
+        [changes addObject:change.get()];
 
     if (RefPtr root = rootWebArea())
         postUserInfoForChanges(*root, *axObject, changes.get());
@@ -666,10 +666,10 @@ void AXObjectCache::postTextReplacementPlatformNotificationForTextControl(Access
     processQueuedIsolatedNodeUpdates();
 
     auto changes = adoptNS([[NSMutableArray alloc] initWithCapacity:2]);
-    if (NSDictionary *change = textReplacementChangeDictionary(*this, *axObject, AXTextEditTypeDelete, deletedText, { }))
-        [changes addObject:change];
-    if (NSDictionary *change = textReplacementChangeDictionary(*this, *axObject, AXTextEditTypeInsert, insertedText, { }))
-        [changes addObject:change];
+    if (RetainPtr change = textReplacementChangeDictionary(*this, *axObject, AXTextEditTypeDelete, deletedText, { }))
+        [changes addObject:change.get()];
+    if (RetainPtr change = textReplacementChangeDictionary(*this, *axObject, AXTextEditTypeInsert, insertedText, { }))
+        [changes addObject:change.get()];
 
     if (RefPtr root = rootWebArea())
         postUserInfoForChanges(*root, *axObject, changes.get());
@@ -1028,9 +1028,9 @@ AXTextMarkerRangeRef textMarkerRangeFromVisiblePositions(AXObjectCache* cache, c
     if (!cache)
         return nil;
 
-    auto startTextMarker = textMarkerForVisiblePosition(cache, startPosition);
-    auto endTextMarker = textMarkerForVisiblePosition(cache, endPosition);
-    return textMarkerRangeFromMarkers(startTextMarker, endTextMarker).autorelease();
+    RetainPtr startTextMarker = textMarkerForVisiblePosition(cache, startPosition);
+    RetainPtr endTextMarker = textMarkerForVisiblePosition(cache, endPosition);
+    return textMarkerRangeFromMarkers(startTextMarker.get(), endTextMarker.get()).autorelease();
 }
 
 VisiblePositionRange visiblePositionRangeForTextMarkerRange(AXObjectCache* cache, AXTextMarkerRangeRef textMarkerRange)
@@ -1088,9 +1088,9 @@ AXTextMarkerRangeRef textMarkerRangeFromRange(AXObjectCache* cache, const std::o
     if (!cache)
         return nil;
 
-    auto startTextMarker = startOrEndTextMarkerForRange(cache, range, true);
-    auto endTextMarker = startOrEndTextMarkerForRange(cache, range, false);
-    return textMarkerRangeFromMarkers(startTextMarker, endTextMarker).autorelease();
+    RetainPtr startTextMarker = startOrEndTextMarkerForRange(cache, range, true);
+    RetainPtr endTextMarker = startOrEndTextMarkerForRange(cache, range, false);
+    return textMarkerRangeFromMarkers(startTextMarker.get(), endTextMarker.get()).autorelease();
 }
 
 std::optional<SimpleRange> rangeForTextMarkerRange(AXObjectCache* cache, AXTextMarkerRangeRef textMarkerRange)

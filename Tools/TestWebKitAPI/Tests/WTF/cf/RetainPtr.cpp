@@ -46,12 +46,12 @@ TEST(RetainPtr, AdoptCF)
 
 TEST(RetainPtr, ConstructionFromMutableCFType)
 {
-    CFMutableStringRef string = CFStringCreateMutableCopy(kCFAllocatorDefault, 4, CFSTR("foo"));
+    RetainPtr string = adoptCF(CFStringCreateMutableCopy(kCFAllocatorDefault, 4, CFSTR("foo")));
 
     // This should invoke RetainPtr's move constructor.
     // FIXME: This doesn't actually test that we moved the value. We should use a mock
     // CFTypeRef that logs -retain and -release calls.
-    RetainPtr<CFStringRef> ptr = RetainPtr<CFMutableStringRef>(string);
+    RetainPtr<CFStringRef> ptr = RetainPtr<CFMutableStringRef>(string.get());
 
     EXPECT_EQ(string, ptr);
 
@@ -86,13 +86,13 @@ TEST(RetainPtr, ConstructionFromSameCFType)
 
 TEST(RetainPtr, MoveAssignmentFromMutableCFType)
 {
-    CFMutableStringRef string = CFStringCreateMutableCopy(kCFAllocatorDefault, 4, CFSTR("foo"));
+    RetainPtr string = adoptCF(CFStringCreateMutableCopy(kCFAllocatorDefault, 4, CFSTR("foo")));
     RetainPtr<CFStringRef> ptr;
 
     // This should invoke RetainPtr's move assignment operator.
     // FIXME: This doesn't actually test that we moved the value. We should use a mock
     // CFTypeRef that logs -retain and -release calls.
-    ptr = RetainPtr<CFMutableStringRef>(string);
+    ptr = RetainPtr<CFMutableStringRef>(string.get());
 
     EXPECT_EQ(string, ptr);
 

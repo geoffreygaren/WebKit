@@ -90,9 +90,9 @@
 {
     _webView = nil;
 
-    id animationController = [_immediateActionRecognizer animationController];
-    if (PAL::isQuickLookUIFrameworkAvailable() && [animationController isKindOfClass:PAL::getQLPreviewMenuItemClassSingleton()]) {
-        QLPreviewMenuItem *menuItem = (QLPreviewMenuItem *)animationController;
+    RetainPtr animationController = [_immediateActionRecognizer animationController];
+    if (PAL::isQuickLookUIFrameworkAvailable() && [animationController.get() isKindOfClass:PAL::getQLPreviewMenuItemClassSingleton()]) {
+        QLPreviewMenuItem *menuItem = (QLPreviewMenuItem *)animationController.get();
         menuItem.delegate = nil;
     }
 
@@ -145,8 +145,8 @@
     if (!PAL::isDataDetectorsFrameworkAvailable())
         return;
 
-    DDActionsManager *actionsManager = [PAL::getDDActionsManagerClassSingleton() sharedManager];
-    [actionsManager requestBubbleClosureUnanchorOnFailure:YES];
+    RetainPtr actionsManager = [PAL::getDDActionsManagerClassSingleton() sharedManager];
+    [actionsManager.get() requestBubbleClosureUnanchorOnFailure:YES];
 
     if (_currentActionContext && _hasActivatedActionContext) {
         _hasActivatedActionContext = NO;
@@ -186,8 +186,8 @@
     if (!_webView)
         return;
 
-    NSView *documentView = [[[_webView _selectedOrMainFrame] frameView] documentView];
-    if (![documentView isKindOfClass:[WebHTMLView class]]) {
+    RetainPtr documentView = [[[_webView _selectedOrMainFrame] frameView] documentView];
+    if (![documentView.get() isKindOfClass:[WebHTMLView class]]) {
         [self _cancelImmediateAction];
         return;
     }
@@ -197,7 +197,7 @@
 
     [_webView _setMaintainsInactiveSelection:YES];
 
-    NSPoint locationInDocumentView = [immediateActionRecognizer locationInView:documentView];
+    NSPoint locationInDocumentView = [immediateActionRecognizer locationInView:documentView.get()];
     [self performHitTestAtPoint:locationInDocumentView];
     [self _updateImmediateActionItem];
 
@@ -297,11 +297,11 @@
             if (indicator)
                 [_webView _setTextIndicator:*indicator withLifetime:WebCore::TextIndicatorLifetime::Permanent];
 
-            QLPreviewMenuItem *item = [NSMenuItem standardQuickLookMenuItem];
-            item.previewStyle = QLPreviewStylePopover;
-            item.delegate = self;
-            _currentQLPreviewMenuItem = item;
-            return (id <NSImmediateActionAnimationController>)item;
+            RetainPtr item = [NSMenuItem standardQuickLookMenuItem];
+            [item.get() setPreviewStyle:QLPreviewStylePopover];
+            [item.get() setDelegate:self];
+            _currentQLPreviewMenuItem = item.get();
+            return (id <NSImmediateActionAnimationController>)item.autorelease();
         }
     }
 
@@ -333,19 +333,19 @@
     }
 
     // Allow clients the opportunity to override the default immediate action.
-    id customClientAnimationController = nil;
+    RetainPtr<id> customClientAnimationController;
     if ([[_webView UIDelegate] respondsToSelector:@selector(_webView:immediateActionAnimationControllerForHitTestResult:withType:)]) {
         RetainPtr<WebElementDictionary> webHitTestResult = adoptNS([[WebElementDictionary alloc] initWithHitTestResult:_hitTestResult]);
         customClientAnimationController = [(id)[_webView UIDelegate] _webView:_webView immediateActionAnimationControllerForHitTestResult:webHitTestResult.get() withType:_type];
     }
 
-    if (customClientAnimationController == [NSNull null]) {
+    if (customClientAnimationController.get() == [NSNull null]) {
         [self _cancelImmediateAction];
         return;
     }
 
-    if (customClientAnimationController && [customClientAnimationController conformsToProtocol:@protocol(NSImmediateActionAnimationController)])
-        [_immediateActionRecognizer setAnimationController:(id <NSImmediateActionAnimationController>)customClientAnimationController];
+    if (customClientAnimationController && [customClientAnimationController.get() conformsToProtocol:@protocol(NSImmediateActionAnimationController)])
+        [_immediateActionRecognizer setAnimationController:(id <NSImmediateActionAnimationController>)customClientAnimationController.get()];
     else
         [_immediateActionRecognizer setAnimationController:defaultAnimationController];
 }
@@ -429,12 +429,12 @@ static WebCore::IntRect elementBoundingBoxInWindowCoordinatesFromNode(WebCore::N
 
     if ([[_webView UIDelegate] respondsToSelector:@selector(_webView:actionContextForHitTestResult:range:)]) {
         DOMRange *customDataDetectorsRange;
-        auto actionContext = [(id)[_webView UIDelegate] _webView:_webView
+        RetainPtr actionContext = [(id)[_webView UIDelegate] _webView:_webView
             actionContextForHitTestResult:adoptNS([[WebElementDictionary alloc] initWithHitTestResult:_hitTestResult]).get()
             range:&customDataDetectorsRange];
         if (actionContext && customDataDetectorsRange) {
             detectedItem = { {
-                (WKDDActionContext *)actionContext,
+                (WKDDActionContext *)actionContext.get(),
                 { }, // FIXME: Seems like an empty rect isn't really OK.
                 makeSimpleRange(*core(customDataDetectorsRange))
             } };
@@ -465,11 +465,11 @@ static WebCore::IntRect elementBoundingBoxInWindowCoordinatesFromNode(WebCore::N
 
     [_currentActionContext setHighlightFrame:[_webView.window convertRectToScreen:detectedItem->boundingBox]];
 
-    NSArray *menuItems = [[PAL::getDDActionsManagerClassSingleton() sharedManager] menuItemsForResult:[_currentActionContext mainResult] actionContext:_currentActionContext.get()];
-    if (menuItems.count != 1)
+    RetainPtr menuItems = [[PAL::getDDActionsManagerClassSingleton() sharedManager] menuItemsForResult:[_currentActionContext mainResult] actionContext:_currentActionContext.get()];
+    if ([menuItems.get() count] != 1)
         return nil;
 
-    return menuItems.lastObject;
+    return [menuItems.get() lastObject];
 }
 
 - (id <NSImmediateActionAnimationController>)_animationControllerForDataDetectedLink
@@ -498,11 +498,11 @@ static WebCore::IntRect elementBoundingBoxInWindowCoordinatesFromNode(WebCore::N
 
     [_currentActionContext setHighlightFrame:[_webView.window convertRectToScreen:elementBoundingBoxInWindowCoordinatesFromNode(_hitTestResult.URLElement())]];
 
-    NSArray *menuItems = [[PAL::getDDActionsManagerClassSingleton() sharedManager] menuItemsForTargetURL:_hitTestResult.absoluteLinkURL().string().createNSString().get() actionContext:_currentActionContext.get()];
-    if (menuItems.count != 1)
+    RetainPtr menuItems = [[PAL::getDDActionsManagerClassSingleton() sharedManager] menuItemsForTargetURL:_hitTestResult.absoluteLinkURL().string().createNSString().get() actionContext:_currentActionContext.get()];
+    if ([menuItems.get() count] != 1)
         return nil;
-    
-    return menuItems.lastObject;
+
+    return [menuItems.get() lastObject];
 }
 
 #pragma mark Text action
@@ -536,15 +536,15 @@ static WebCore::IntRect elementBoundingBoxInWindowCoordinatesFromNode(WebCore::N
     auto attributedString = editingAttributedString(range, { }).nsAttributedString();
 #if ENABLE(LEGACY_PDFKIT_PLUGIN)
     auto scaledAttributedString = adoptNS([[NSMutableAttributedString alloc] initWithString:[attributedString string]]);
-    NSFontManager *fontManager = [NSFontManager sharedFontManager];
+    RetainPtr fontManager = [NSFontManager sharedFontManager];
 
     [attributedString enumerateAttributesInRange:NSMakeRange(0, [attributedString length]) options:0 usingBlock:^(NSDictionary *attributes, NSRange attributeRange, BOOL *stop) {
         RetainPtr<NSMutableDictionary> scaledAttributes = adoptNS([attributes mutableCopy]);
-        NSFont *font = [scaledAttributes objectForKey:NSFontAttributeName];
+        RetainPtr font = [scaledAttributes.get() objectForKey:NSFontAttributeName];
         if (font)
-            font = [fontManager convertFont:font toSize:font.pointSize * frame->page()->pageScaleFactor()];
+            font = [fontManager.get() convertFont:font.get() toSize:[font.get() pointSize] * frame->page()->pageScaleFactor()];
         if (font)
-            [scaledAttributes setObject:font forKey:NSFontAttributeName];
+            [scaledAttributes.get() setObject:font.get() forKey:NSFontAttributeName];
         [scaledAttributedString addAttributes:scaledAttributes.get() range:attributeRange];
     }];
 

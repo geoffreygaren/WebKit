@@ -183,9 +183,9 @@ static LayoutTestSpellChecker *swizzledInitializeTextChecker()
 
 + (instancetype)checker
 {
-    auto *spellChecker = ensureGlobalLayoutTestSpellChecker();
+    RetainPtr spellChecker = ensureGlobalLayoutTestSpellChecker();
     if (hasSwizzledLayoutTestSpellChecker)
-        return spellChecker;
+        return spellChecker.autorelease();
 
 #if PLATFORM(MAC)
     originalSharedSpellCheckerMethod = class_getClassMethod(objc_getMetaClass("NSSpellChecker"), @selector(sharedSpellChecker));
@@ -196,7 +196,7 @@ static LayoutTestSpellChecker *swizzledInitializeTextChecker()
 #endif
 
     hasSwizzledLayoutTestSpellChecker = YES;
-    return spellChecker;
+    return spellChecker.autorelease();
 }
 
 + (void)uninstallAndReset

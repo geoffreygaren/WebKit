@@ -65,7 +65,7 @@ static auto *actionPopupManifest = @{
 
 TEST(WKWebExtensionAPIAction, Errors)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.action.setTitle({tabId: 'bad', title: 'Test'}), /'tabId' is expected to be a number, but a string was provided/i)",
         @"browser.test.assertThrows(() => browser.action.setTitle({windowId: 'bad', title: 'Test'}), /'windowId' is expected to be a number, but a string was provided/i)",
         @"browser.test.assertThrows(() => browser.action.setIcon({path: 123}), /'path' is expected to be a string or an object or null, but a number was provided/i)",
@@ -104,12 +104,12 @@ TEST(WKWebExtensionAPIAction, Errors)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(actionPopupManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(actionPopupManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAction, ClickedEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.action.setPopup({ popup: '' })",
 
         @"browser.action.onClicked.addListener((tab) => {",
@@ -121,7 +121,7 @@ TEST(WKWebExtensionAPIAction, ClickedEvent)
         @"browser.test.sendMessage('Test Action')"
     ]);
 
-    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Test Action"];
 
@@ -134,18 +134,18 @@ TEST(WKWebExtensionAPIAction, PresentPopupForAction)
 {
     auto *popupPage = @"<b>Hello World!</b>";
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Test Popup Action')"
     ]);
 
-    auto *smallToolbarIcon = Util::makePNGData(CGSizeMake(16, 16), @selector(redColor));
-    auto *largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
+    RetainPtr smallToolbarIcon = Util::makePNGData(CGSizeMake(16, 16), @selector(redColor));
+    RetainPtr largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": popupPage,
-        @"toolbar-16.png": smallToolbarIcon,
-        @"toolbar-32.png": largeToolbarIcon,
+        @"toolbar-16.png": smallToolbarIcon.get(),
+        @"toolbar-32.png": largeToolbarIcon.get(),
     };
 
     auto manager = Util::loadExtension(actionPopupManifest, resources);
@@ -194,7 +194,7 @@ TEST(WKWebExtensionAPIAction, PresentPopupForAction)
 
 TEST(WKWebExtensionAPIAction, GetCurrentTabAndWindowFromPopupPage)
 {
-    auto *popupScript = Util::constructScript(@[
+    RetainPtr popupScript = Util::constructScript(@[
         @"const tab = await browser.tabs.getCurrent()",
         @"browser.test.assertEq(typeof tab, 'object', 'The tab should be')",
         @"browser.test.assertTrue(tab.active, 'The current tab should be active')",
@@ -206,14 +206,14 @@ TEST(WKWebExtensionAPIAction, GetCurrentTabAndWindowFromPopupPage)
         @"browser.test.notifyPass()"
     ]);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Test Popup Action')"
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"<script type='module' src='popup.js'></script>",
-        @"popup.js": popupScript
+        @"popup.js": popupScript.get()
     };
 
     auto manager = Util::loadExtension(actionPopupManifest, resources);
@@ -232,7 +232,7 @@ TEST(WKWebExtensionAPIAction, GetCurrentTabAndWindowFromPopupPage)
 
 TEST(WKWebExtensionAPIAction, UpdateTabFromPopupPage)
 {
-    auto *popupScript = Util::constructScript(@[
+    RetainPtr popupScript = Util::constructScript(@[
         @"const tab = await browser.tabs.getCurrent()",
         @"browser.test.assertEq(typeof tab, 'object', 'The tab should be')",
         @"browser.test.assertTrue(tab.active, 'The current tab should be active')",
@@ -248,14 +248,14 @@ TEST(WKWebExtensionAPIAction, UpdateTabFromPopupPage)
         @"browser.test.notifyPass()"
     ]);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Test Popup Action')"
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"<script type='module' src='popup.js'></script>",
-        @"popup.js": popupScript
+        @"popup.js": popupScript.get()
     };
 
     auto manager = Util::loadExtension(actionPopupManifest, resources);
@@ -276,7 +276,7 @@ TEST(WKWebExtensionAPIAction, SetDefaultActionProperties)
 {
     auto *popupPage = @"<b>Hello World!</b>";
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(await browser.action.getTitle({ }), 'Test Action', 'Title should be')",
         @"browser.test.assertEq(await browser.action.getPopup({ }), 'popup.html', 'Popup should be')",
         @"browser.test.assertEq(await browser.action.getBadgeText({ }), '', 'Badge text should be')",
@@ -296,12 +296,12 @@ TEST(WKWebExtensionAPIAction, SetDefaultActionProperties)
         @"browser.action.openPopup()"
     ]);
 
-    auto *extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
+    RetainPtr extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"alt-popup.html": popupPage,
-        @"toolbar-48.png": extraLargeToolbarIcon,
+        @"toolbar-48.png": extraLargeToolbarIcon.get(),
     };
 
     auto manager = Util::loadExtension(actionPopupManifest, resources);
@@ -349,7 +349,7 @@ TEST(WKWebExtensionAPIAction, TabSpecificActionProperties)
     auto *popupPage = @"<b>Hello World!</b>";
     auto *altPopupPage = @"<b>Hello Alternate World!</b>";
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true })",
 
         @"browser.test.assertEq(await browser.action.getTitle({ tabId: currentTab.id }), 'Test Action', 'Title should be')",
@@ -371,17 +371,17 @@ TEST(WKWebExtensionAPIAction, TabSpecificActionProperties)
         @"browser.action.openPopup({ windowId: currentTab.windowId })"
     ]);
 
-    auto *smallToolbarIcon = Util::makePNGData(CGSizeMake(16, 16), @selector(redColor));
-    auto *largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
-    auto *extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
+    RetainPtr smallToolbarIcon = Util::makePNGData(CGSizeMake(16, 16), @selector(redColor));
+    RetainPtr largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
+    RetainPtr extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": popupPage,
         @"alt-popup.html": altPopupPage,
-        @"toolbar-16.png": smallToolbarIcon,
-        @"toolbar-32.png": largeToolbarIcon,
-        @"toolbar-48.png": extraLargeToolbarIcon,
+        @"toolbar-16.png": smallToolbarIcon.get(),
+        @"toolbar-32.png": largeToolbarIcon.get(),
+        @"toolbar-48.png": extraLargeToolbarIcon.get(),
     };
 
     auto manager = Util::parseExtension(actionPopupManifest, resources);
@@ -467,7 +467,7 @@ TEST(WKWebExtensionAPIAction, WindowSpecificActionProperties)
     auto *popupPage = @"<b>Hello World!</b>";
     auto *windowPopupPage = @"<b>Window-Specific Popup!</b>";
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true })",
         @"const currentWindowId = currentTab.windowId",
 
@@ -487,15 +487,15 @@ TEST(WKWebExtensionAPIAction, WindowSpecificActionProperties)
         @"browser.action.openPopup({ windowId: currentWindowId })"
     ]);
 
-    auto *defaultToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(redColor));
-    auto *windowToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(greenColor));
+    RetainPtr defaultToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(redColor));
+    RetainPtr windowToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(greenColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": popupPage,
         @"window-popup.html": windowPopupPage,
-        @"toolbar-32.png": defaultToolbarIcon,
-        @"window-toolbar-48.png": windowToolbarIcon,
+        @"toolbar-32.png": defaultToolbarIcon.get(),
+        @"window-toolbar-48.png": windowToolbarIcon.get(),
     };
 
     auto manager = Util::parseExtension(actionPopupManifest, resources);
@@ -555,15 +555,15 @@ TEST(WKWebExtensionAPIAction, WindowSpecificActionProperties)
 
 TEST(WKWebExtensionAPIAction, SetIconSinglePath)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.action.setIcon({ path: 'toolbar-48.png' })",
     ]);
 
-    auto *extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
+    RetainPtr extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"toolbar-48.png": extraLargeToolbarIcon,
+        @"background.js": backgroundScript.get(),
+        @"toolbar-48.png": extraLargeToolbarIcon.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -582,16 +582,16 @@ TEST(WKWebExtensionAPIAction, SetIconSinglePath)
 
 TEST(WKWebExtensionAPIAction, SetIconSinglePathRelative)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.action.setIcon({ path: '../icons/toolbar-48.png' })",
     ]);
 
-    auto *extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
+    RetainPtr extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
 
     auto *resources = @{
         @"background/index.html": @"<script type='module' src='script.js'></script>",
-        @"background/script.js": backgroundScript,
-        @"icons/toolbar-48.png": extraLargeToolbarIcon,
+        @"background/script.js": backgroundScript.get(),
+        @"icons/toolbar-48.png": extraLargeToolbarIcon.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -633,19 +633,19 @@ TEST(WKWebExtensionAPIAction, SetIconSinglePathRelative)
 
 TEST(WKWebExtensionAPIAction, SetIconMultipleSizes)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.action.setIcon({ path: { '48': 'toolbar-48.png', '96': 'toolbar-96.png', '128': 'toolbar-128.png' } })",
     ]);
 
-    auto *largeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
-    auto *extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(96, 96), @selector(greenColor));
-    auto *superExtraLargeToolbarIcon = Util::makePNGData(CGSizeMake(128, 128), @selector(purpleColor));
+    RetainPtr largeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
+    RetainPtr extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(96, 96), @selector(greenColor));
+    RetainPtr superExtraLargeToolbarIcon = Util::makePNGData(CGSizeMake(128, 128), @selector(purpleColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"toolbar-48.png": largeToolbarIcon,
-        @"toolbar-96.png": extraLargeToolbarIcon,
-        @"toolbar-128.png": superExtraLargeToolbarIcon,
+        @"background.js": backgroundScript.get(),
+        @"toolbar-48.png": largeToolbarIcon.get(),
+        @"toolbar-96.png": extraLargeToolbarIcon.get(),
+        @"toolbar-128.png": superExtraLargeToolbarIcon.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -673,20 +673,20 @@ TEST(WKWebExtensionAPIAction, SetIconMultipleSizes)
 
 TEST(WKWebExtensionAPIAction, SetIconMultipleSizesRelative)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.action.setIcon({ path: { '48': '../icons/toolbar-48.png', '96': '../icons/toolbar-96.png', '128': '../icons/toolbar-128.png' } })",
     ]);
 
-    auto *largeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
-    auto *extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(96, 96), @selector(greenColor));
-    auto *superExtraLargeToolbarIcon = Util::makePNGData(CGSizeMake(128, 128), @selector(purpleColor));
+    RetainPtr largeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
+    RetainPtr extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(96, 96), @selector(greenColor));
+    RetainPtr superExtraLargeToolbarIcon = Util::makePNGData(CGSizeMake(128, 128), @selector(purpleColor));
 
     auto *resources = @{
         @"background/index.html": @"<script type='module' src='script.js'></script>",
-        @"background/script.js": backgroundScript,
-        @"icons/toolbar-48.png": largeToolbarIcon,
-        @"icons/toolbar-96.png": extraLargeToolbarIcon,
-        @"icons/toolbar-128.png": superExtraLargeToolbarIcon,
+        @"background/script.js": backgroundScript.get(),
+        @"icons/toolbar-48.png": largeToolbarIcon.get(),
+        @"icons/toolbar-96.png": extraLargeToolbarIcon.get(),
+        @"icons/toolbar-128.png": superExtraLargeToolbarIcon.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -737,12 +737,12 @@ TEST(WKWebExtensionAPIAction, SetIconMultipleSizesRelative)
 
 TEST(WKWebExtensionAPIAction, SetIconWithBadPath)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.action.setIcon({ path: 'bad.png' })",
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -760,7 +760,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithBadPath)
 
 TEST(WKWebExtensionAPIAction, SetIconWithImageData)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const context = new OffscreenCanvas(48, 48).getContext('2d')",
         @"context.fillStyle = 'green'",
         @"context.fillRect(0, 0, 48, 48)",
@@ -770,7 +770,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithImageData)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -790,18 +790,18 @@ TEST(WKWebExtensionAPIAction, SetIconWithImageData)
 
 TEST(WKWebExtensionAPIAction, SetIconWithBadImageData)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.action.setIcon({ imageData: { 16: { data: [ 'bad' ] } } }))",
 
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(actionPopupManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(actionPopupManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAction, SetIconWithMultipleImageDataSizes)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const createImageData = (size, color) => {",
         @"  const context = new OffscreenCanvas(size, size).getContext('2d')",
         @"  context.fillStyle = color",
@@ -818,7 +818,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithMultipleImageDataSizes)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -846,7 +846,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithMultipleImageDataSizes)
 
 TEST(WKWebExtensionAPIAction, SetIconWithDataURL)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const canvas = document.createElement('canvas')",
         @"canvas.width = 48",
         @"canvas.height = 48",
@@ -861,7 +861,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithDataURL)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -880,14 +880,14 @@ TEST(WKWebExtensionAPIAction, SetIconWithDataURL)
 
 TEST(WKWebExtensionAPIAction, SetIconWithBadDataURL)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const invalidDataURL = 'data:image/png;base64,INVALIDDATA'",
 
         @"await browser.action.setIcon({ path: invalidDataURL })",
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -905,16 +905,16 @@ TEST(WKWebExtensionAPIAction, SetIconWithBadDataURL)
 
 TEST(WKWebExtensionAPIAction, SetIconWithNullPath)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.action.setIcon({ path: null })",
         @"browser.test.sendMessage('Icon Set')",
     ]);
 
-    auto *largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
+    RetainPtr largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"toolbar-32.png": largeToolbarIcon,
+        @"background.js": backgroundScript.get(),
+        @"toolbar-32.png": largeToolbarIcon.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -930,16 +930,16 @@ TEST(WKWebExtensionAPIAction, SetIconWithNullPath)
 
 TEST(WKWebExtensionAPIAction, SetIconWithNullImageData)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.action.setIcon({ imageData: null })",
         @"browser.test.sendMessage('Icon Set')",
     ]);
 
-    auto *largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
+    RetainPtr largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"toolbar-32.png": largeToolbarIcon,
+        @"background.js": backgroundScript.get(),
+        @"toolbar-32.png": largeToolbarIcon.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -955,16 +955,16 @@ TEST(WKWebExtensionAPIAction, SetIconWithNullImageData)
 
 TEST(WKWebExtensionAPIAction, SetIconWithNullVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.action.setIcon({ variants: null })",
         @"browser.test.sendMessage('Icon Set')",
     ]);
 
-    auto *largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
+    RetainPtr largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"toolbar-32.png": largeToolbarIcon,
+        @"background.js": backgroundScript.get(),
+        @"toolbar-32.png": largeToolbarIcon.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -980,7 +980,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithNullVariants)
 
 TEST(WKWebExtensionAPIAction, SetIconWithMultipleDataURLs)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const canvas = document.createElement('canvas')",
 
         @"canvas.width = 48",
@@ -1005,7 +1005,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithMultipleDataURLs)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -1028,11 +1028,11 @@ TEST(WKWebExtensionAPIAction, SetIconWithMultipleDataURLs)
 
 TEST(WKWebExtensionAPIAction, SetIconSymbolSinglePath)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.action.setIcon({ path: 'symbol:star' })",
     ]);
 
-    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript, @"popup.html": @"Hello world!" });
+    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript.get(), @"popup.html": @"Hello world!" });
 
     manager.get().internalDelegate.didUpdateAction = ^(WKWebExtensionAction *action) {
         auto *icon = [action iconForSize:CGSizeMake(16, 16)];
@@ -1052,11 +1052,11 @@ TEST(WKWebExtensionAPIAction, SetIconSymbolSinglePath)
 
 TEST(WKWebExtensionAPIAction, SetIconSymbolIconsDictionary)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.action.setIcon({ path: { '16': 'symbol:heart.fill' } })",
     ]);
 
-    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript, @"popup.html": @"Hello world!" });
+    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript.get(), @"popup.html": @"Hello world!" });
 
     manager.get().internalDelegate.didUpdateAction = ^(WKWebExtensionAction *action) {
         auto *icon = [action iconForSize:CGSizeMake(16, 16)];
@@ -1077,7 +1077,7 @@ TEST(WKWebExtensionAPIAction, SetIconSymbolIconsDictionary)
 #if ENABLE(WK_WEB_EXTENSIONS_ICON_VARIANTS)
 TEST(WKWebExtensionAPIAction, SetIconWithVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.test.assertSafeResolve(() => browser.action.setIcon({",
         @"    variants: [",
         @"        { 32: 'action-dark-32.png', 64: 'action-dark-64.png', 'colorSchemes': [ 'dark' ] },",
@@ -1086,18 +1086,18 @@ TEST(WKWebExtensionAPIAction, SetIconWithVariants)
         @"}))",
     ]);
 
-    auto *dark32Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
-    auto *dark64Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(whiteColor));
-    auto *light32Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(blackColor));
-    auto *light64Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(blackColor));
+    RetainPtr dark32Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
+    RetainPtr dark64Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(whiteColor));
+    RetainPtr light32Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(blackColor));
+    RetainPtr light64Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(blackColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"Hello world!",
-        @"action-dark-32.png": dark32Icon,
-        @"action-dark-64.png": dark64Icon,
-        @"action-light-32.png": light32Icon,
-        @"action-light-64.png": light64Icon,
+        @"action-dark-32.png": dark32Icon.get(),
+        @"action-dark-64.png": dark64Icon.get(),
+        @"action-light-32.png": light32Icon.get(),
+        @"action-light-64.png": light64Icon.get(),
     };
 
     auto manager = Util::loadExtension(actionPopupManifest, resources);
@@ -1129,7 +1129,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithVariants)
 
 TEST(WKWebExtensionAPIAction, SetIconWithImageDataAndVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const createImageData = (size, color) => {",
         @"  const context = new OffscreenCanvas(size, size).getContext('2d')",
         @"  context.fillStyle = color",
@@ -1152,7 +1152,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithImageDataAndVariants)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -1186,7 +1186,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithImageDataAndVariants)
 
 TEST(WKWebExtensionAPIAction, SetIconThrowsWithNoValidVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const createImageData = (size, color) => {",
         @"  const context = new OffscreenCanvas(size, size).getContext('2d')",
         @"  context.fillStyle = color",
@@ -1209,7 +1209,7 @@ TEST(WKWebExtensionAPIAction, SetIconThrowsWithNoValidVariants)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -1218,7 +1218,7 @@ TEST(WKWebExtensionAPIAction, SetIconThrowsWithNoValidVariants)
 
 TEST(WKWebExtensionAPIAction, SetIconWithMixedValidAndInvalidVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const createImageData = (size, color) => {",
         @"  const context = new OffscreenCanvas(size, size).getContext('2d')",
         @"  context.fillStyle = color",
@@ -1239,7 +1239,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithMixedValidAndInvalidVariants)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"Hello world!",
     };
 
@@ -1267,7 +1267,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithMixedValidAndInvalidVariants)
 
 TEST(WKWebExtensionAPIAction, SetIconWithAnySizeVariantAndSVGDataURL)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const whiteSVGData = 'data:image/svg+xml;base64,' + btoa(`",
         @"  <svg width=\"100\" height=\"100\" xmlns=\"http://www.w3.org/2000/svg\">",
         @"    <rect width=\"100\" height=\"100\" fill=\"white\" />",
@@ -1287,7 +1287,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithAnySizeVariantAndSVGDataURL)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"Hello World!",
     };
 
@@ -1315,7 +1315,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithAnySizeVariantAndSVGDataURL)
 
 TEST(WKWebExtensionAPIAction, SetIconWithSymbolVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.test.assertSafeResolve(() => browser.action.setIcon({",
         @"    variants: [",
         @"        { any: 'symbol:star' }",
@@ -1323,7 +1323,7 @@ TEST(WKWebExtensionAPIAction, SetIconWithSymbolVariants)
         @"}))",
     ]);
 
-    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript, @"popup.html": @"Hello world!" });
+    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript.get(), @"popup.html": @"Hello world!" });
 
     manager.get().internalDelegate.didUpdateAction = ^(WKWebExtensionAction *action) {
         auto *icon = [action iconForSize:CGSizeMake(32, 32)];
@@ -1369,7 +1369,7 @@ TEST(WKWebExtensionAPIAction, BrowserAction)
 
     auto *popupPage = @"<b>Hello World!</b>";
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.browserAction.setTitle({ title: 'Modified Title' })",
         @"await browser.browserAction.setIcon({ path: 'toolbar-48.png' })",
         @"await browser.browserAction.setPopup({ popup: 'alt-popup.html' })",
@@ -1379,12 +1379,12 @@ TEST(WKWebExtensionAPIAction, BrowserAction)
         @"browser.browserAction.openPopup()"
     ]);
 
-    auto *extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
+    RetainPtr extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"alt-popup.html": popupPage,
-        @"toolbar-48.png": extraLargeToolbarIcon,
+        @"toolbar-48.png": extraLargeToolbarIcon.get(),
     };
 
     auto manager = Util::loadExtension(browserActionManifest, resources);
@@ -1462,7 +1462,7 @@ TEST(WKWebExtensionAPIAction, PageAction)
 
     auto *popupPage = @"<b>Hello World!</b>";
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.pageAction.setTitle({ title: 'Modified Title' })",
         @"await browser.pageAction.setIcon({ path: 'toolbar-48.png' })",
         @"await browser.pageAction.setPopup({ popup: 'alt-popup.html' })",
@@ -1472,12 +1472,12 @@ TEST(WKWebExtensionAPIAction, PageAction)
         @"browser.pageAction.openPopup()"
     ]);
 
-    auto *extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
+    RetainPtr extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"alt-popup.html": popupPage,
-        @"toolbar-48.png": extraLargeToolbarIcon,
+        @"toolbar-48.png": extraLargeToolbarIcon.get(),
     };
 
     auto manager = Util::loadExtension(pageActionManifest, resources);
@@ -1534,7 +1534,7 @@ TEST(WKWebExtensionAPIAction, ClearTabSpecificActionPropertiesOnNavigation)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true })",
 
         @"browser.action.setTitle({ title: 'Tab Title', tabId: currentTab.id })",
@@ -1563,45 +1563,45 @@ TEST(WKWebExtensionAPIAction, ClearTabSpecificActionPropertiesOnNavigation)
         @"browser.test.sendMessage('Load Tab')",
     ]);
 
-    auto *smallToolbarIcon = Util::makePNGData(CGSizeMake(16, 16), @selector(redColor));
-    auto *largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
-    auto *extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
+    RetainPtr smallToolbarIcon = Util::makePNGData(CGSizeMake(16, 16), @selector(redColor));
+    RetainPtr largeToolbarIcon = Util::makePNGData(CGSizeMake(32, 32), @selector(blueColor));
+    RetainPtr extraLargeToolbarIcon = Util::makePNGData(CGSizeMake(48, 48), @selector(yellowColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"toolbar-16.png": smallToolbarIcon,
-        @"toolbar-32.png": largeToolbarIcon,
-        @"toolbar-48.png": extraLargeToolbarIcon,
+        @"background.js": backgroundScript.get(),
+        @"toolbar-16.png": smallToolbarIcon.get(),
+        @"toolbar-32.png": largeToolbarIcon.get(),
+        @"toolbar-48.png": extraLargeToolbarIcon.get(),
     };
 
     auto manager = Util::loadExtension(actionPopupManifest, resources);
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebNavigation];
 
-    auto *localhostRequest = server.requestWithLocalhost();
-    auto *addressRequest = server.request();
+    RetainPtr localhostRequest = server.requestWithLocalhost();
+    RetainPtr addressRequest = server.request();
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:localhostRequest.URL];
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:addressRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:localhostRequest.get().URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:addressRequest.get().URL];
 
-    [manager.get().defaultTab.webView loadRequest:localhostRequest];
+    [manager.get().defaultTab.webView loadRequest:localhostRequest.get()];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:addressRequest];
+    [manager.get().defaultTab.webView loadRequest:addressRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIAction, HasUnreadBadgeText)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.action.setBadgeText({ text: 'New' })",
 
         @"browser.test.sendMessage('Check Unread Badge Text')"
     ]);
 
-    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript.get() });
     [manager runUntilTestMessage:@"Check Unread Badge Text"];
 
     auto *defaultAction = [manager.get().context actionForTab:nil];
@@ -1636,20 +1636,20 @@ TEST(WKWebExtensionAPIAction, NavigationOpensInNewTab)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *localhostRequest = server.requestWithLocalhost();
+    RetainPtr localhostRequest = server.requestWithLocalhost();
 
-    auto *popupScript = Util::constructScript(@[
-        [NSString stringWithFormat:@"document.location.href = '%@'", localhostRequest.URL.absoluteString],
+    RetainPtr popupScript = Util::constructScript(@[
+        [NSString stringWithFormat:@"document.location.href = '%@'", localhostRequest.get().URL.absoluteString],
     ]);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Open Popup')"
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"<script type='module' src='popup.js'></script>",
-        @"popup.js": popupScript
+        @"popup.js": popupScript.get()
     };
 
     auto manager = Util::loadExtension(actionPopupManifest, resources);
@@ -1660,7 +1660,7 @@ TEST(WKWebExtensionAPIAction, NavigationOpensInNewTab)
     };
 
     manager.get().internalDelegate.openNewTab = ^(WKWebExtensionTabConfiguration *configuration, WKWebExtensionContext *context, void (^completionHandler)(id<WKWebExtensionTab>, NSError *)) {
-        EXPECT_NS_EQUAL(configuration.url, localhostRequest.URL);
+        EXPECT_NS_EQUAL(configuration.url, localhostRequest.get().URL);
         EXPECT_NS_EQUAL(configuration.window, manager.get().defaultWindow);
         EXPECT_EQ(configuration.index, 1ul);
         EXPECT_EQ(configuration.shouldBeActive, YES);
@@ -1679,20 +1679,20 @@ TEST(WKWebExtensionAPIAction, NavigationOpensInNewTab)
 
 TEST(WKWebExtensionAPIAction, WindowOpenOpensInNewWindow)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Open Popup')"
     ]);
 
-    auto *popupScript = Util::constructScript(@[
+    RetainPtr popupScript = Util::constructScript(@[
         @"browser.test.runWithUserGesture(() => {",
         @"  window.open('https://example.com/', '_blank', 'popup, width=100, height=50')",
         @"})"
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": @"<script type='module' src='popup.js'></script>",
-        @"popup.js": popupScript
+        @"popup.js": popupScript.get()
     };
 
     auto manager = Util::loadExtension(actionPopupManifest, resources);
@@ -1758,7 +1758,7 @@ TEST(WKWebExtensionAPIAction, EmptyAction)
         @"action": @{ }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"if (browser.action) {",
         @"  browser.test.notifyPass()",
         @"} else {",
@@ -1766,12 +1766,12 @@ TEST(WKWebExtensionAPIAction, EmptyAction)
         @"}"
     ]);
 
-    Util::loadAndRunExtension(actionManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(actionManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAction, ClickedEventAndPermissionsRequest)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.action.setPopup({ popup: '' })",
 
         @"browser.action.onClicked.addListener(async (tab) => {",
@@ -1789,7 +1789,7 @@ TEST(WKWebExtensionAPIAction, ClickedEventAndPermissionsRequest)
         @"browser.test.sendMessage('Test Action')"
     ]);
 
-    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(actionPopupManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().internalDelegate.promptForPermissions = ^(id<WKWebExtensionTab> tab, NSSet<NSString *> *requestedPermissions, void (^callback)(NSSet<NSString *> *, NSDate *)) {
         EXPECT_EQ(requestedPermissions.count, 1lu);
@@ -1810,12 +1810,12 @@ TEST(WKWebExtensionAPIAction, SubframeNavigation)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<script>browser.test.notifyPass()</script>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Test Popup Action')"
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": [NSString stringWithFormat:@"<iframe src='%@'></iframe>", server.requestWithLocalhost("/"_s).URL],
     };
 

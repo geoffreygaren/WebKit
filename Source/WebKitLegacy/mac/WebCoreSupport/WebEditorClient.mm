@@ -264,9 +264,9 @@ bool WebEditorClient::shouldApplyStyle(const StyleProperties& style, const std::
 static void updateFontPanel(WebView *webView)
 {
 #if !PLATFORM(IOS_FAMILY)
-    NSView <WebDocumentView> *view = [[[webView selectedFrame] frameView] documentView];
-    if ([view isKindOfClass:[WebHTMLView class]])
-        [(WebHTMLView *)view _updateFontPanel];
+    RetainPtr view = [[[webView selectedFrame] frameView] documentView];
+    if ([view.get() isKindOfClass:[WebHTMLView class]])
+        [(WebHTMLView *)view.get() _updateFontPanel];
 #else
     UNUSED_PARAM(webView);
 #endif
@@ -295,8 +295,8 @@ bool WebEditorClient::shouldEndEditing(const SimpleRange& range)
 
 bool WebEditorClient::shouldInsertText(const String& text, const std::optional<SimpleRange>& range, EditorInsertAction action)
 {
-    WebView* webView = m_webView;
-    return [[webView _editingDelegateForwarder] webView:webView shouldInsertText:text.createNSString().get() replacingDOMRange:kit(range) givenAction:kit(action)];
+    RetainPtr webView = m_webView;
+    return [[webView.get() _editingDelegateForwarder] webView:webView.get() shouldInsertText:text.createNSString().get() replacingDOMRange:kit(range) givenAction:kit(action)];
 }
 
 bool WebEditorClient::shouldChangeSelectedRange(const std::optional<SimpleRange>& fromRange, const std::optional<SimpleRange>& toRange, Affinity selectionAffinity, bool stillSelecting)
@@ -351,11 +351,11 @@ void WebEditorClient::respondToChangedSelection(LocalFrame* frame)
     if (!frame || frame->editor().isGettingDictionaryPopupInfo())
         return;
 
-    NSView<WebDocumentView> *documentView = [[kit(frame) frameView] documentView];
-    if ([documentView isKindOfClass:[WebHTMLView class]]) {
-        [(WebHTMLView *)documentView _selectionChanged];
+    RetainPtr documentView = [[kit(frame) frameView] documentView];
+    if ([documentView.get() isKindOfClass:[WebHTMLView class]]) {
+        [(WebHTMLView *)documentView.get() _selectionChanged];
         [m_webView updateTouchBar];
-        m_lastEditorStateWasContentEditable = [(WebHTMLView *)documentView _isEditable] ? EditorStateIsContentEditable::Yes : EditorStateIsContentEditable::No;
+        m_lastEditorStateWasContentEditable = [(WebHTMLView *)documentView.get() _isEditable] ? EditorStateIsContentEditable::Yes : EditorStateIsContentEditable::No;
     }
 
 #if !PLATFORM(IOS_FAMILY)
@@ -468,9 +468,9 @@ void _WebCreateFragment(Document& document, NSAttributedString *string, Fragment
 {
     static NeverDestroyed<RetainPtr<NSDictionary>> documentAttributes = attributesForAttributedStringConversion();
     NSArray *subresources;
-    DOMDocumentFragment* fragment = [string _documentFromRange:NSMakeRange(0, [string length])
+    RetainPtr fragment = [string _documentFromRange:NSMakeRange(0, [string length])
         document:kit(&document) documentAttributes:documentAttributes.get().get() subresources:&subresources];
-    result.fragment = core(fragment);
+    result.fragment = core(fragment.get());
     for (WebResource* resource in subresources)
         result.resources.append([resource _coreResource].get());
 }
@@ -480,8 +480,8 @@ void _WebCreateFragment(Document& document, NSAttributedString *string, Fragment
 void WebEditorClient::setInsertionPasteboard(const String& pasteboardName)
 {
 #if !PLATFORM(IOS_FAMILY)
-    NSPasteboard *pasteboard = pasteboardName.isEmpty() ? nil : [NSPasteboard pasteboardWithName:pasteboardName.createNSString().get()];
-    [m_webView _setInsertionPasteboard:pasteboard];
+    RetainPtr pasteboard = pasteboardName.isEmpty() ? nil : [NSPasteboard pasteboardWithName:pasteboardName.createNSString().get()];
+    [m_webView _setInsertionPasteboard:pasteboard.get()];
 #endif
 }
 
@@ -508,11 +508,11 @@ void WebEditorClient::capitalizeWord()
 
 void WebEditorClient::showSubstitutionsPanel(bool show)
 {
-    NSPanel *spellingPanel = [[NSSpellChecker sharedSpellChecker] substitutionsPanel];
+    RetainPtr spellingPanel = [[NSSpellChecker sharedSpellChecker] substitutionsPanel];
     if (show)
-        [spellingPanel orderFront:nil];
+        [spellingPanel.get() orderFront:nil];
     else
-        [spellingPanel orderOut:nil];
+        [spellingPanel.get() orderOut:nil];
 }
 
 bool WebEditorClient::substitutionsPanelIsShowing()
@@ -593,20 +593,20 @@ bool WebEditorClient::shouldInsertNode(Node& node, const std::optional<SimpleRan
 
 void WebEditorClient::registerUndoOrRedoStep(UndoStep& step, bool isRedo)
 {
-    NSUndoManager *undoManager = [m_webView undoManager];
+    RetainPtr undoManager = [m_webView undoManager];
 
 #if PLATFORM(IOS_FAMILY)
     // While we are undoing, we shouldn't be asked to register another Undo operation, we shouldn't even be touching the DOM.
     // But just in case this happens, return to avoid putting the undo manager into an inconsistent state.
     // Same for being asked to register a Redo operation in the midst of another Redo.
-    if (([undoManager isUndoing] && !isRedo) || ([undoManager isRedoing] && isRedo))
+    if (([undoManager.get() isUndoing] && !isRedo) || ([undoManager.get() isRedoing] && isRedo))
         return;
 #endif
 
     RetainPtr actionName = step.label().createNSString();
-    [undoManager registerUndoWithTarget:m_undoTarget.get() selector:(isRedo ? @selector(redoEditing:) : @selector(undoEditing:)) object:[WebUndoStep stepWithUndoStep:step]];
+    [undoManager.get() registerUndoWithTarget:m_undoTarget.get() selector:(isRedo ? @selector(redoEditing:) : @selector(undoEditing:)) object:[WebUndoStep stepWithUndoStep:step]];
     if (actionName)
-        [undoManager setActionName:actionName.get()];
+        [undoManager.get() setActionName:actionName.get()];
     m_haveUndoRedoOperations = YES;
 }
 
@@ -621,11 +621,11 @@ void WebEditorClient::updateEditorStateAfterLayoutIfEditabilityChanged()
     if (!frame)
         return;
 
-    NSView<WebDocumentView> *documentView = [[kit(frame) frameView] documentView];
-    if (![documentView isKindOfClass:[WebHTMLView class]])
+    RetainPtr documentView = [[kit(frame) frameView] documentView];
+    if (![documentView.get() isKindOfClass:[WebHTMLView class]])
         return;
 
-    EditorStateIsContentEditable editorStateIsContentEditable = [(WebHTMLView *)documentView _isEditable] ? EditorStateIsContentEditable::Yes : EditorStateIsContentEditable::No;
+    EditorStateIsContentEditable editorStateIsContentEditable = [(WebHTMLView *)documentView.get() _isEditable] ? EditorStateIsContentEditable::Yes : EditorStateIsContentEditable::No;
     if (m_lastEditorStateWasContentEditable != editorStateIsContentEditable)
         [m_webView updateTouchBar];
 }
@@ -646,18 +646,18 @@ void WebEditorClient::clearUndoRedoOperations()
         // workaround for <rdar://problem/4645507> NSUndoManager dies
         // with uncaught exception when undo items cleared while
         // groups are open
-        NSUndoManager *undoManager = [m_webView undoManager];
-        int groupingLevel = [undoManager groupingLevel];
+        RetainPtr undoManager = [m_webView undoManager];
+        int groupingLevel = [undoManager.get() groupingLevel];
         for (int i = 0; i < groupingLevel; ++i)
-            [undoManager endUndoGrouping];
-        
-        [undoManager removeAllActionsWithTarget:m_undoTarget.get()];
-        
+            [undoManager.get() endUndoGrouping];
+
+        [undoManager.get() removeAllActionsWithTarget:m_undoTarget.get()];
+
         for (int i = 0; i < groupingLevel; ++i)
-            [undoManager beginUndoGrouping];
-        
+            [undoManager.get() beginUndoGrouping];
+
         m_haveUndoRedoOperations = NO;
-    }    
+    }
 }
 
 bool WebEditorClient::canCopyCut(LocalFrame*, bool defaultValue) const
@@ -696,12 +696,12 @@ void WebEditorClient::handleKeyboardEvent(KeyboardEvent& event)
 {
     auto* frame = downcast<Node>(event.target())->document().frame();
 #if !PLATFORM(IOS_FAMILY)
-    WebHTMLView *webHTMLView = (WebHTMLView *)[[kit(frame) frameView] documentView];
-    if ([webHTMLView _interpretKeyEvent:&event savingCommands:NO])
+    RetainPtr webHTMLView = (WebHTMLView *)[[kit(frame) frameView] documentView];
+    if ([webHTMLView.get() _interpretKeyEvent:&event savingCommands:NO])
         event.setDefaultHandled();
 #else
-    WebHTMLView *webHTMLView = (WebHTMLView *)[[kit(frame) frameView] documentView];
-    if ([webHTMLView _handleEditingKeyEvent:&event])
+    RetainPtr webHTMLView = (WebHTMLView *)[[kit(frame) frameView] documentView];
+    if ([webHTMLView.get() _handleEditingKeyEvent:&event])
         event.setDefaultHandled();
 #endif
 }
@@ -711,8 +711,8 @@ void WebEditorClient::handleInputMethodKeydown(KeyboardEvent& event)
 #if !PLATFORM(IOS_FAMILY)
     // FIXME: Switch to WebKit2 model, interpreting the event before it's sent down to WebCore.
     auto* frame = downcast<Node>(event.target())->document().frame();
-    WebHTMLView *webHTMLView = (WebHTMLView *)[[kit(frame) frameView] documentView];
-    if ([webHTMLView _interpretKeyEvent:&event savingCommands:YES])
+    RetainPtr webHTMLView = (WebHTMLView *)[[kit(frame) frameView] documentView];
+    if ([webHTMLView.get() _interpretKeyEvent:&event savingCommands:YES])
         event.setDefaultHandled();
 #else
     // iOS does not use input manager this way
@@ -733,27 +733,27 @@ static DOMElement *dynamicDowncastToKit(Element& element)
 
 void WebEditorClient::textFieldDidBeginEditing(Element& element)
 {
-    auto *inputElement = dynamicDowncastToKit<HTMLInputElement>(element);
+    RetainPtr inputElement = dynamicDowncastToKit<HTMLInputElement>(element);
     if (!inputElement)
         return;
 
-    FormDelegateLog(inputElement);
-    CallFormDelegate(m_webView, @selector(textFieldDidBeginEditing:inFrame:), inputElement, kit(element.document().frame()));
+    FormDelegateLog(inputElement.get());
+    CallFormDelegate(m_webView, @selector(textFieldDidBeginEditing:inFrame:), inputElement.get(), kit(element.document().frame()));
 }
 
 void WebEditorClient::textFieldDidEndEditing(Element& element)
 {
-    auto *inputElement = dynamicDowncastToKit<HTMLInputElement>(element);
+    RetainPtr inputElement = dynamicDowncastToKit<HTMLInputElement>(element);
     if (!inputElement)
         return;
 
-    FormDelegateLog(inputElement);
-    CallFormDelegate(m_webView, @selector(textFieldDidEndEditing:inFrame:), inputElement, kit(element.document().frame()));
+    FormDelegateLog(inputElement.get());
+    CallFormDelegate(m_webView, @selector(textFieldDidEndEditing:inFrame:), inputElement.get(), kit(element.document().frame()));
 }
 
 void WebEditorClient::textDidChangeInTextField(Element& element)
 {
-    auto *inputElement = dynamicDowncastToKit<HTMLInputElement>(element);
+    RetainPtr inputElement = dynamicDowncastToKit<HTMLInputElement>(element);
     if (!inputElement)
         return;
 
@@ -762,8 +762,8 @@ void WebEditorClient::textDidChangeInTextField(Element& element)
         return;
 #endif
 
-    FormDelegateLog(inputElement);
-    CallFormDelegate(m_webView, @selector(textDidChangeInTextField:inFrame:), inputElement, kit(element.document().frame()));
+    FormDelegateLog(inputElement.get());
+    CallFormDelegate(m_webView, @selector(textDidChangeInTextField:inFrame:), inputElement.get(), kit(element.document().frame()));
 }
 
 static SEL selectorForKeyEvent(KeyboardEvent* event)
@@ -793,35 +793,35 @@ IGNORE_WARNINGS_END
 
 bool WebEditorClient::doTextFieldCommandFromEvent(Element& element, KeyboardEvent* event)
 {
-    auto *inputElement = dynamicDowncastToKit<HTMLInputElement>(element);
+    RetainPtr inputElement = dynamicDowncastToKit<HTMLInputElement>(element);
     if (!inputElement)
         return NO;
 
-    FormDelegateLog(inputElement);
+    FormDelegateLog(inputElement.get());
     if (SEL commandSelector = selectorForKeyEvent(event))
-        return CallFormDelegateReturningBoolean(NO, m_webView, @selector(textField:doCommandBySelector:inFrame:), inputElement, commandSelector, kit(element.document().frame()));
+        return CallFormDelegateReturningBoolean(NO, m_webView, @selector(textField:doCommandBySelector:inFrame:), inputElement.get(), commandSelector, kit(element.document().frame()));
     return NO;
 }
 
 void WebEditorClient::textWillBeDeletedInTextField(Element& element)
 {
-    auto *inputElement = dynamicDowncastToKit<HTMLInputElement>(element);
+    RetainPtr inputElement = dynamicDowncastToKit<HTMLInputElement>(element);
     if (!inputElement)
         return;
 
-    FormDelegateLog(inputElement);
+    FormDelegateLog(inputElement.get());
     // We're using the deleteBackward selector for all deletion operations since the autofill code treats all deletions the same way.
-    CallFormDelegateReturningBoolean(NO, m_webView, @selector(textField:doCommandBySelector:inFrame:), inputElement, @selector(deleteBackward:), kit(element.document().frame()));
+    CallFormDelegateReturningBoolean(NO, m_webView, @selector(textField:doCommandBySelector:inFrame:), inputElement.get(), @selector(deleteBackward:), kit(element.document().frame()));
 }
 
 void WebEditorClient::textDidChangeInTextArea(Element& element)
 {
-    auto *textAreaElement = dynamicDowncastToKit<HTMLTextAreaElement>(element);
+    RetainPtr textAreaElement = dynamicDowncastToKit<HTMLTextAreaElement>(element);
     if (!textAreaElement)
         return;
 
-    FormDelegateLog(textAreaElement);
-    CallFormDelegate(m_webView, @selector(textDidChangeInTextArea:inFrame:), textAreaElement, kit(element.document().frame()));
+    FormDelegateLog(textAreaElement.get());
+    CallFormDelegate(m_webView, @selector(textDidChangeInTextArea:inFrame:), textAreaElement.get(), kit(element.document().frame()));
 }
 
 #if PLATFORM(IOS_FAMILY)
@@ -859,11 +859,11 @@ bool WebEditorClient::shouldSuppressPasswordEcho() const
 RefPtr<WebCore::DocumentFragment> WebEditorClient::documentFragmentFromDelegate(int index)
 {
     if ([[m_webView _editingDelegateForwarder] respondsToSelector:@selector(documentFragmentForPasteboardItemAtIndex:)]) {
-        DOMDocumentFragment *fragmentFromDelegate = [[m_webView _editingDelegateForwarder] documentFragmentForPasteboardItemAtIndex:index];
+        RetainPtr fragmentFromDelegate = [[m_webView _editingDelegateForwarder] documentFragmentForPasteboardItemAtIndex:index];
         if (fragmentFromDelegate)
-            return core(fragmentFromDelegate);
+            return core(fragmentFromDelegate.get());
     }
-    
+
     return nullptr;
 }
 
@@ -889,8 +889,8 @@ Vector<TextCheckingResult> WebEditorClient::checkTextOfParagraph(StringView stri
 
     Vector<TextCheckingResult> results;
 
-    NSArray *incomingResults = [[m_webView _UIKitDelegateForwarder] checkSpellingOfString:string.createNSStringWithoutCopying().get()];
-    for (NSValue *incomingResult in incomingResults) {
+    RetainPtr incomingResults = [[m_webView _UIKitDelegateForwarder] checkSpellingOfString:string.createNSStringWithoutCopying().get()];
+    for (NSValue *incomingResult in incomingResults.get()) {
         ASSERT(incomingResult.rangeValue.location != NSNotFound);
         ASSERT(incomingResult.rangeValue.length > 0);
         TextCheckingResult result;
@@ -945,24 +945,26 @@ void WebEditorClient::checkSpellingOfString(StringView text, int* misspellingLoc
 
 void WebEditorClient::checkGrammarOfString(StringView text, Vector<GrammarDetail>& details, int* badGrammarLocation, int* badGrammarLength)
 {
-    NSArray *grammarDetails;
-    NSRange range = [[NSSpellChecker sharedSpellChecker] checkGrammarOfString:text.createNSStringWithoutCopying().get() startingAt:0 language:nil wrap:NO inSpellDocumentWithTag:spellCheckerDocumentTag() details:&grammarDetails];
+    SUPPRESS_UNCOUNTED_LOCAL NSArray *rawGrammarDetails;
+    NSRange range = [[NSSpellChecker sharedSpellChecker] checkGrammarOfString:text.createNSStringWithoutCopying().get() startingAt:0 language:nil wrap:NO inSpellDocumentWithTag:spellCheckerDocumentTag() details:&rawGrammarDetails];
+    RetainPtr grammarDetails = rawGrammarDetails;
+
     if (badGrammarLocation)
         // WebCore expects -1 to represent "not found"
         *badGrammarLocation = (range.location == NSNotFound) ? -1 : static_cast<int>(range.location);
     if (badGrammarLength)
         *badGrammarLength = range.length;
-    for (NSDictionary *detail in grammarDetails) {
+    for (NSDictionary *detail in grammarDetails.get()) {
         ASSERT(detail);
         GrammarDetail grammarDetail;
-        NSValue *detailRangeAsNSValue = [detail objectForKey:NSGrammarRange];
+        RetainPtr<NSValue> detailRangeAsNSValue = [detail objectForKey:NSGrammarRange];
         ASSERT(detailRangeAsNSValue);
-        ASSERT(detailRangeAsNSValue.rangeValue.location != NSNotFound);
-        ASSERT(detailRangeAsNSValue.rangeValue.length > 0);
-        grammarDetail.range = detailRangeAsNSValue.rangeValue;
+        ASSERT(detailRangeAsNSValue.get().rangeValue.location != NSNotFound);
+        ASSERT(detailRangeAsNSValue.get().rangeValue.length > 0);
+        grammarDetail.range = detailRangeAsNSValue.get().rangeValue;
         grammarDetail.userDescription = [detail objectForKey:NSGrammarUserDescription];
-        NSArray *guesses = [detail objectForKey:NSGrammarCorrections];
-        for (NSString *guess in guesses)
+        RetainPtr guesses = [detail objectForKey:NSGrammarCorrections];
+        for (NSString *guess in guesses.get())
             grammarDetail.guesses.append(String(guess));
         details.append(grammarDetail);
     }
@@ -984,21 +986,21 @@ static Vector<TextCheckingResult> core(NSArray *incomingResults, OptionSet<TextC
             results.append(result);
         } else if (resultType == NSTextCheckingTypeGrammar && checkingTypes.contains(TextCheckingType::Grammar)) {
             TextCheckingResult result;
-            NSArray *details = [incomingResult grammarDetails];
+            RetainPtr details = [incomingResult grammarDetails];
             result.type = TextCheckingType::Grammar;
             result.range = resultRange;
-            for (NSDictionary *incomingDetail in details) {
+            for (NSDictionary *incomingDetail in details.get()) {
                 ASSERT(incomingDetail);
                 GrammarDetail detail;
-                NSValue *detailRangeAsNSValue = [incomingDetail objectForKey:NSGrammarRange];
+                RetainPtr detailRangeAsNSValue = [incomingDetail objectForKey:NSGrammarRange];
                 ASSERT(detailRangeAsNSValue);
-                NSRange detailNSRange = [detailRangeAsNSValue rangeValue];
+                NSRange detailNSRange = [detailRangeAsNSValue.get() rangeValue];
                 ASSERT(detailNSRange.location != NSNotFound);
                 ASSERT(detailNSRange.length > 0);
                 detail.range = detailNSRange;
                 detail.userDescription = [incomingDetail objectForKey:NSGrammarUserDescription];
-                NSArray *guesses = [incomingDetail objectForKey:NSGrammarCorrections];
-                for (NSString *guess in guesses)
+                RetainPtr guesses = [incomingDetail objectForKey:NSGrammarCorrections];
+                for (NSString *guess in guesses.get())
                     detail.guesses.append(String(guess));
                 result.details.append(detail);
             }
@@ -1050,18 +1052,18 @@ static NSUInteger insertionPointFromCurrentSelection(const VisibleSelection& sel
 
 Vector<TextCheckingResult> WebEditorClient::checkTextOfParagraph(StringView string, OptionSet<TextCheckingType> coreCheckingTypes, const VisibleSelection& currentSelection)
 {
-    NSDictionary *options = @{ NSTextCheckingInsertionPointKey : @(insertionPointFromCurrentSelection(currentSelection)) };
-    return core([[NSSpellChecker sharedSpellChecker] checkString:string.createNSStringWithoutCopying().get() range:NSMakeRange(0, string.length()) types:(nsTextCheckingTypes(coreCheckingTypes) | NSTextCheckingTypeOrthography) options:options inSpellDocumentWithTag:spellCheckerDocumentTag() orthography:NULL wordCount:NULL], coreCheckingTypes);
+    RetainPtr options = @{ NSTextCheckingInsertionPointKey : @(insertionPointFromCurrentSelection(currentSelection)) };
+    return core([[NSSpellChecker sharedSpellChecker] checkString:string.createNSStringWithoutCopying().get() range:NSMakeRange(0, string.length()) types:(nsTextCheckingTypes(coreCheckingTypes) | NSTextCheckingTypeOrthography) options:options.get() inSpellDocumentWithTag:spellCheckerDocumentTag() orthography:NULL wordCount:NULL], coreCheckingTypes);
 }
 
 void WebEditorClient::updateSpellingUIWithGrammarString(const String& badGrammarPhrase, const GrammarDetail& grammarDetail)
 {
-    auto dictionary = @{
+    RetainPtr dictionary = @{
         NSGrammarRange: [NSValue valueWithRange:grammarDetail.range],
         NSGrammarUserDescription: grammarDetail.userDescription.createNSString().get(),
         NSGrammarCorrections: createNSArray(grammarDetail.guesses).get(),
     };
-    [[NSSpellChecker sharedSpellChecker] updateSpellingPanelWithGrammarString:badGrammarPhrase.createNSString().get() detail:dictionary];
+    [[NSSpellChecker sharedSpellChecker] updateSpellingPanelWithGrammarString:badGrammarPhrase.createNSString().get() detail:dictionary.get()];
 }
 
 void WebEditorClient::updateSpellingUIWithMisspelledWord(const String& misspelledWord)
@@ -1071,11 +1073,11 @@ void WebEditorClient::updateSpellingUIWithMisspelledWord(const String& misspelle
 
 void WebEditorClient::showSpellingUI(bool show)
 {
-    NSPanel *spellingPanel = [[NSSpellChecker sharedSpellChecker] spellingPanel];
+    RetainPtr spellingPanel = [[NSSpellChecker sharedSpellChecker] spellingPanel];
     if (show)
-        [spellingPanel orderFront:nil];
+        [spellingPanel.get() orderFront:nil];
     else
-        [spellingPanel orderOut:nil];
+        [spellingPanel.get() orderOut:nil];
 }
 
 bool WebEditorClient::spellingUIIsShowing()
@@ -1088,16 +1090,16 @@ void WebEditorClient::getGuessesForWord(const String& word, const String& contex
     guesses.clear();
     RetainPtr<NSString> language;
     NSOrthography* orthography = nil;
-    NSSpellChecker *checker = [NSSpellChecker sharedSpellChecker];
-    NSDictionary *options = @{ NSTextCheckingInsertionPointKey : @(insertionPointFromCurrentSelection(currentSelection)) };
+    RetainPtr checker = [NSSpellChecker sharedSpellChecker];
+    RetainPtr options = @{ NSTextCheckingInsertionPointKey : @(insertionPointFromCurrentSelection(currentSelection)) };
     if (context.length()) {
         RetainPtr nsContext = context.createNSString();
-        [checker checkString:nsContext.get() range:NSMakeRange(0, context.length()) types:NSTextCheckingTypeOrthography options:options inSpellDocumentWithTag:spellCheckerDocumentTag() orthography:&orthography wordCount:0];
-        language = [checker languageForWordRange:NSMakeRange(0, context.length()) inString:nsContext.get() orthography:orthography];
+        [checker.get() checkString:nsContext.get() range:NSMakeRange(0, context.length()) types:NSTextCheckingTypeOrthography options:options.get() inSpellDocumentWithTag:spellCheckerDocumentTag() orthography:&orthography wordCount:0];
+        language = [checker.get() languageForWordRange:NSMakeRange(0, context.length()) inString:nsContext.get() orthography:orthography];
     }
-    NSArray *stringsArray = [checker guessesForWordRange:NSMakeRange(0, word.length()) inString:word.createNSString().get() language:language.get() inSpellDocumentWithTag:spellCheckerDocumentTag()];
-    if (stringsArray.count)
-        guesses = makeVector<String>(stringsArray);
+    RetainPtr stringsArray = [checker.get() guessesForWordRange:NSMakeRange(0, word.length()) inString:word.createNSString().get() language:language.get() inSpellDocumentWithTag:spellCheckerDocumentTag()];
+    if (stringsArray.get().count)
+        guesses = makeVector<String>(stringsArray.get());
 }
 
 #endif // !PLATFORM(IOS_FAMILY)
@@ -1185,14 +1187,14 @@ void WebEditorClient::handleAcceptedCandidateWithSoftSpaces(TextCheckingResult a
     if (selection != m_lastSelectionForRequestedCandidates)
         return;
 
-    NSView <WebDocumentView> *view = [[[m_webView selectedFrame] frameView] documentView];
-    if ([view isKindOfClass:[WebHTMLView class]]) {
+    RetainPtr view = [[[m_webView selectedFrame] frameView] documentView];
+    if ([view.get() isKindOfClass:[WebHTMLView class]]) {
         unsigned replacementLength = acceptedCandidate.replacement.length();
         if (replacementLength > 0) {
             NSRange replacedRange = NSMakeRange(acceptedCandidate.range.location, replacementLength);
             NSRange softSpaceRange = NSMakeRange(NSMaxRange(replacedRange) - 1, 1);
             if (acceptedCandidate.replacement.endsWith(' '))
-                [(WebHTMLView *)view _setSoftSpaceRange:softSpaceRange];
+                [(WebHTMLView *)view.get() _setSoftSpaceRange:softSpaceRange];
         }
     }
 
@@ -1256,13 +1258,13 @@ void WebEditorClient::requestCheckingOfString(TextCheckingRequest& request, cons
     m_requestsInFlight.add(identifier, request);
 
     NSRange range = NSMakeRange(0, request.data().text().length());
-    NSRunLoop *currentLoop = [NSRunLoop currentRunLoop];
+    RetainPtr currentLoop = [NSRunLoop currentRunLoop];
     WeakPtr weakThis { *this };
-    NSDictionary *options = @{ NSTextCheckingInsertionPointKey : [NSNumber numberWithUnsignedInteger:insertionPointFromCurrentSelection(currentSelection)] };
+    RetainPtr options = @{ NSTextCheckingInsertionPointKey : [NSNumber numberWithUnsignedInteger:insertionPointFromCurrentSelection(currentSelection)] };
     NSTextCheckingType types = NSTextCheckingTypeSpelling | NSTextCheckingTypeGrammar | NSTextCheckingTypeLink | NSTextCheckingTypeQuote | NSTextCheckingTypeDash | NSTextCheckingTypeReplacement | NSTextCheckingTypeCorrection;
-    [[NSSpellChecker sharedSpellChecker] requestCheckingOfString:request.data().text().createNSString().get() range:range types:types options:options inSpellDocumentWithTag:0 completionHandler:^(NSInteger, NSArray *results, NSOrthography *, NSInteger) {
+    [[NSSpellChecker sharedSpellChecker] requestCheckingOfString:request.data().text().createNSString().get() range:range types:types options:options.get() inSpellDocumentWithTag:0 completionHandler:^(NSInteger, NSArray *results, NSOrthography *, NSInteger) {
         RetainPtr<WebEditorSpellCheckResponder> responder = adoptNS([[WebEditorSpellCheckResponder alloc] initWithClient:weakThis identifier:identifier results:results]);
-        [currentLoop performBlock:^{
+        [currentLoop.get() performBlock:^{
             [responder perform];
         }];
     }];

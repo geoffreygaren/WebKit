@@ -40,15 +40,15 @@ TEST(WebKit, WKNSNumber)
     auto uint64Ref = adoptWK(WKUInt64Create(39));
     auto doubleRef = adoptWK(WKDoubleCreate(-16.2));
 
-    NSNumber *booleanNumber = (NSNumber *)booleanRef.get();
-    NSNumber *uint64Number = (NSNumber *)uint64Ref.get();
-    NSNumber *doubleNumber = (NSNumber *)doubleRef.get();
+    RetainPtr booleanNumber = (NSNumber *)booleanRef.get();
+    RetainPtr uint64Number = (NSNumber *)uint64Ref.get();
+    RetainPtr doubleNumber = (NSNumber *)doubleRef.get();
 
-    EXPECT_EQ(YES, booleanNumber.boolValue);
-    EXPECT_EQ(YES, booleanNumber.charValue);
-    EXPECT_EQ(39UL, uint64Number.unsignedLongLongValue);
-    EXPECT_EQ(39, uint64Number.intValue);
-    EXPECT_EQ(-16.2, doubleNumber.doubleValue);
+    EXPECT_EQ(YES, [booleanNumber.get() boolValue]);
+    EXPECT_EQ(YES, [booleanNumber.get() charValue]);
+    EXPECT_EQ(39UL, [uint64Number.get() unsignedLongLongValue]);
+    EXPECT_EQ(39, [uint64Number.get() intValue]);
+    EXPECT_EQ(-16.2, [doubleNumber.get() doubleValue]);
 }
 
 } // namespace TestWebKitAPI

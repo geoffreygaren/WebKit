@@ -123,9 +123,9 @@ TEST(WebKit, FindInPage)
     // Ensure that the generated image has the correct DPI.
     __block bool generateTextImageDone = false;
     [match generateTextImage:^(NSImage *image) {
-        CGImageRef CGImage = [image CGImageForProposedRect:nil context:nil hints:nil];
-        EXPECT_EQ(image.size.width, CGImageGetWidth(CGImage) / 2);
-        EXPECT_EQ(image.size.height, CGImageGetHeight(CGImage) / 2);
+        RetainPtr CGImage = [image CGImageForProposedRect:nil context:nil hints:nil];
+        EXPECT_EQ(image.size.width, CGImageGetWidth(CGImage.get()) / 2);
+        EXPECT_EQ(image.size.height, CGImageGetHeight(CGImage.get()) / 2);
         generateTextImageDone = true;
     }];
     TestWebKitAPI::Util::run(&generateTextImageDone);

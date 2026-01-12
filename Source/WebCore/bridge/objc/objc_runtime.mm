@@ -102,13 +102,13 @@ JSValue ObjcField::valueFromInstance(JSGlobalObject* lexicalGlobalObject, const 
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     JSValue result = jsUndefined();
-    
-    id targetObject = (downcast<ObjcInstance>(instance))->getObject();
+
+    RetainPtr targetObject = (downcast<ObjcInstance>(instance))->getObject();
 
     JSLock::DropAllLocks dropAllLocks(lexicalGlobalObject); // Can't put this inside the @try scope because it unwinds incorrectly.
 
     @try {
-        if (id objcValue = [targetObject valueForKey:(__bridge NSString *)_name.get()])
+        if (id objcValue = [targetObject.get() valueForKey:(__bridge NSString *)_name.get()])
             result = convertObjcValueToValue(lexicalGlobalObject, &objcValue, ObjcObjectType, instance->rootObject());
         {
             JSLockHolder lock(lexicalGlobalObject);
@@ -136,13 +136,13 @@ bool ObjcField::setValueToInstance(JSGlobalObject* lexicalGlobalObject, const In
     JSC::VM& vm = lexicalGlobalObject->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    id targetObject = (downcast<ObjcInstance>(instance))->getObject();
-    id value = convertValueToObjcObject(lexicalGlobalObject, aValue);
+    RetainPtr targetObject = (downcast<ObjcInstance>(instance))->getObject();
+    RetainPtr value = convertValueToObjcObject(lexicalGlobalObject, aValue);
 
     JSLock::DropAllLocks dropAllLocks(lexicalGlobalObject); // Can't put this inside the @try scope because it unwinds incorrectly.
 
     @try {
-        [targetObject setValue:value forKey:(__bridge NSString *)_name.get()];
+        [targetObject.get() setValue:value.get() forKey:(__bridge NSString *)_name.get()];
         {
             JSLockHolder lock(lexicalGlobalObject);
             ObjcInstance::moveGlobalExceptionToExecState(lexicalGlobalObject);
@@ -270,12 +270,12 @@ JSC_DEFINE_HOST_FUNCTION(callObjCFallbackObject, (JSGlobalObject* lexicalGlobalO
 
     if (!objcInstance)
         return JSValue::encode(throwRuntimeObjectInvalidAccessError(lexicalGlobalObject, scope));
-    
+
     objcInstance->begin();
 
-    id targetObject = objcInstance->getObject();
-    
-    if ([targetObject respondsToSelector:@selector(invokeUndefinedMethodFromWebScript:withArguments:)]){
+    RetainPtr targetObject = objcInstance->getObject();
+
+    if ([targetObject.get() respondsToSelector:@selector(invokeUndefinedMethodFromWebScript:withArguments:)]){
         auto* objcClass = downcast<ObjcClass>(objcInstance->getClass());
         std::unique_ptr<ObjcMethod> fallbackMethod(makeUnique<ObjcMethod>(objcClass->isa(), @selector(invokeUndefinedMethodFromWebScript:withArguments:)));
         auto& nameIdentifier = jsCast<ObjcFallbackObjectImp*>(callFrame->jsCallee())->propertyName();
@@ -293,8 +293,8 @@ CallData ObjcFallbackObjectImp::getCallData(JSCell* cell)
     CallData callData;
 
     ObjcFallbackObjectImp* thisObject = jsCast<ObjcFallbackObjectImp*>(cell);
-    id targetObject = thisObject->_instance->getObject();
-    if ([targetObject respondsToSelector:@selector(invokeUndefinedMethodFromWebScript:withArguments:)]) {
+    RetainPtr targetObject = thisObject->_instance->getObject();
+    if ([targetObject.get() respondsToSelector:@selector(invokeUndefinedMethodFromWebScript:withArguments:)]) {
         callData.type = CallData::Type::Native;
         callData.native.function = callObjCFallbackObject;
         callData.native.isBoundFunction = false;
@@ -324,9 +324,9 @@ JSC_DEFINE_HOST_FUNCTION(convertObjCFallbackObjectToPrimitive, (JSGlobalObject* 
 
 bool ObjcFallbackObjectImp::toBoolean(JSGlobalObject*) const
 {
-    id targetObject = _instance->getObject();
-    
-    if ([targetObject respondsToSelector:@selector(invokeUndefinedMethodFromWebScript:withArguments:)])
+    RetainPtr targetObject = _instance->getObject();
+
+    if ([targetObject.get() respondsToSelector:@selector(invokeUndefinedMethodFromWebScript:withArguments:)])
         return true;
     
     return false;

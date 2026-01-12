@@ -107,7 +107,7 @@ static auto *activeTabManifest = @{
 
 TEST(WKWebExtensionAPITabs, Errors)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.tabs.get('bad'), /'tabId' value is invalid, because a number is expected/i)",
         @"browser.test.assertThrows(() => browser.tabs.get(-3), /'tabId' value is invalid, because it is not a tab identifier/i)",
         @"browser.test.assertThrows(() => browser.tabs.duplicate('bad'), /'tabId' value is invalid, because a number is expected/i)",
@@ -169,7 +169,7 @@ TEST(WKWebExtensionAPITabs, Errors)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.tabs.executeScript(), /a required argument is missing/i)",
@@ -217,12 +217,12 @@ TEST(WKWebExtensionAPITabs, Errors)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(tabsManifestV2, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(tabsManifestV2, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPITabs, Create)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const initialTabsCount = allWindows[0].tabs.length",
 
@@ -236,7 +236,7 @@ TEST(WKWebExtensionAPITabs, Create)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *window = manager.get().defaultWindow;
     auto originalOpenNewTab = manager.get().internalDelegate.openNewTab;
@@ -262,7 +262,7 @@ TEST(WKWebExtensionAPITabs, Create)
 
 TEST(WKWebExtensionAPITabs, CreateTabsOverflowIndex)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"var allWindows = await browser.windows.getAll({ populate: true })",
         @"var initialTabsCount = allWindows[0].tabs.length",
         @"var largeIndex = 13000000000000000000000000000000000",
@@ -276,7 +276,7 @@ TEST(WKWebExtensionAPITabs, CreateTabsOverflowIndex)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *window = manager.get().defaultWindow;
     auto originalOpenNewTab = manager.get().internalDelegate.openNewTab;
@@ -293,7 +293,7 @@ TEST(WKWebExtensionAPITabs, CreateTabsOverflowIndex)
 
 TEST(WKWebExtensionAPITabs, CreateTabsZeroIndex)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"var allWindows = await browser.windows.getAll({ populate: true })",
         @"var initialTabsCount = allWindows[0].tabs.length",
 
@@ -307,7 +307,7 @@ TEST(WKWebExtensionAPITabs, CreateTabsZeroIndex)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *window = manager.get().defaultWindow;
     auto originalOpenNewTab = manager.get().internalDelegate.openNewTab;
@@ -324,7 +324,7 @@ TEST(WKWebExtensionAPITabs, CreateTabsZeroIndex)
 
 TEST(WKWebExtensionAPITabs, CreateWithSpecifiedOptions)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const initialTabsCount = allWindows[0].tabs.length",
 
@@ -347,7 +347,7 @@ TEST(WKWebExtensionAPITabs, CreateWithSpecifiedOptions)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *window = manager.get().defaultWindow;
     auto *tab = manager.get().defaultTab;
@@ -374,7 +374,7 @@ TEST(WKWebExtensionAPITabs, CreateWithSpecifiedOptions)
 
 TEST(WKWebExtensionAPITabs, CreateWithRelativeURL)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const newTab = await browser.tabs.create({",
         @"  url: 'test.html'",
         @"})",
@@ -384,7 +384,7 @@ TEST(WKWebExtensionAPITabs, CreateWithRelativeURL)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript, @"test.html": @"Hello world!" });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get(), @"test.html": @"Hello world!" });
 
     auto originalOpenNewTab = manager.get().internalDelegate.openNewTab;
 
@@ -399,7 +399,7 @@ TEST(WKWebExtensionAPITabs, CreateWithRelativeURL)
 
 TEST(WKWebExtensionAPITabs, Duplicate)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const initialTabsCount = allWindows[0].tabs.length",
 
@@ -413,7 +413,7 @@ TEST(WKWebExtensionAPITabs, Duplicate)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *window = manager.get().defaultWindow;
     auto *tab = manager.get().defaultTab;
@@ -440,7 +440,7 @@ TEST(WKWebExtensionAPITabs, Duplicate)
 
 TEST(WKWebExtensionAPITabs, DuplicateWithOptions)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const initialTabsCount = allWindows[0].tabs.length",
 
@@ -458,7 +458,7 @@ TEST(WKWebExtensionAPITabs, DuplicateWithOptions)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *window = manager.get().defaultWindow;
     auto *tab = manager.get().defaultTab;
@@ -485,7 +485,7 @@ TEST(WKWebExtensionAPITabs, DuplicateWithOptions)
 
 TEST(WKWebExtensionAPITabs, Update)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const secondTab = allWindows[0].tabs[1]",
 
@@ -512,7 +512,7 @@ TEST(WKWebExtensionAPITabs, Update)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().defaultWindow openNewTab];
 
@@ -523,7 +523,7 @@ TEST(WKWebExtensionAPITabs, Update)
 
 TEST(WKWebExtensionAPITabs, UpdateWithoutTabId)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const activeTab = allWindows[0].tabs[0]",
 
@@ -538,7 +538,7 @@ TEST(WKWebExtensionAPITabs, UpdateWithoutTabId)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     EXPECT_EQ(manager.get().defaultWindow.tabs.count, 1lu);
 
@@ -547,7 +547,7 @@ TEST(WKWebExtensionAPITabs, UpdateWithoutTabId)
 
 TEST(WKWebExtensionAPITabs, Get)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const windowId = allWindows[0].id",
         @"const tabId = allWindows[0].tabs[0].id",
@@ -571,7 +571,7 @@ TEST(WKWebExtensionAPITabs, Get)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().defaultWindow openNewTab];
 
@@ -582,7 +582,7 @@ TEST(WKWebExtensionAPITabs, Get)
 
 TEST(WKWebExtensionAPITabs, GetCurrentFromBackgroundPage)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true })",
         @"const tab = await browser.tabs.getCurrent()",
 
@@ -591,7 +591,7 @@ TEST(WKWebExtensionAPITabs, GetCurrentFromBackgroundPage)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().defaultWindow openNewTab];
 
@@ -602,7 +602,7 @@ TEST(WKWebExtensionAPITabs, GetCurrentFromBackgroundPage)
 
 TEST(WKWebExtensionAPITabs, GetCurrentFromOptionsPage)
 {
-    auto *optionsScript = Util::constructScript(@[
+    RetainPtr optionsScript = Util::constructScript(@[
         @"const tab = await browser.tabs.getCurrent()",
 
         @"browser.test.assertEq(typeof tab, 'object', 'The tab should be')",
@@ -614,7 +614,7 @@ TEST(WKWebExtensionAPITabs, GetCurrentFromOptionsPage)
     auto *resources = @{
         @"background.js": @"// Not Used",
         @"options.html": @"<script type='module' src='options.js'></script>",
-        @"options.js": optionsScript
+        @"options.js": optionsScript.get()
     };
 
     auto manager = Util::loadExtension(tabsManifest, resources);
@@ -637,7 +637,7 @@ TEST(WKWebExtensionAPITabs, GetCurrentFromOptionsPage)
 
 TEST(WKWebExtensionAPITabs, GetSelected)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const [selectedTab] = await browser.tabs.query({ active: true, currentWindow: true })",
         @"const tab = await browser.tabs.getSelected()",
 
@@ -646,7 +646,7 @@ TEST(WKWebExtensionAPITabs, GetSelected)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().defaultWindow openNewTab];
 
@@ -657,7 +657,7 @@ TEST(WKWebExtensionAPITabs, GetSelected)
 
 TEST(WKWebExtensionAPITabs, Query)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"browser.test.assertEq(allWindows?.length, 2, 'There should be 2 windows')",
 
@@ -699,7 +699,7 @@ TEST(WKWebExtensionAPITabs, Query)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::parseExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::parseExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *windowOne = manager.get().defaultWindow;
     [windowOne openNewTab];
@@ -721,7 +721,7 @@ TEST(WKWebExtensionAPITabs, Query)
 
 TEST(WKWebExtensionAPITabs, QueryWithPrivateAccess)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const normalWindows = allWindows.filter(window => !window.incognito)",
         @"const incognitoWindows = allWindows.filter(window => window.incognito)",
@@ -770,7 +770,7 @@ TEST(WKWebExtensionAPITabs, QueryWithPrivateAccess)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::parseExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::parseExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().context.hasAccessToPrivateData = YES;
 
@@ -798,7 +798,7 @@ TEST(WKWebExtensionAPITabs, QueryWithAccessPrompt)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const windowIdOne = allWindows?.[0]?.id",
 
@@ -817,7 +817,7 @@ TEST(WKWebExtensionAPITabs, QueryWithAccessPrompt)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionTabs];
 
@@ -862,7 +862,7 @@ TEST(WKWebExtensionAPITabs, QueryWithAccessPrompt)
 
 TEST(WKWebExtensionAPITabs, QueryWithCurrentWindow)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const tabs = await browser.tabs.query({ windowId: browser.windows.WINDOW_ID_CURRENT })",
         @"browser.test.assertEq(tabs.length, 2, 'Should return exactly two tabs for the current window')",
 
@@ -875,7 +875,7 @@ TEST(WKWebExtensionAPITabs, QueryWithCurrentWindow)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().defaultWindow openNewTab];
 
@@ -890,7 +890,7 @@ TEST(WKWebExtensionAPITabs, QueryWithPermissionBypass)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const windowIdOne = allWindows?.[0]?.id",
 
@@ -909,7 +909,7 @@ TEST(WKWebExtensionAPITabs, QueryWithPermissionBypass)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionTabs];
 
@@ -934,7 +934,7 @@ TEST(WKWebExtensionAPITabs, QueryWithPermissionBypass)
 
 TEST(WKWebExtensionAPITabs, Zoom)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const windowId = allWindows[0].id",
         @"const tabId = allWindows[0].tabs[0].id",
@@ -949,12 +949,12 @@ TEST(WKWebExtensionAPITabs, Zoom)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPITabs, ToggleReaderMode)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const tabId = allWindows[0].tabs[0].id",
 
@@ -971,7 +971,7 @@ TEST(WKWebExtensionAPITabs, ToggleReaderMode)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     __block size_t toggleReaderModeCounter = 0;
 
@@ -990,7 +990,7 @@ TEST(WKWebExtensionAPITabs, DetectLanguage)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const tabId = allWindows[0].tabs[0].id",
 
@@ -1001,11 +1001,11 @@ TEST(WKWebExtensionAPITabs, DetectLanguage)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     __block bool detectWebpageLocaleCalled = false;
 
@@ -1021,7 +1021,7 @@ TEST(WKWebExtensionAPITabs, DetectLanguage)
 
 TEST(WKWebExtensionAPITabs, CaptureVisibleTab)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const newTab = await browser.tabs.create({ url: 'http://example.com' })",
 
         @"let dataURLPNG = await browser.tabs.captureVisibleTab(newTab.windowId, { format: 'png' })",
@@ -1033,7 +1033,7 @@ TEST(WKWebExtensionAPITabs, CaptureVisibleTab)
         @"browser.test.notifyPass()",
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:[NSURL URLWithString:@"http://example.com/"]];
 
@@ -1042,7 +1042,7 @@ TEST(WKWebExtensionAPITabs, CaptureVisibleTab)
 
 TEST(WKWebExtensionAPITabs, Reload)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const tabId = allWindows[0].tabs[0].id",
 
@@ -1052,7 +1052,7 @@ TEST(WKWebExtensionAPITabs, Reload)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     __block bool reloadCalled = false;
     __block bool reloadFromOriginCalled = false;
@@ -1072,7 +1072,7 @@ TEST(WKWebExtensionAPITabs, Reload)
 
 TEST(WKWebExtensionAPITabs, GoBack)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const tabId = allWindows[0].tabs[0].id",
 
@@ -1081,7 +1081,7 @@ TEST(WKWebExtensionAPITabs, GoBack)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     __block bool goBackCalled = false;
 
@@ -1096,7 +1096,7 @@ TEST(WKWebExtensionAPITabs, GoBack)
 
 TEST(WKWebExtensionAPITabs, GoForward)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const tabId = allWindows[0].tabs[0].id",
 
@@ -1105,7 +1105,7 @@ TEST(WKWebExtensionAPITabs, GoForward)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     __block bool goForwardCalled = false;
 
@@ -1120,7 +1120,7 @@ TEST(WKWebExtensionAPITabs, GoForward)
 
 TEST(WKWebExtensionAPITabs, Remove)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const tabIdToRemove = allWindows[0].tabs[1].id",
 
@@ -1135,7 +1135,7 @@ TEST(WKWebExtensionAPITabs, Remove)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().defaultWindow openNewTab];
 
@@ -1146,7 +1146,7 @@ TEST(WKWebExtensionAPITabs, Remove)
 
 TEST(WKWebExtensionAPITabs, RemoveMultipleTabs)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allWindows = await browser.windows.getAll({ populate: true })",
         @"const tabIdsToRemove = [allWindows[0].tabs[1].id, allWindows[0].tabs[2].id]",
 
@@ -1162,7 +1162,7 @@ TEST(WKWebExtensionAPITabs, RemoveMultipleTabs)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().defaultWindow openNewTab];
     [manager.get().defaultWindow openNewTab];
@@ -1174,7 +1174,7 @@ TEST(WKWebExtensionAPITabs, RemoveMultipleTabs)
 
 TEST(WKWebExtensionAPITabs, CreatedEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.tabs.onCreated.addListener((newTab) => {",
         @"  browser.test.assertFalse(newTab.active, 'The new tab should not be active')",
         @"  browser.test.assertFalse(newTab.pinned, 'The new tab should not be pinned')",
@@ -1187,12 +1187,12 @@ TEST(WKWebExtensionAPITabs, CreatedEvent)
         @"browser.tabs.create({})",
     ]);
 
-    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPITabs, UpdatedEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const newTab = await browser.tabs.create({ active: false, muted: false, pinned: false })",
 
         @"let mutedUpdated = false",
@@ -1224,7 +1224,7 @@ TEST(WKWebExtensionAPITabs, UpdatedEvent)
         @"browser.tabs.update(newTab.id, { muted: true, pinned: true })"
     ]);
 
-    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPITabs, UpdatedEventWithoutPrivateAccess)
@@ -1233,7 +1233,7 @@ TEST(WKWebExtensionAPITabs, UpdatedEventWithoutPrivateAccess)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {",
         @"  browser.test.notifyFail('tabs.onUpdated should not fire for private tabs when no permission is granted.')",
         @"})",
@@ -1243,7 +1243,7 @@ TEST(WKWebExtensionAPITabs, UpdatedEventWithoutPrivateAccess)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Load Tab"];
 
@@ -1259,7 +1259,7 @@ TEST(WKWebExtensionAPITabs, UpdatedEventWithPrivateAccess)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {",
         @"  browser.test.notifyPass()",
         @"})",
@@ -1269,7 +1269,7 @@ TEST(WKWebExtensionAPITabs, UpdatedEventWithPrivateAccess)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::parseExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::parseExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().context.hasAccessToPrivateData = YES;
 
@@ -1284,7 +1284,7 @@ TEST(WKWebExtensionAPITabs, UpdatedEventWithPrivateAccess)
 
 TEST(WKWebExtensionAPITabs, RemovedEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const newTab = await browser.tabs.create({})",
 
         @"browser.tabs.onRemoved.addListener((tabId, removeInfo) => {",
@@ -1297,12 +1297,12 @@ TEST(WKWebExtensionAPITabs, RemovedEvent)
         @"browser.tabs.remove(newTab.id)"
     ]);
 
-    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPITabs, ReplacedEvent)
 {
-    auto backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let createdTabId = null",
         @"let removedTabId = null",
 
@@ -1330,7 +1330,7 @@ TEST(WKWebExtensionAPITabs, ReplacedEvent)
         @"browser.test.sendMessage('Replace Tab')"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Replace Tab"];
 
@@ -1345,7 +1345,7 @@ TEST(WKWebExtensionAPITabs, ReplacedEvent)
 
 TEST(WKWebExtensionAPITabs, MovedEvent)
 {
-    auto backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.tabs.onMoved.addListener((tabId, moveInfo) => {",
         @"  browser.test.assertEq(tabId, movedTabId, 'Moved tab id should match the provided tab id')",
         @"  browser.test.assertEq(moveInfo.fromIndex, 1, 'Tab should have been moved from index 1')",
@@ -1360,7 +1360,7 @@ TEST(WKWebExtensionAPITabs, MovedEvent)
         @"browser.test.sendMessage('Move Tab')"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *tabToMove = [manager.get().defaultWindow openNewTab];
     [manager.get().defaultWindow openNewTab];
@@ -1374,7 +1374,7 @@ TEST(WKWebExtensionAPITabs, MovedEvent)
 
 TEST(WKWebExtensionAPITabs, DetachedAndAttachedEvent)
 {
-    auto backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let detachedTabId",
 
         @"const currentWindow = await browser.windows.getCurrent()",
@@ -1401,7 +1401,7 @@ TEST(WKWebExtensionAPITabs, DetachedAndAttachedEvent)
         @"browser.test.sendMessage('Move Tab')"
     ]);
 
-    auto manager = Util::parseExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::parseExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *tabToMove = [manager.get().defaultWindow openNewTab];
     auto *secondWindow = [manager openNewWindow];
@@ -1422,7 +1422,7 @@ TEST(WKWebExtensionAPITabs, DetachedAndAttachedEvent)
 
 TEST(WKWebExtensionAPITabs, DetachAndAttachToWindowIDNone)
 {
-    auto backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let detachedTabId",
 
         @"const currentWindow = await browser.windows.getCurrent()",
@@ -1445,7 +1445,7 @@ TEST(WKWebExtensionAPITabs, DetachAndAttachToWindowIDNone)
         @"browser.test.sendMessage('Detach Tab')"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *tabToMove = [manager.get().defaultWindow openNewTab];
 
@@ -1462,7 +1462,7 @@ TEST(WKWebExtensionAPITabs, DetachAndAttachToWindowIDNone)
 
 TEST(WKWebExtensionAPITabs, DetachAndAttachFromWindowIDNone)
 {
-    auto backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let detachedTabId",
 
         @"const currentWindow = await browser.windows.getCurrent()",
@@ -1485,7 +1485,7 @@ TEST(WKWebExtensionAPITabs, DetachAndAttachFromWindowIDNone)
         @"browser.test.sendMessage('Attach Tab')"
     ]);
 
-    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *tabToMove = [manager.get().defaultWindow openNewTab];
 
@@ -1508,7 +1508,7 @@ TEST(WKWebExtensionAPITabs, DetachAndAttachFromWindowIDNone)
 
 TEST(WKWebExtensionAPITabs, ActivatedEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const newTab = await browser.tabs.create({ active: false })",
 
         @"browser.tabs.onActivated.addListener((activeInfo) => {",
@@ -1520,12 +1520,12 @@ TEST(WKWebExtensionAPITabs, ActivatedEvent)
         @"browser.tabs.update(newTab.id, { active: true })"
     ]);
 
-    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPITabs, HighlightedEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const initialTabs = await browser.tabs.query({ active: true, currentWindow: true })",
         @"const newTab = await browser.tabs.create({ active: false })",
 
@@ -1543,12 +1543,12 @@ TEST(WKWebExtensionAPITabs, HighlightedEvent)
         @"browser.tabs.update(newTab.id, { active: false, highlighted: true })"
     ]);
 
-    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPITabs, HighlightedAlsoActivatesTab)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const newTab = await browser.tabs.create({ active: false })",
 
         @"let tabActivated = false",
@@ -1574,7 +1574,7 @@ TEST(WKWebExtensionAPITabs, HighlightedAlsoActivatesTab)
         @"browser.tabs.update(newTab.id, { highlighted: true })"
     ]);
 
-    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 // FIXME rdar://147858640
@@ -1588,7 +1588,7 @@ TEST(WKWebExtensionAPITabs, SendMessage)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message, 'Ready')",
 
@@ -1602,7 +1602,7 @@ TEST(WKWebExtensionAPITabs, SendMessage)
         @"})"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message.content, 'Hello', 'Should receive the correct message content')",
 
@@ -1623,11 +1623,11 @@ TEST(WKWebExtensionAPITabs, SendMessage)
         @"setTimeout(() => browser.runtime.sendMessage('Ready'), 1000)"
     ]);
 
-    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1643,7 +1643,7 @@ TEST(WKWebExtensionAPITabs, SendMessageWithAsyncReply)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message, 'Ready')",
 
@@ -1657,7 +1657,7 @@ TEST(WKWebExtensionAPITabs, SendMessageWithAsyncReply)
         @"})"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message.content, 'Hello', 'Should receive the correct message content')",
 
@@ -1680,11 +1680,11 @@ TEST(WKWebExtensionAPITabs, SendMessageWithAsyncReply)
         @"setTimeout(() => browser.runtime.sendMessage('Ready'), 1000)"
     ]);
 
-    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1700,7 +1700,7 @@ TEST(WKWebExtensionAPITabs, SendMessageWithPromiseReply)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message, 'Ready')",
 
@@ -1714,7 +1714,7 @@ TEST(WKWebExtensionAPITabs, SendMessageWithPromiseReply)
         @"})"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender) => {",
         @"  browser.test.assertEq(message.content, 'Hello', 'Should receive the correct message content')",
 
@@ -1735,11 +1735,11 @@ TEST(WKWebExtensionAPITabs, SendMessageWithPromiseReply)
         @"setTimeout(() => browser.runtime.sendMessage('Ready'), 1000)"
     ]);
 
-    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1755,7 +1755,7 @@ TEST(WKWebExtensionAPITabs, SendMessageWithAsyncPromiseReply)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message, 'Ready')",
 
@@ -1769,7 +1769,7 @@ TEST(WKWebExtensionAPITabs, SendMessageWithAsyncPromiseReply)
         @"})"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender) => {",
         @"  browser.test.assertEq(message.content, 'Hello', 'Should receive the correct message content')",
 
@@ -1792,7 +1792,7 @@ TEST(WKWebExtensionAPITabs, SendMessageWithAsyncPromiseReply)
         @"setTimeout(() => browser.runtime.sendMessage('Ready'), 1000)"
     ]);
 
-    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
     auto *urlRequest = server.requestWithLocalhost();
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
@@ -1812,7 +1812,7 @@ TEST(WKWebExtensionAPITabs, SendMessageWithoutReply)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  const tabs = await browser.tabs.query({ active: true, currentWindow: true })",
         @"  const tabId = tabs[0].id",
@@ -1824,7 +1824,7 @@ TEST(WKWebExtensionAPITabs, SendMessageWithoutReply)
         @"})"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender) => {",
         @"  browser.test.assertEq(message.content, 'Hello', 'Should receive the correct message content')",
 
@@ -1845,7 +1845,7 @@ TEST(WKWebExtensionAPITabs, SendMessageWithoutReply)
         @"setTimeout(() => browser.runtime.sendMessage('Ready'), 1000)"
     ]);
 
-    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
     auto *urlRequest = server.requestWithLocalhost();
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
@@ -1868,7 +1868,7 @@ TEST(WKWebExtensionAPITabs, SendMessageFromBackgroundPageToFullPageExtensionCont
         @"browser.runtime.sendMessage({ content: 'Ready' })",
     ]);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message?.content, 'Ready', 'Should receive the correct message from the options page')",
 
@@ -1884,7 +1884,7 @@ TEST(WKWebExtensionAPITabs, SendMessageFromBackgroundPageToFullPageExtensionCont
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"options.html": @"<script type='module' src='options.js'></script>",
         @"options.js": optionsScript
     };
@@ -1923,7 +1923,7 @@ TEST(WKWebExtensionAPITabs, SendMessageFromBackgroundToSubframe)
     auto *urlRequestMain = server.requestWithLocalhost("/main"_s);
     auto *urlRequestSubframe = server.request("/subframe"_s);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Load Tab')",
 
         @"await new Promise(resolve => setTimeout(resolve, 1500))",
@@ -1937,7 +1937,7 @@ TEST(WKWebExtensionAPITabs, SendMessageFromBackgroundToSubframe)
         @"browser.test.notifyPass()",
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender) => {",
         @"  browser.test.assertEq(message?.content, 'Hello Subframe', 'Should receive the correct message from the background page')",
         @"  return Promise.resolve({ content: 'Received from subframe' })",
@@ -1965,8 +1965,8 @@ TEST(WKWebExtensionAPITabs, SendMessageFromBackgroundToSubframe)
     };
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get()
     };
 
     auto manager = Util::loadExtension(manifest, resources);
@@ -1987,7 +1987,7 @@ TEST(WKWebExtensionAPITabs, SendMessageFromBackgroundToSpecificFrame)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, " "_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message, 'Begin Test', 'Message content should match')",
 
@@ -2003,7 +2003,7 @@ TEST(WKWebExtensionAPITabs, SendMessageFromBackgroundToSpecificFrame)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"if (window.top === window) {",
         @"  browser.runtime.onMessage.addListener(() => {",
         @"    browser.test.notifyFail('Main frame should not receive message intended for iframe')",
@@ -2019,8 +2019,8 @@ TEST(WKWebExtensionAPITabs, SendMessageFromBackgroundToSpecificFrame)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript,
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get(),
     };
 
     auto manager = Util::loadExtension(tabsContentScriptManifest, resources);
@@ -2042,7 +2042,7 @@ TEST(WKWebExtensionAPITabs, SendMessageFromBackgroundToSpecificDocument)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, " "_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message, 'Begin Test', 'Message content should match')",
 
@@ -2059,7 +2059,7 @@ TEST(WKWebExtensionAPITabs, SendMessageFromBackgroundToSpecificDocument)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"if (window.top === window) {",
         @"  browser.runtime.onMessage.addListener(() => {",
         @"    browser.test.notifyFail('Main frame should not receive message intended for iframe')",
@@ -2075,8 +2075,8 @@ TEST(WKWebExtensionAPITabs, SendMessageFromBackgroundToSpecificDocument)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript,
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get(),
     };
 
     auto manager = Util::loadExtension(tabsContentScriptManifest, resources);
@@ -2098,7 +2098,7 @@ TEST(WKWebExtensionAPITabs, SendMessageBackAndForwardNavigation)
         { "/frame"_s, { { { "Content-Type"_s, "text/html"_s } }, "<p>Frame Content</p>"_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const expectedHostnames = ['localhost', '127.0.0.1', 'localhost', '127.0.0.1']",
         @"let step = 0",
 
@@ -2128,7 +2128,7 @@ TEST(WKWebExtensionAPITabs, SendMessageBackAndForwardNavigation)
         @"browser.test.sendMessage('Ready')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message) => {",
         @"  browser.test.assertEq(message, 'Ping', 'Message content should match')",
         @"  return Promise.resolve(window?.location?.href)",
@@ -2136,8 +2136,8 @@ TEST(WKWebExtensionAPITabs, SendMessageBackAndForwardNavigation)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript,
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get(),
     };
 
     auto *manifest = @{
@@ -2210,7 +2210,7 @@ TEST(WKWebExtensionAPITabs, Connect)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message?.readyToConnect, true, 'Should be ready to connect')",
 
@@ -2232,7 +2232,7 @@ TEST(WKWebExtensionAPITabs, Connect)
         @"})"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onConnect.addListener((port) => {",
         @"  browser.test.assertEq(port.name, 'testPort', 'Port name should be testPort')",
         @"  browser.test.assertEq(port.error, null, 'Port error should be null')",
@@ -2256,7 +2256,7 @@ TEST(WKWebExtensionAPITabs, Connect)
         @"}, 1000)"
     ]);
 
-    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
     auto *urlRequest = server.requestWithLocalhost();
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
@@ -2272,7 +2272,7 @@ TEST(WKWebExtensionAPITabs, ConnectToSpecificFrame)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, " "_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message, 'Begin Test', 'Message content should match')",
 
@@ -2293,7 +2293,7 @@ TEST(WKWebExtensionAPITabs, ConnectToSpecificFrame)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"if (window.top === window) {",
         @"  browser.runtime.onConnect.addListener(() => {",
         @"    browser.test.notifyFail('Main frame should not receive connection intended for iframe')",
@@ -2311,8 +2311,8 @@ TEST(WKWebExtensionAPITabs, ConnectToSpecificFrame)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript,
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get(),
     };
 
     auto manager = Util::loadExtension(tabsContentScriptManifest, resources);
@@ -2334,7 +2334,7 @@ TEST(WKWebExtensionAPITabs, ConnectToSpecificDocument)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, " "_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message, 'Begin Test', 'Message content should match')",
 
@@ -2356,7 +2356,7 @@ TEST(WKWebExtensionAPITabs, ConnectToSpecificDocument)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"if (window.top === window) {",
         @"  browser.runtime.onConnect.addListener(() => {",
         @"    browser.test.notifyFail('Main frame should not receive connection intended for iframe')",
@@ -2374,8 +2374,8 @@ TEST(WKWebExtensionAPITabs, ConnectToSpecificDocument)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript,
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get(),
     };
 
     auto manager = Util::loadExtension(tabsContentScriptManifest, resources);
@@ -2404,7 +2404,7 @@ TEST(WKWebExtensionAPITabs, ConnectToSubframe)
     auto *urlRequestMain = server.requestWithLocalhost("/main"_s);
     auto *urlRequestSubframe = server.request("/subframe"_s);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Load Tab')",
 
         @"await new Promise(resolve => setTimeout(resolve, 1500))",
@@ -2424,7 +2424,7 @@ TEST(WKWebExtensionAPITabs, ConnectToSubframe)
         @"port.postMessage('Hello Subframe')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onConnect.addListener((port) => {",
         @"  browser.test.assertEq(port.name, 'testPort', 'Port name should be testPort')",
 
@@ -2456,8 +2456,8 @@ TEST(WKWebExtensionAPITabs, ConnectToSubframe)
     };
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get()
     };
 
     auto manager = Util::loadExtension(manifest, resources);
@@ -2482,7 +2482,7 @@ TEST(WKWebExtensionAPITabs, PortDisconnect)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message?.readyToConnect, true, 'Should be ready to connect')",
 
@@ -2504,7 +2504,7 @@ TEST(WKWebExtensionAPITabs, PortDisconnect)
         @"})"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onConnect.addListener((port) => {",
         @"  port.onMessage.addListener((message) => {",
         @"    browser.test.assertEq(message, 'Hello', 'Should receive the correct message content')",
@@ -2521,7 +2521,7 @@ TEST(WKWebExtensionAPITabs, PortDisconnect)
         @"}, 1000)"
     ]);
 
-    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
     auto *urlRequest = server.requestWithLocalhost();
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
@@ -2541,7 +2541,7 @@ TEST(WKWebExtensionAPITabs, ConnectWithMultipleListeners)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message?.readyToConnect, true, 'Should be ready to connect')",
 
@@ -2565,7 +2565,7 @@ TEST(WKWebExtensionAPITabs, ConnectWithMultipleListeners)
         @"})"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"let firstListenerHandled = false",
         @"let secondListenerHandled = false",
 
@@ -2594,7 +2594,7 @@ TEST(WKWebExtensionAPITabs, ConnectWithMultipleListeners)
         @"}, 1000)"
     ]);
 
-    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
     auto *urlRequest = server.requestWithLocalhost();
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
@@ -2614,7 +2614,7 @@ TEST(WKWebExtensionAPITabs, PortDisconnectWithMultipleListeners)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message?.readyToConnect, true, 'Should be ready to connect')",
 
@@ -2638,7 +2638,7 @@ TEST(WKWebExtensionAPITabs, PortDisconnectWithMultipleListeners)
         @"})"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onConnect.addListener((port) => {",
         @"  port.onMessage.addListener((message) => {",
         @"    browser.test.assertEq(message, 'Hello', 'Should receive the correct message content')",
@@ -2659,7 +2659,7 @@ TEST(WKWebExtensionAPITabs, PortDisconnectWithMultipleListeners)
         @"}, 1000)"
     ]);
 
-    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(tabsContentScriptManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
     auto *urlRequest = server.requestWithLocalhost();
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
@@ -2677,7 +2677,7 @@ TEST(WKWebExtensionAPITabs, ExecuteScript)
 
     static auto *javaScript = @"document.body.style.background = 'pink'";
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const tabs = await browser.tabs.query({ active: true, currentWindow: true })",
         @"const tabId = tabs[0].id",
 
@@ -2705,7 +2705,7 @@ TEST(WKWebExtensionAPITabs, ExecuteScript)
         @"browser.test.sendMessage('Load Tab')",
     ]);
 
-    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript, @"executeScript.js": javaScript });
+    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript.get(), @"executeScript.js": javaScript });
 
     auto *urlRequest = server.requestWithLocalhost();
     auto *url = urlRequest.URL;
@@ -2726,7 +2726,7 @@ TEST(WKWebExtensionAPITabs, ExecuteScriptWithFrameId)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, " "_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message, 'Hello from frame')",
 
@@ -2742,7 +2742,7 @@ TEST(WKWebExtensionAPITabs, ExecuteScriptWithFrameId)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.sendMessage('Hello from frame')",
     ]);
 
@@ -2767,8 +2767,8 @@ TEST(WKWebExtensionAPITabs, ExecuteScriptWithFrameId)
     };
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript,
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get(),
     };
 
     auto manager = Util::loadExtension(manifest, resources);
@@ -2789,7 +2789,7 @@ TEST(WKWebExtensionAPITabs, ExecuteScriptWithDocumentId)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<span>Frame Document</span>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender) => {",
         @"  browser.test.assertEq(message, 'Hello from frame')",
 
@@ -2805,7 +2805,7 @@ TEST(WKWebExtensionAPITabs, ExecuteScriptWithDocumentId)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.sendMessage('Hello from frame')",
     ]);
 
@@ -2829,8 +2829,8 @@ TEST(WKWebExtensionAPITabs, ExecuteScriptWithDocumentId)
     };
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript,
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get(),
     };
 
     auto manager = Util::loadExtension(manifest, resources);
@@ -2850,7 +2850,7 @@ TEST(WKWebExtensionAPITabs, ExecuteScriptJSONTypes)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {",
         @"  if (tab.status === 'complete') {",
         @"    const expectedResult = { 'boolean': true, 'number': 42, 'string': 'Test String', 'object': { 'key': 'value' }, 'array': [1, 2, 3] };",
@@ -2869,7 +2869,7 @@ TEST(WKWebExtensionAPITabs, ExecuteScriptJSONTypes)
         @"browser.test.sendMessage('Load Tab')",
     ]);
 
-    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript.get() });
 
     auto *urlRequest = server.requestWithLocalhost();
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
@@ -2889,7 +2889,7 @@ TEST(WKWebExtensionAPITabs, InsertAndRemoveCSSInMainFrame)
 
     static auto *css = @"body { background-color: pink !important }";
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const pinkValue = 'rgb(255, 192, 203)'",
         @"const blueValue = 'rgb(0, 0, 255)'",
         @"const transparentValue = 'rgba(0, 0, 0, 0)'",
@@ -2934,7 +2934,7 @@ TEST(WKWebExtensionAPITabs, InsertAndRemoveCSSInMainFrame)
         @"browser.test.sendMessage('Load Tab')",
     ]);
 
-    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript, @"styles.css": css });
+    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript.get(), @"styles.css": css });
 
     auto *urlRequest = server.requestWithLocalhost();
     auto *url = urlRequest.URL;
@@ -2957,7 +2957,7 @@ TEST(WKWebExtensionAPITabs, InsertAndRemoveCSSInAllFrames)
 
     static auto *css = @"body { background-color: pink !important }";
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const pinkValue = 'rgb(255, 192, 203)'",
         @"const blueValue = 'rgb(0, 0, 255)'",
         @"const transparentValue = 'rgba(0, 0, 0, 0)'",
@@ -2985,7 +2985,7 @@ TEST(WKWebExtensionAPITabs, InsertAndRemoveCSSInAllFrames)
         @"browser.test.sendMessage('Load Tab')",
     ]);
 
-    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript, @"styles.css": css });
+    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript.get(), @"styles.css": css });
 
     auto *urlRequest = server.requestWithLocalhost();
     auto *url = urlRequest.URL;
@@ -3005,7 +3005,7 @@ TEST(WKWebExtensionAPITabs, CSSUserOrigin)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='color: red'></body>"_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {",
         @"  if (changeInfo.status === 'complete') {",
         @"    await browser.test.assertSafeResolve(() => browser.tabs.insertCSS(tabId, { code: 'body { color: green !important }', cssOrigin: 'user' }))",
@@ -3022,7 +3022,7 @@ TEST(WKWebExtensionAPITabs, CSSUserOrigin)
 
     auto *urlRequest = server.requestWithLocalhost();
 
-    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Load Tab"];
 
@@ -3037,7 +3037,7 @@ TEST(WKWebExtensionAPITabs, CSSAuthorOrigin)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<style> body { color: red; } </style>"_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {",
         @"  if (changeInfo.status === 'complete') {",
         @"    await browser.test.assertSafeResolve(() => browser.tabs.insertCSS(tabId, { code: 'body { color: green !important; }', cssOrigin: 'author' }))",
@@ -3054,7 +3054,7 @@ TEST(WKWebExtensionAPITabs, CSSAuthorOrigin)
 
     auto *urlRequest = server.requestWithLocalhost();
 
-    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(tabsManifestV2, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Load Tab"];
 
@@ -3067,7 +3067,7 @@ TEST(WKWebExtensionAPITabs, UnsupportedMV3APIs)
 {
     // Manifest v3 deprecates these APIs, so they should be an undefined property.
 
-    static auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(browser.tabs.insertCSS, undefined)",
         @"browser.test.assertEq(browser.tabs.removeCSS, undefined)",
         @"browser.test.assertEq(browser.tabs.executeScript, undefined)",
@@ -3077,7 +3077,7 @@ TEST(WKWebExtensionAPITabs, UnsupportedMV3APIs)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(tabsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPITabs, ActiveTab)
@@ -3087,7 +3087,7 @@ TEST(WKWebExtensionAPITabs, ActiveTab)
         { "/next.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<head><title>Next Title</title></head>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true })",
         @"let updateCount = 0",
 
@@ -3125,7 +3125,7 @@ TEST(WKWebExtensionAPITabs, ActiveTab)
         @"browser.test.sendMessage('Load Localhost')",
     ]);
 
-    auto manager = Util::loadExtension(activeTabManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(activeTabManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *localhostRequest = server.requestWithLocalhost();
     auto *addressRequest = server.request();
@@ -3179,7 +3179,7 @@ TEST(WKWebExtensionAPITabs, UserGestureWithoutActiveTab)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<head><title>Test Title</title></head>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true })",
 
         @"browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {",
@@ -3195,7 +3195,7 @@ TEST(WKWebExtensionAPITabs, UserGestureWithoutActiveTab)
         @"browser.test.sendMessage('Load Localhost')"
     ]);
 
-    auto manager = Util::loadExtension(activeTabManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(activeTabManifest, @{ @"background.js": backgroundScript.get() });
 
     // Reset activeTab, WKWebExtensionAPITabs.ActiveTab tests that.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusUnknown forPermission:WKWebExtensionPermissionActiveTab];
@@ -3229,7 +3229,7 @@ TEST(WKWebExtensionAPITabs, ActiveTabWithDeniedPermissions)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<head><title>Test Title</title></head>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true })",
 
         @"browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {",
@@ -3245,7 +3245,7 @@ TEST(WKWebExtensionAPITabs, ActiveTabWithDeniedPermissions)
         @"browser.test.sendMessage('Load Localhost')"
     ]);
 
-    auto manager = Util::loadExtension(activeTabManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(activeTabManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *localhostRequest = server.requestWithLocalhost();
 
@@ -3277,7 +3277,7 @@ TEST(WKWebExtensionAPITabs, ActiveTabRemovedWithDeniedPermissions)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<head><title>Test Title</title></head>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true })",
 
         @"browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {",
@@ -3293,7 +3293,7 @@ TEST(WKWebExtensionAPITabs, ActiveTabRemovedWithDeniedPermissions)
         @"browser.test.sendMessage('Load Localhost')"
     ]);
 
-    auto manager = Util::loadExtension(activeTabManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(activeTabManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *localhostRequest = server.requestWithLocalhost();
 

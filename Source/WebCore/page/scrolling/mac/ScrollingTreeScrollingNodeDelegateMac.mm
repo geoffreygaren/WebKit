@@ -64,12 +64,12 @@ void ScrollingTreeScrollingNodeDelegateMac::updateFromStateNode(const ScrollingS
     CheckedRef verticalScroller = m_scrollerPair->verticalScroller();
 
     if (scrollingStateNode.hasChangedProperty(ScrollingStateNode::Property::PainterForScrollbar)) {
-        auto horizontalScrollbar = scrollingStateNode.horizontalScrollerImp();
-        auto verticalScrollbar = scrollingStateNode.verticalScrollerImp();
+        RetainPtr<NSScrollerImp> horizontalScrollbar = scrollingStateNode.horizontalScrollerImp();
+        RetainPtr<NSScrollerImp> verticalScrollbar = scrollingStateNode.verticalScrollerImp();
         if (horizontalScrollbar || verticalScrollbar) {
             m_scrollerPair->releaseReferencesToScrollerImpsOnTheMainThread();
-            horizontalScroller->setScrollerImp(horizontalScrollbar);
-            verticalScroller->setScrollerImp(verticalScrollbar);
+            horizontalScroller->setScrollerImp(horizontalScrollbar.get());
+            verticalScroller->setScrollerImp(verticalScrollbar.get());
         }
     }
 

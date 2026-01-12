@@ -107,9 +107,9 @@ void SwitchThumbMac::draw(GraphicsContext& context, const FloatRoundedRect& bord
     auto drawingThumbLogicalX = drawingThumbIsLogicallyLeft ? drawingThumbLogicalXAxis - drawingThumbLogicalXAxisProgress : drawingThumbLogicalXAxisProgress;
     auto drawingThumbRect = NSMakeRect(drawingThumbLogicalX, 0, inflatedThumbRect.width(), inflatedThumbRect.height());
 
-    auto coreUISize = SwitchMacUtilities::coreUISizeForControlSize(controlSize);
+    RetainPtr coreUISize = SwitchMacUtilities::coreUISizeForControlSize(controlSize);
 
-    auto maskImage = SwitchMacUtilities::trackMaskImage(context, inflatedTrackRect.size(), deviceScaleFactor, isInlineFlipped, coreUISize);
+    auto maskImage = SwitchMacUtilities::trackMaskImage(context, inflatedTrackRect.size(), deviceScaleFactor, isInlineFlipped, coreUISize.get());
     if (!maskImage)
         return;
 
@@ -117,15 +117,15 @@ void SwitchThumbMac::draw(GraphicsContext& context, const FloatRoundedRect& bord
     if (!trackImage)
         return;
 
-    auto cgContext = trackImage->context().platformContext();
+    RetainPtr cgContext = trackImage->context().platformContext();
 
     {
-        CGContextStateSaver stateSaverTrack(cgContext);
+        CGContextStateSaver stateSaverTrack(cgContext.get());
 
         // FIXME: clipping in context() might not always be accurate for context().platformContext().
         trackImage->context().clipToImageBuffer(*maskImage, NSMakeRect(0, 0, inflatedTrackRect.width(), inflatedTrackRect.height()));
 
-        [[NSAppearance currentDrawingAppearance] _drawInRect:drawingThumbRect context:cgContext options:@{
+        [[NSAppearance currentDrawingAppearance] _drawInRect:drawingThumbRect context:cgContext.get() options:@{
             (__bridge NSString *)kCUIWidgetKey: (__bridge NSString *)kCUIWidgetSwitchKnob,
             (__bridge NSString *)kCUIStateKey: (__bridge NSString *)(!isEnabled ? kCUIStateDisabled : isPressed ? kCUIStatePressed : kCUIStateActive),
             (__bridge NSString *)kCUISizeKey: SwitchMacUtilities::coreUISizeForControlSize(controlSize),

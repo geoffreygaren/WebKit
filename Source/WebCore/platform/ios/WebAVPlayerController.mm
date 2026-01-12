@@ -122,11 +122,11 @@ static double WebAVPlayerControllerLiveStreamSeekableTimeRangeMinimumDuration = 
 {
     // Only use the proxy object for key paths identifying undefined properties on WebAVPlayerController.
 
-    NSObject *target = [_playerController playerControllerProxy];
+    RetainPtr<NSObject> target = [_playerController playerControllerProxy];
 
     NSString *propertyNameFromKeyPath = [[keyPath componentsSeparatedByString:@"."] firstObject];
     if (!propertyNameFromKeyPath.length)
-        return target;
+        return target.autorelease();
 
     auto properties = class_copyPropertyListSpan([_playerController class]);
     for (auto& property : properties.span()) {
@@ -136,7 +136,7 @@ static double WebAVPlayerControllerLiveStreamSeekableTimeRangeMinimumDuration = 
             break;
         }
     }
-    return target;
+    return target.autorelease();
 }
 
 @end
@@ -149,14 +149,14 @@ static Class createWebAVPlayerControllerForwarderClassSingleton()
 
     Class superClass = getAVPlayerControllerClassSingleton();
     Class implClass = [WebAVPlayerControllerForwarder class];
-    Class newClass = objc_allocateClassPair(superClass, "WebAVPlayerControllerForwarder_AVKitCompatible", 0);
-    objc_registerClassPair(newClass);
+    RetainPtr newClass = objc_allocateClassPair(superClass, "WebAVPlayerControllerForwarder_AVKitCompatible", 0);
+    objc_registerClassPair(newClass.get());
 
     // Remove all of AVPlayerController's methods.
     auto methods = class_copyMethodListSpan(superClass);
     IMP unknownMethodImp = class_getMethodImplementation(superClass, NSSelectorFromString(@"_web_unknownMethod"));
     for (auto& method : methods.span())
-        class_addMethod(newClass, method_getName(method), unknownMethodImp, method_getTypeEncoding(method));
+        class_addMethod(newClass.get(), method_getName(method), unknownMethodImp, method_getTypeEncoding(method));
 
     // Copy methods from WebAVPlayerControllerForwarder.
     methods = class_copyMethodListSpan(implClass);
@@ -164,12 +164,12 @@ static Class createWebAVPlayerControllerForwarderClassSingleton()
         SEL selector = method_getName(method);
         if ([NSStringFromSelector(selector) hasPrefix:@"."])
             continue;
-        class_replaceMethod(newClass, selector, method_getImplementation(method), method_getTypeEncoding(method));
+        class_replaceMethod(newClass.get(), selector, method_getImplementation(method), method_getTypeEncoding(method));
     }
 
-    class_addIvar(newClass, "_playerController", sizeof(RetainPtr<WebAVPlayerController>), log2(sizeof(RetainPtr<WebAVPlayerController>)), @encode(RetainPtr<WebAVPlayerController>));
+    class_addIvar(newClass.get(), "_playerController", sizeof(RetainPtr<WebAVPlayerController>), log2(sizeof(RetainPtr<WebAVPlayerController>)), @encode(RetainPtr<WebAVPlayerController>));
 
-    return newClass;
+    return newClass.autorelease();
 }
 
 RetainPtr<WebAVPlayerController> createWebAVPlayerController()

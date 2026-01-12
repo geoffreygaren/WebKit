@@ -138,13 +138,13 @@ TEST(WKWebView, ClearStaleAppCache)
     TestWebKitAPI::Util::run(&readyToContinue);
 
     // Start with a clean slate of Website caches.
-    if (auto *websiteCacheDirectory = defaultWebsiteCacheDirectory()) {
-        NSURL *websiteCacheURL = [NSURL fileURLWithPath:[websiteCacheDirectory stringByExpandingTildeInPath]];
+    if (RetainPtr websiteCacheDirectory = defaultWebsiteCacheDirectory()) {
+        NSURL *websiteCacheURL = [NSURL fileURLWithPath:[websiteCacheDirectory.get() stringByExpandingTildeInPath]];
         [[NSFileManager defaultManager] removeItemAtURL:websiteCacheURL error:nil];
     }
 
-    if (auto *appCacheDirectory = defaultApplicationCacheDirectory()) {
-        NSURL *appCacheURL = [NSURL fileURLWithPath:[appCacheDirectory stringByExpandingTildeInPath]];
+    if (RetainPtr appCacheDirectory = defaultApplicationCacheDirectory()) {
+        NSURL *appCacheURL = [NSURL fileURLWithPath:[appCacheDirectory.get() stringByExpandingTildeInPath]];
         [[NSFileManager defaultManager] removeItemAtURL:appCacheURL error:nil];
     }
 

@@ -313,7 +313,7 @@ TEST(WebArchive, SaveResourcesIframe)
         NSString *mainResourcePath = [directoryURL URLByAppendingPathComponent:@"host.html"].path;
         EXPECT_TRUE([fileManager fileExistsAtPath:mainResourcePath]);
 
-        NSString *savedMainResourceString = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:mainResourcePath] encoding:NSUTF8StringEncoding];
+        RetainPtr savedMainResourceString = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:mainResourcePath] encoding:NSUTF8StringEncoding];
         NSString *resourceDirectoryName = @"host_files";
         NSString *resourceDirectoryPath = [directoryURL URLByAppendingPathComponent:resourceDirectoryName].path;
         NSArray *savedResourceFileNames = [fileManager contentsOfDirectoryAtPath:resourceDirectoryPath error:0];
@@ -328,13 +328,13 @@ TEST(WebArchive, SaveResourcesIframe)
             if ([fileName containsString:@"frame_"]) {
                 // Ensure urls are replaced with file path.
                 NSString *replacementPath = [resourceDirectoryName stringByAppendingPathComponent:fileName];
-                EXPECT_TRUE([savedMainResourceString containsString:replacementPath]);
+                EXPECT_TRUE([savedMainResourceString.get() containsString:replacementPath]);
                 // Ensure all iframes are saved by looking at content.
                 NSString *resourceFilePath = [resourceDirectoryPath stringByAppendingPathComponent:fileName];
-                NSString* savedSubframeResourceString = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:resourceFilePath] encoding:NSUTF8StringEncoding];
-                NSRange range = [savedSubframeResourceString rangeOfString:@"iframe"];
+                RetainPtr savedSubframeResourceString = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:resourceFilePath] encoding:NSUTF8StringEncoding];
+                NSRange range = [savedSubframeResourceString.get() rangeOfString:@"iframe"];
                 EXPECT_NE(NSNotFound, (long)range.location);
-                NSString *iframeContent = [savedSubframeResourceString substringWithRange:NSMakeRange(range.location, range.length + 1)];
+                NSString *iframeContent = [savedSubframeResourceString.get() substringWithRange:NSMakeRange(range.location, range.length + 1)];
                 [frameResourceContentsToFind removeObject:iframeContent];
                 ++frameFileCount;
             }
@@ -419,7 +419,7 @@ TEST(WebArchive, SaveResourcesFrame)
         NSString *mainResourcePath = [directoryURL URLByAppendingPathComponent:@"host.html"].path;
         EXPECT_TRUE([fileManager fileExistsAtPath:mainResourcePath]);
 
-        NSString *savedMainResource = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:mainResourcePath] encoding:NSUTF8StringEncoding];
+        RetainPtr savedMainResource = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:mainResourcePath] encoding:NSUTF8StringEncoding];
         NSString *resourceDirectoryName = @"host_files";
         NSString *resourceDirectoryPath = [directoryURL URLByAppendingPathComponent:resourceDirectoryName].path;
         NSArray *resourceFileNames = [fileManager contentsOfDirectoryAtPath:resourceDirectoryPath error:0];
@@ -432,12 +432,12 @@ TEST(WebArchive, SaveResourcesFrame)
         for (NSString *fileName in resourceFileNames) {
             if ([fileName containsString:@"frame_"]) {
                 NSString *replacementPath = [resourceDirectoryName stringByAppendingPathComponent:fileName];
-                EXPECT_TRUE([savedMainResource containsString:replacementPath]);
+                EXPECT_TRUE([savedMainResource.get() containsString:replacementPath]);
                 NSString *resourceFilePath = [resourceDirectoryPath stringByAppendingPathComponent:fileName];
-                NSString* savedSubframeResource = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:resourceFilePath] encoding:NSUTF8StringEncoding];
-                NSRange range = [savedSubframeResource rangeOfString:@"thisisframe"];
+                RetainPtr savedSubframeResource = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:resourceFilePath] encoding:NSUTF8StringEncoding];
+                NSRange range = [savedSubframeResource.get() rangeOfString:@"thisisframe"];
                 EXPECT_NE(NSNotFound, (long)range.location);
-                NSString *frameContent = [savedSubframeResource substringWithRange:NSMakeRange(range.location, range.length + 1)];
+                NSString *frameContent = [savedSubframeResource.get() substringWithRange:NSMakeRange(range.location, range.length + 1)];
                 [frameResourceContentsToFind removeObject:frameContent];
                 ++frameFileCount;
             }
@@ -598,7 +598,7 @@ TEST(WebArchive, SaveResourcesBlobURL)
         NSString *mainResourcePath = [directoryURL URLByAppendingPathComponent:@"host.html"].path;
         EXPECT_TRUE([fileManager fileExistsAtPath:mainResourcePath]);
 
-        NSString *savedMainResource = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:mainResourcePath] encoding:NSUTF8StringEncoding];
+        RetainPtr savedMainResource = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:mainResourcePath] encoding:NSUTF8StringEncoding];
         NSString *resourceDirectoryName = @"host_files";
         NSString *resourceDirectoryPath = [directoryURL URLByAppendingPathComponent:resourceDirectoryName].path;
         NSArray *resourceFileNames = [fileManager contentsOfDirectoryAtPath:resourceDirectoryPath error:0];
@@ -608,14 +608,14 @@ TEST(WebArchive, SaveResourcesBlobURL)
             NSString *replacementPath = [resourceDirectoryName stringByAppendingPathComponent:fileName];
             if ([fileName containsString:@"frame_"]) {
                 // HTML file from the first iframe element.
-                EXPECT_TRUE([savedMainResource containsString:replacementPath]);
+                EXPECT_TRUE([savedMainResource.get() containsString:replacementPath]);
                 NSString *resourceFilePath = [resourceDirectoryPath stringByAppendingPathComponent:fileName];
-                NSString* savedSubframeResource = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:resourceFilePath] encoding:NSUTF8StringEncoding];
-                EXPECT_TRUE([savedSubframeResource containsString:@"thisisframe"]);
+                RetainPtr savedSubframeResource = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:resourceFilePath] encoding:NSUTF8StringEncoding];
+                EXPECT_TRUE([savedSubframeResource.get() containsString:@"thisisframe"]);
             } else {
                 // Image file from img and the second iframe element.
                 unsigned replacementPathCount = 0;
-                NSString *savedMainResourceCopy = [NSString stringWithString:savedMainResource];
+                NSString *savedMainResourceCopy = [NSString stringWithString:savedMainResource.get()];
                 NSRange range = [savedMainResourceCopy rangeOfString:replacementPath];
                 while (range.location != NSNotFound) {
                     ++replacementPathCount;

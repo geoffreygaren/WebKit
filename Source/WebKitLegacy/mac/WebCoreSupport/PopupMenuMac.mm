@@ -113,7 +113,7 @@ void PopupMenuMac::populate()
         [menuItem setAttributedTitle:string.get()];
         // We set the title as well as the attributed title here. The attributed title will be displayed in the menu,
         // but typeahead will use the non-attributed string that doesn't contain any leading or trailing whitespace.
-        [menuItem setTitle:[[string string] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+        [menuItem setTitle:[[string.get() string] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
         [menuItem setEnabled:m_client->itemIsEnabled(i)];
         [menuItem setToolTip:m_client->itemToolTip(i).createNSString().get()];
 
@@ -143,19 +143,19 @@ void PopupMenuMac::show(const IntRect& r, LocalFrameView& frameView, int selecte
     if (selectedIndex == -1 && numItems == 2 && !m_client->shouldPopOver() && ![[m_popup itemAtIndex:1] isEnabled])
         selectedIndex = 0;
 
-    NSView* view = frameView.documentView();
+    RetainPtr view = frameView.documentView();
 
     TextDirection textDirection = m_client->menuStyle().textDirection();
 
-    [m_popup attachPopUpWithFrame:r inView:view];
+    [m_popup attachPopUpWithFrame:r inView:view.get()];
     [m_popup selectItemAtIndex:selectedIndex];
     [m_popup setUserInterfaceLayoutDirection:textDirection == TextDirection::LTR ? NSUserInterfaceLayoutDirectionLeftToRight : NSUserInterfaceLayoutDirectionRightToLeft];
 
-    NSMenu *menu = [m_popup menu];
-    [menu setUserInterfaceLayoutDirection:textDirection == TextDirection::LTR ? NSUserInterfaceLayoutDirectionLeftToRight : NSUserInterfaceLayoutDirectionRightToLeft];
+    RetainPtr menu = [m_popup menu];
+    [menu.get() setUserInterfaceLayoutDirection:textDirection == TextDirection::LTR ? NSUserInterfaceLayoutDirectionLeftToRight : NSUserInterfaceLayoutDirectionRightToLeft];
 
     NSPoint location;
-    CTFontRef font = m_client->menuStyle().font().primaryFont()->ctFont();
+    RetainPtr<CTFontRef> font = m_client->menuStyle().font().primaryFont()->ctFont();
 
     // These values were borrowed from AppKit to match their placement of the menu.
     const int popOverHorizontalAdjust = -13;
@@ -167,8 +167,8 @@ void PopupMenuMac::show(const IntRect& r, LocalFrameView& frameView, int selecte
             titleFrame = r;
         float vertOffset = roundf((NSMaxY(r) - NSMaxY(titleFrame)) + NSHeight(titleFrame));
         // Adjust for fonts other than the system font.
-        auto defaultFont = adoptCF(CTFontCreateUIFontForLanguage(kCTFontUIFontSystem, CTFontGetSize(font), nil));
-        vertOffset += CTFontGetDescent(font) - CTFontGetDescent(defaultFont.get());
+        auto defaultFont = adoptCF(CTFontCreateUIFontForLanguage(kCTFontUIFontSystem, CTFontGetSize(font.get()), nil));
+        vertOffset += CTFontGetDescent(font.get()) - CTFontGetDescent(defaultFont.get());
         vertOffset = fminf(NSHeight(r), vertOffset);
         if (textDirection == TextDirection::LTR)
             location = NSMakePoint(NSMinX(r) + popOverHorizontalAdjust, NSMaxY(r) - vertOffset);
@@ -189,13 +189,13 @@ void PopupMenuMac::show(const IntRect& r, LocalFrameView& frameView, int selecte
 
     RetainPtr<NSView> dummyView = adoptNS([[NSView alloc] initWithFrame:r]);
     [dummyView.get() setUserInterfaceLayoutDirection:textDirection == TextDirection::LTR ? NSUserInterfaceLayoutDirectionLeftToRight : NSUserInterfaceLayoutDirectionRightToLeft];
-    [view addSubview:dummyView.get()];
-    location = [dummyView convertPoint:location fromView:view];
+    [view.get() addSubview:dummyView.get()];
+    location = [dummyView convertPoint:location fromView:view.get()];
     
     if (Page* page = frame->page()) {
-        WebView* webView = kit(page);
+        RetainPtr webView = kit(page);
         BEGIN_BLOCK_OBJC_EXCEPTIONS
-        CallUIDelegate(webView, @selector(webView:willPopupMenu:), menu);
+        CallUIDelegate(webView.get(), @selector(webView:willPopupMenu:), menu.get());
         END_BLOCK_OBJC_EXCEPTIONS
     }
 
@@ -215,7 +215,7 @@ void PopupMenuMac::show(const IntRect& r, LocalFrameView& frameView, int selecte
         break;
     }
 
-    PAL::popUpMenu(menu, location, roundf(NSWidth(r)), dummyView.get(), selectedIndex, (__bridge NSFont *)font, controlSize, !m_client->menuStyle().hasDefaultAppearance());
+    PAL::popUpMenu(menu.get(), location, roundf(NSWidth(r)), dummyView.get(), selectedIndex, (__bridge NSFont *)font.get(), controlSize, !m_client->menuStyle().hasDefaultAppearance());
 
     [m_popup dismissPopUp];
     [dummyView removeFromSuperview];

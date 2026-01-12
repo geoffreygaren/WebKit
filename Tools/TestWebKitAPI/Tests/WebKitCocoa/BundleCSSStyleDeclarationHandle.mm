@@ -62,14 +62,14 @@ TEST(WebKit, WKWebProcessPlugInCSSStyleDeclarationHandle)
     auto interface = retainPtr([_WKRemoteObjectInterface remoteObjectInterfaceWithProtocol:@protocol(BundleCSSStyleDeclarationHandleProtocol)]);
     [[webView _remoteObjectRegistry] registerExportedObject:object.get() interface:interface.get()];
 
-    NSString *html = @(
+    RetainPtr html = @(
         "<script>"
         "function verifyStyle(style) {"
         "    return style === document.body.style;"
         "}"
         "</script>"
     );
-    [webView loadHTMLString:html baseURL:nil];
+    [webView loadHTMLString:html.get() baseURL:nil];
 
     TestWebKitAPI::Util::run(&didVerifyStyle);
 }

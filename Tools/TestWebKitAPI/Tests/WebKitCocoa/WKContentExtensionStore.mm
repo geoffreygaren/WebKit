@@ -762,11 +762,11 @@ TEST_F(WKContentRuleListStoreTest, ModifyHeaders)
     [[configuration userContentController] addContentRuleList:list.get()];
     [configuration setURLSchemeHandler:handler.get() forURLScheme:@"testscheme"];
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration.get()]);
-    auto delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
-    webView.get().navigationDelegate = delegate;
+    RetainPtr delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
+    webView.get().navigationDelegate = delegate.get();
     __block bool receivedActionNotification { false };
     __block Vector<String> urls;
-    delegate.contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
+    delegate.get().contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
         urls.append(url.absoluteString);
         EXPECT_TRUE(action.modifiedHeaders);
         receivedActionNotification = true;
@@ -778,7 +778,7 @@ TEST_F(WKContentRuleListStoreTest, ModifyHeaders)
         "testscheme://testhost/main.html"_s,
         "testscheme://testhost/fetch.txt"_s
     });
-    
+
     // FIXME: Appending to the User-Agent replaces the user agent because we haven't added the user agent yet when processing the request.
 }
 
@@ -848,11 +848,11 @@ TEST_F(WKContentRuleListStoreTest, ModifyHeadersWithCompetingRulesWhereAppendWin
     [[configuration userContentController] addContentRuleList:list.get()];
     [configuration setURLSchemeHandler:handler.get() forURLScheme:@"testscheme"];
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration.get()]);
-    auto delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
-    webView.get().navigationDelegate = delegate;
+    RetainPtr delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
+    webView.get().navigationDelegate = delegate.get();
     __block bool receivedActionNotification { false };
     __block Vector<String> urls;
-    delegate.contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
+    delegate.get().contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
         urls.append(url.absoluteString);
         EXPECT_TRUE(action.modifiedHeaders);
         receivedActionNotification = true;
@@ -937,11 +937,11 @@ TEST_F(WKContentRuleListStoreTest, ModifyHeadersWithCompetingRulesWhereSetWins)
     [[configuration userContentController] addContentRuleList:list.get()];
     [configuration setURLSchemeHandler:handler.get() forURLScheme:@"testscheme"];
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration.get()]);
-    auto delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
-    webView.get().navigationDelegate = delegate;
+    RetainPtr delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
+    webView.get().navigationDelegate = delegate.get();
     __block bool receivedActionNotification { false };
     __block Vector<String> urls;
-    delegate.contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
+    delegate.get().contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
         urls.append(url.absoluteString);
         EXPECT_TRUE(action.modifiedHeaders);
         receivedActionNotification = true;
@@ -1003,11 +1003,11 @@ TEST_F(WKContentRuleListStoreTest, ModifyHeadersWithCompetingRulesWhereRemoveWin
     [[configuration userContentController] addContentRuleList:list.get()];
     [configuration setURLSchemeHandler:handler.get() forURLScheme:@"testscheme"];
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration.get()]);
-    auto delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
-    webView.get().navigationDelegate = delegate;
+    RetainPtr delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
+    webView.get().navigationDelegate = delegate.get();
     __block bool receivedActionNotification { false };
     __block Vector<String> urls;
-    delegate.contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
+    delegate.get().contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
         urls.append(url.absoluteString);
         EXPECT_TRUE(action.modifiedHeaders);
         receivedActionNotification = true;
@@ -1075,11 +1075,11 @@ TEST_F(WKContentRuleListStoreTest, ModifyHeadersWithMultipleRuleLists)
     [[configuration userContentController] addContentRuleList:secondList.get()];
     [configuration setURLSchemeHandler:handler.get() forURLScheme:@"testscheme"];
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration.get()]);
-    auto delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
-    webView.get().navigationDelegate = delegate;
+    RetainPtr delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
+    webView.get().navigationDelegate = delegate.get();
     __block bool receivedActionNotification { false };
     __block Vector<String> urls;
-    delegate.contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
+    delegate.get().contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
         urls.append(url.absoluteString);
         EXPECT_TRUE(action.modifiedHeaders);
         receivedActionNotification = true;
@@ -1195,11 +1195,11 @@ TEST_F(WKContentRuleListStoreTest, Redirect)
     [configuration setURLSchemeHandler:handler.get() forURLScheme:@"testscheme"];
     [configuration setURLSchemeHandler:handler.get() forURLScheme:@"othertestscheme"];
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration.get()]);
-    auto delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
-    webView.get().navigationDelegate = delegate;
+    RetainPtr delegate = navigationDelegateAllowingActiveActionsOnTestHost().unsafeGet();
+    webView.get().navigationDelegate = delegate.get();
     __block bool receivedActionNotification { false };
     __block Vector<String> urlsFromCallback;
-    delegate.contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
+    delegate.get().contentRuleListPerformedAction = ^(WKWebView *, NSString *identifier, _WKContentRuleListAction *action, NSURL *url) {
         urlsFromCallback.append(url.absoluteString);
         EXPECT_TRUE(action.redirected);
         receivedActionNotification = true;
@@ -1245,9 +1245,9 @@ TEST_F(WKContentRuleListStoreTest, MainResourceCrossOriginRedirect)
         } ]
     )JSON");
 
-    auto configuration = server.httpsProxyConfiguration();
-    [[configuration userContentController] addContentRuleList:list.get()];
-    auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration]);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    [[configuration.get() userContentController] addContentRuleList:list.get()];
+    auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration.get()]);
 
     auto delegate = adoptNS([TestNavigationDelegate new]);
     delegate.get().decidePolicyForNavigationActionWithPreferences = ^(WKNavigationAction *, WKWebpagePreferences *preferences, void (^decisionHandler)(WKNavigationActionPolicy, WKWebpagePreferences *)) {
@@ -1277,9 +1277,9 @@ TEST_F(WKContentRuleListStoreTest, MainResourceSameOriginRedirect)
         } ]
     )JSON");
 
-    auto configuration = server.httpsProxyConfiguration();
-    [configuration.userContentController addContentRuleList:list.get()];
-    auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration]);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    [configuration.get().userContentController addContentRuleList:list.get()];
+    auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration.get()]);
 
     auto delegate = adoptNS([TestNavigationDelegate new]);
     delegate.get().decidePolicyForNavigationActionWithPreferences = ^(WKNavigationAction *, WKWebpagePreferences *preferences, void (^decisionHandler)(WKNavigationActionPolicy, WKWebpagePreferences *)) {
@@ -1313,9 +1313,9 @@ TEST_F(WKContentRuleListStoreTest, MainResourceCrossOriginRedirectFromLoadedPage
         } ]
     )JSON");
 
-    auto configuration = server.httpsProxyConfiguration();
-    [[configuration userContentController] addContentRuleList:list.get()];
-    auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration]);
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    [[configuration.get() userContentController] addContentRuleList:list.get()];
+    auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration.get()]);
 
     auto delegate = adoptNS([TestNavigationDelegate new]);
     delegate.get().decidePolicyForNavigationActionWithPreferences = ^(WKNavigationAction *, WKWebpagePreferences *preferences, void (^decisionHandler)(WKNavigationActionPolicy, WKWebpagePreferences *)) {

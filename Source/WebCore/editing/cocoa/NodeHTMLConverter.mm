@@ -332,10 +332,10 @@ static RetainPtr<NSFileWrapper> fileWrapperForURL(DocumentLoader* dataSource, NS
         }
     }
 
-    NSCachedURLResponse *cachedResponse = [[NSURLCache sharedURLCache] cachedResponseForRequest:adoptNS([[NSMutableURLRequest alloc] initWithURL:URL]).get()];
+    RetainPtr cachedResponse = [[NSURLCache sharedURLCache] cachedResponseForRequest:adoptNS([[NSMutableURLRequest alloc] initWithURL:URL]).get()];
     if (cachedResponse) {
-        auto wrapper = adoptNS([[NSFileWrapper alloc] initRegularFileWithContents:[cachedResponse data]]);
-        [wrapper setPreferredFilename:[[cachedResponse response] suggestedFilename]];
+        auto wrapper = adoptNS([[NSFileWrapper alloc] initRegularFileWithContents:[cachedResponse.get() data]]);
+        [wrapper setPreferredFilename:[[cachedResponse.get() response] suggestedFilename]];
         return wrapper;
     }
 
@@ -345,25 +345,25 @@ static RetainPtr<NSFileWrapper> fileWrapperForURL(DocumentLoader* dataSource, NS
 
 static PlatformFont *_fontForNameAndSize(NSString *fontName, CGFloat size, NSMutableDictionary *cache)
 {
-    PlatformFont *font = [cache objectForKey:fontName];
+    RetainPtr font = [cache objectForKey:fontName];
 #if PLATFORM(IOS_FAMILY)
     if (font)
-        return [font fontWithSize:size];
+        return [font.get() fontWithSize:size];
 
     font = [PlatformFontClass fontWithName:fontName size:size];
 #else
     NSFontManager *fontManager = [NSFontManager sharedFontManager];
     if (font) {
-        font = [fontManager convertFont:font toSize:size];
-        return font;
+        font = [fontManager convertFont:font.get() toSize:size];
+        return font.autorelease();
     }
     font = [fontManager fontWithFamily:fontName traits:0 weight:0 size:size];
 #endif
     if (!font) {
 #if PLATFORM(IOS_FAMILY)
-        NSArray *availableFamilyNames = [PlatformFontClass familyNames];
+        RetainPtr availableFamilyNames = [PlatformFontClass familyNames];
 #else
-        NSArray *availableFamilyNames = [fontManager availableFontFamilies];
+        RetainPtr availableFamilyNames = [fontManager availableFontFamilies];
 #endif
         NSRange dividingRange;
         NSRange dividingSpaceRange = [fontName rangeOfString:@" " options:NSBackwardsSearch];
@@ -372,37 +372,37 @@ static PlatformFont *_fontForNameAndSize(NSString *fontName, CGFloat size, NSMut
 
         while (dividingRange.length > 0) {
             NSString *familyName = [fontName substringToIndex:dividingRange.location];
-            if ([availableFamilyNames containsObject:familyName]) {
+            if ([availableFamilyNames.get() containsObject:familyName]) {
 #if PLATFORM(IOS_FAMILY)
                 NSString *faceName = [fontName substringFromIndex:(dividingRange.location + dividingRange.length)];
-                NSArray *familyMemberFaceNames = [PlatformFontClass fontNamesForFamilyName:familyName];
-                for (NSString *familyMemberFaceName in familyMemberFaceNames) {
+                RetainPtr familyMemberFaceNames = [PlatformFontClass fontNamesForFamilyName:familyName];
+                for (NSString *familyMemberFaceName in familyMemberFaceNames.get()) {
                     if ([familyMemberFaceName compare:faceName options:NSCaseInsensitiveSearch] == NSOrderedSame) {
                         font = [PlatformFontClass fontWithName:familyMemberFaceName size:size];
                         break;
                     }
                 }
-                if (!font && [familyMemberFaceNames count])
+                if (!font && [familyMemberFaceNames.get() count])
                     font = [PlatformFontClass fontWithName:familyName size:size];
 #else
-                NSArray *familyMemberArray;
+                RetainPtr<NSArray> familyMemberArray;
                 NSString *faceName = [fontName substringFromIndex:(dividingRange.location + dividingRange.length)];
-                NSArray *familyMemberArrays = [fontManager availableMembersOfFontFamily:familyName];
-                NSEnumerator *familyMemberArraysEnum = [familyMemberArrays objectEnumerator];
-                while ((familyMemberArray = [familyMemberArraysEnum nextObject])) {
-                    NSString *familyMemberFaceName = [familyMemberArray objectAtIndex:1];
+                RetainPtr familyMemberArrays = [fontManager availableMembersOfFontFamily:familyName];
+                RetainPtr familyMemberArraysEnum = [familyMemberArrays.get() objectEnumerator];
+                while ((familyMemberArray = [familyMemberArraysEnum.get() nextObject])) {
+                    NSString *familyMemberFaceName = [familyMemberArray.get() objectAtIndex:1];
                     if ([familyMemberFaceName compare:faceName options:NSCaseInsensitiveSearch] == NSOrderedSame) {
-                        NSFontTraitMask traits = [[familyMemberArray objectAtIndex:3] integerValue];
-                        NSInteger weight = [[familyMemberArray objectAtIndex:2] integerValue];
+                        NSFontTraitMask traits = [[familyMemberArray.get() objectAtIndex:3] integerValue];
+                        NSInteger weight = [[familyMemberArray.get() objectAtIndex:2] integerValue];
                         font = [fontManager fontWithFamily:familyName traits:traits weight:weight size:size];
                         break;
                     }
                 }
                 if (!font) {
-                    if (0 < [familyMemberArrays count]) {
-                        NSArray *familyMemberArray = [familyMemberArrays objectAtIndex:0];
-                        NSFontTraitMask traits = [[familyMemberArray objectAtIndex:3] integerValue];
-                        NSInteger weight = [[familyMemberArray objectAtIndex:2] integerValue];
+                    if (0 < [familyMemberArrays.get() count]) {
+                        familyMemberArray = [familyMemberArrays.get() objectAtIndex:0];
+                        NSFontTraitMask traits = [[familyMemberArray.get() objectAtIndex:3] integerValue];
+                        NSInteger weight = [[familyMemberArray.get() objectAtIndex:2] integerValue];
                         font = [fontManager fontWithFamily:familyName traits:traits weight:weight size:size];
                     }
                 }
@@ -428,9 +428,9 @@ static PlatformFont *_fontForNameAndSize(NSString *fontName, CGFloat size, NSMut
     if (!font)
         font = WebDefaultFont();
 #endif
-    [cache setObject:font forKey:fontName];
+    [cache setObject:font.get() forKey:fontName];
 
-    return font;
+    return font.autorelease();
 }
 
 static NSParagraphStyle *defaultParagraphStyle()
@@ -889,8 +889,8 @@ NSDictionary *HTMLConverter::computedAttributesForElement(Element& element)
     NSFontManager *fontManager = [NSFontManager sharedFontManager];
 #endif
 
-    PlatformFont *font = nil;
-    PlatformFont *actualFont = _font(element);
+    RetainPtr<PlatformFont> font;
+    RetainPtr actualFont = _font(element);
     auto foregroundColor = _colorForElement(element, CSSPropertyColor);
     auto backgroundColor = _colorForElement(element, CSSPropertyBackgroundColor);
     auto strokeColor = _colorForElement(element, CSSPropertyWebkitTextStrokeColor);
@@ -910,10 +910,10 @@ NSDictionary *HTMLConverter::computedAttributesForElement(Element& element)
 
 #if PLATFORM(IOS_FAMILY)
     if (actualFont)
-        font = [actualFont fontWithSize:fontSize];
+        font = [actualFont.get() fontWithSize:fontSize];
 #else
     if (actualFont)
-        font = [fontManager convertFont:actualFont toSize:fontSize];
+        font = [fontManager convertFont:actualFont.get() toSize:fontSize];
 #endif
     if (!font) {
         String fontName = _caches->propertyValueForNode(element, CSSPropertyFontFamily);
@@ -924,11 +924,11 @@ NSDictionary *HTMLConverter::computedAttributesForElement(Element& element)
 
         String fontStyle = _caches->propertyValueForNode(element, CSSPropertyFontStyle);
         if (fontStyle == "italic"_s || fontStyle == "oblique"_s) {
-            PlatformFont *originalFont = font;
+            RetainPtr originalFont = font;
 #if PLATFORM(IOS_FAMILY)
-            font = [PlatformFontClass fontWithFamilyName:[font familyName] traits:UIFontTraitItalic size:[font pointSize]];
+            font = [PlatformFontClass fontWithFamilyName:[font.get() familyName] traits:UIFontTraitItalic size:[font.get() pointSize]];
 #else
-            font = [fontManager convertFont:font toHaveTrait:NSItalicFontMask];
+            font = [fontManager convertFont:font.get() toHaveTrait:NSItalicFontMask];
 #endif
             if (!font)
                 font = originalFont;
@@ -937,11 +937,11 @@ NSDictionary *HTMLConverter::computedAttributesForElement(Element& element)
         String fontWeight = _caches->propertyValueForNode(element, CSSPropertyFontStyle);
         if (fontWeight.startsWith("bold"_s) || parseIntegerAllowingTrailingJunk<int>(fontWeight).value_or(0) >= 700) {
             // ??? handle weight properly using NSFontManager
-            PlatformFont *originalFont = font;
+            RetainPtr originalFont = font;
 #if PLATFORM(IOS_FAMILY)
-            font = [PlatformFontClass fontWithFamilyName:[font familyName] traits:UIFontTraitBold size:[font pointSize]];
+            font = [PlatformFontClass fontWithFamilyName:[font.get() familyName] traits:UIFontTraitBold size:[font.get() pointSize]];
 #else
-            font = [fontManager convertFont:font toHaveTrait:NSBoldFontMask];
+            font = [fontManager convertFont:font.get() toHaveTrait:NSBoldFontMask];
 #endif
             if (!font)
                 font = originalFont;
@@ -949,15 +949,15 @@ NSDictionary *HTMLConverter::computedAttributesForElement(Element& element)
 #if !PLATFORM(IOS_FAMILY) // IJB: No small caps support on iOS
         if (_caches->propertyValueForNode(element, CSSPropertyFontVariantCaps) == "small-caps"_s) {
             // ??? synthesize small-caps if [font isEqual:originalFont]
-            NSFont *originalFont = font;
-            font = [fontManager convertFont:font toHaveTrait:NSSmallCapsFontMask];
+            RetainPtr originalFont = font;
+            font = [fontManager convertFont:font.get() toHaveTrait:NSSmallCapsFontMask];
             if (!font)
                 font = originalFont;
         }
 #endif
     }
     if (font)
-        [attrs setObject:font forKey:NSFontAttributeName];
+        [attrs setObject:font.get() forKey:NSFontAttributeName];
     if (foregroundColor)
         [attrs setObject:foregroundColor.get() forKey:NSForegroundColorAttributeName];
     if (backgroundColor && !_caches->elementHasOwnBackgroundColor(element))
@@ -965,7 +965,7 @@ NSDictionary *HTMLConverter::computedAttributesForElement(Element& element)
 
     float strokeWidth = 0.0;
     if (_caches->floatPropertyValueForNode(element, CSSPropertyWebkitTextStrokeWidth, strokeWidth)) {
-        float textStrokeWidth = strokeWidth / ([font pointSize] * 0.01);
+        float textStrokeWidth = strokeWidth / ([font.get() pointSize] * 0.01);
         [attrs setObject:@(textStrokeWidth) forKey:NSStrokeWidthAttributeName];
     }
     if (strokeColor)
@@ -1017,9 +1017,9 @@ NSDictionary *HTMLConverter::computedAttributesForElement(Element& element)
 
     String textShadow = _caches->propertyValueForNode(element, CSSPropertyTextShadow);
     if (textShadow.length() > 4) {
-        NSShadow *shadow = _shadowForShadowStyle(textShadow.createNSString().get());
+        RetainPtr shadow = _shadowForShadowStyle(textShadow.createNSString().get());
         if (shadow)
-            [attrs setObject:shadow forKey:NSShadowAttributeName];
+            [attrs setObject:shadow.get() forKey:NSShadowAttributeName];
     }
 
     RefPtr blockElement = _blockLevelElementForNode(&element);
@@ -1125,7 +1125,7 @@ RetainPtr<NSDictionary> HTMLConverter::aggregatedAttributesForElementAndItsAnces
     if (cachedAttributes)
         return cachedAttributes.get();
 
-    NSDictionary* attributesForCurrentElement = attributesForElement(element);
+    RetainPtr attributesForCurrentElement = attributesForElement(element);
     ASSERT(attributesForCurrentElement);
 
     Node* ancestor = element.parentInComposedTree();
@@ -1134,11 +1134,11 @@ RetainPtr<NSDictionary> HTMLConverter::aggregatedAttributesForElementAndItsAnces
 
     if (!ancestor) {
         cachedAttributes = attributesForCurrentElement;
-        return attributesForCurrentElement;
+        return attributesForCurrentElement.get();
     }
 
     RetainPtr<NSMutableDictionary> attributesForAncestors = adoptNS([aggregatedAttributesForElementAndItsAncestors(downcast<Element>(*ancestor)) mutableCopy]);
-    [attributesForAncestors addEntriesFromDictionary:attributesForCurrentElement];
+    [attributesForAncestors addEntriesFromDictionary:attributesForCurrentElement.get()];
     m_aggregatedAttributesForElements.set(&element, attributesForAncestors);
 
     return attributesForAncestors;
@@ -1157,9 +1157,9 @@ void HTMLConverter::_newParagraphForElement(Element& element, NSString *tag, BOO
         if (rangeToReplace.location < _domRangeStartIndex)
             _domRangeStartIndex += [string length] - rangeToReplace.length;
         rangeToReplace.length = [string length];
-        NSDictionary *attrs = attributesForElement(element);
+        RetainPtr attrs = attributesForElement(element);
         if (rangeToReplace.length > 0)
-            [_attrStr setAttributes:attrs range:rangeToReplace];
+            [_attrStr setAttributes:attrs.get() range:rangeToReplace];
         _flags.isSoft = YES;
     }
 }
@@ -1174,9 +1174,9 @@ void HTMLConverter::_newLineForElement(Element& element)
     rangeToReplace.length = [string length];
     if (rangeToReplace.location < _domRangeStartIndex)
         _domRangeStartIndex += rangeToReplace.length;
-    NSDictionary *attrs = attributesForElement(element);
+    RetainPtr attrs = attributesForElement(element);
     if (rangeToReplace.length > 0)
-        [_attrStr setAttributes:attrs range:rangeToReplace];
+        [_attrStr setAttributes:attrs.get() range:rangeToReplace];
     _flags.isSoft = YES;
 }
 
@@ -1190,29 +1190,29 @@ void HTMLConverter::_newTabForElement(Element& element)
     rangeToReplace.length = [string length];
     if (rangeToReplace.location < _domRangeStartIndex)
         _domRangeStartIndex += rangeToReplace.length;
-    NSDictionary *attrs = attributesForElement(element);
+    RetainPtr attrs = attributesForElement(element);
     if (rangeToReplace.length > 0)
-        [_attrStr setAttributes:attrs range:rangeToReplace];
+        [_attrStr setAttributes:attrs.get() range:rangeToReplace];
     _flags.isSoft = YES;
 }
 
 static Class _WebMessageDocumentClassSingleton()
 {
-    static Class _WebMessageDocumentClass = Nil;
+    static NeverDestroyed<RetainPtr<Class>> _WebMessageDocumentClass;
     static BOOL lookedUpClass = NO;
     if (!lookedUpClass) {
         // If the class is not there, we don't want to try again
 #if PLATFORM(MAC)
-        _WebMessageDocumentClass = objc_lookUpClass("EditableWebMessageDocument");
+        _WebMessageDocumentClass.get() = objc_lookUpClass("EditableWebMessageDocument");
 #endif
-        if (!_WebMessageDocumentClass)
-            _WebMessageDocumentClass = objc_lookUpClass("WebMessageDocument");
+        if (!_WebMessageDocumentClass->get())
+            _WebMessageDocumentClass.get() = objc_lookUpClass("WebMessageDocument");
 
-        if (_WebMessageDocumentClass && ![_WebMessageDocumentClass respondsToSelector:@selector(document:attachment:forURL:)])
-            _WebMessageDocumentClass = Nil;
+        if (_WebMessageDocumentClass->get() && ![_WebMessageDocumentClass->get() respondsToSelector:@selector(document:attachment:forURL:)])
+            _WebMessageDocumentClass.get() = Nil;
         lookedUpClass = YES;
     }
-    return _WebMessageDocumentClass;
+    return _WebMessageDocumentClass->get();
 }
 
 #if ENABLE(MULTI_REPRESENTATION_HEIC)
@@ -1302,7 +1302,7 @@ BOOL HTMLConverter::_addAttachmentForElement(Element& element, NSURL *url, BOOL 
         NSUInteger textLength = [_attrStr length];
         RetainPtr string = adoptNS([[NSString alloc] initWithFormat:(needsParagraph ? @"%C\n" : @"%C"), static_cast<unichar>(NSAttachmentCharacter)]);
         NSRange rangeToReplace = NSMakeRange(textLength, 0);
-        NSDictionary *attrs;
+        RetainPtr<NSDictionary> attrs;
 
 #if ENABLE(MULTI_REPRESENTATION_HEIC)
         if (RetainPtr data = [fileWrapper regularFileContents]) {
@@ -1348,7 +1348,7 @@ BOOL HTMLConverter::_addAttachmentForElement(Element& element, NSURL *url, BOOL 
             _domRangeStartIndex += rangeToReplace.length;
         attrs = attributesForElement(element);
         if (rangeToReplace.length > 0) {
-            [_attrStr setAttributes:attrs range:rangeToReplace];
+            [_attrStr setAttributes:attrs.get() range:rangeToReplace];
             rangeToReplace.length = 1;
             [_attrStr addAttribute:attributeName value:attachment.get() range:rangeToReplace];
         }
@@ -1574,15 +1574,15 @@ void HTMLConverter::_processMetaElementWithName(NSString *name, NSString *conten
         key = NSCommentDocumentAttribute;
     else if (NSOrderedSame == [@"CreationTime" compare:name options:NSCaseInsensitiveSearch]) {
         if (content && [content length] > 0) {
-            NSDate *date = _dateForString(content);
+            RetainPtr date = _dateForString(content);
             if (date)
-                [_documentAttrs setObject:date forKey:NSCreationTimeDocumentAttribute];
+                [_documentAttrs setObject:date.get() forKey:NSCreationTimeDocumentAttribute];
         }
     } else if (NSOrderedSame == [@"ModificationTime" compare:name options:NSCaseInsensitiveSearch]) {
         if (content && [content length] > 0) {
-            NSDate *date = _dateForString(content);
+            RetainPtr date = _dateForString(content);
             if (date)
-                [_documentAttrs setObject:date forKey:NSModificationTimeDocumentAttribute];
+                [_documentAttrs setObject:date.get() forKey:NSModificationTimeDocumentAttribute];
         }
     }
 #if PLATFORM(IOS_FAMILY)
@@ -1906,12 +1906,12 @@ BOOL HTMLConverter::_processElement(Element& element, NSInteger depth)
 void HTMLConverter::_addMarkersToList(NSTextList *list, NSRange range)
 {
     NSInteger itemNum = [list startingItemNumber];
-    NSString *string = [_attrStr string];
-    NSString *stringToInsert;
-    NSDictionary *attrsToInsert = nil;
-    NSParagraphStyle *paragraphStyle;
-    NSTextTab *tab = nil;
-    NSTextTab *tabToRemove;
+    RetainPtr string = [_attrStr string];
+    RetainPtr<NSString> stringToInsert;
+    RetainPtr<NSDictionary> attrsToInsert;
+    RetainPtr<NSParagraphStyle> paragraphStyle;
+    RetainPtr<NSTextTab> tab;
+    RetainPtr<NSTextTab> tabToRemove;
     NSRange paragraphRange;
     NSRange styleRange;
     NSUInteger textLength = [_attrStr length];
@@ -1919,7 +1919,7 @@ void HTMLConverter::_addMarkersToList(NSTextList *list, NSRange range)
     NSUInteger insertLength;
     NSUInteger i;
     NSUInteger count;
-    NSArray *textLists;
+    RetainPtr<NSArray> textLists;
     CGFloat markerLocation;
     CGFloat listLocation;
 
@@ -1929,19 +1929,19 @@ void HTMLConverter::_addMarkersToList(NSTextList *list, NSRange range)
         range.length = textLength - range.location;
     paragraphStyle = [_attrStr attribute:NSParagraphStyleAttributeName atIndex:range.location effectiveRange:NULL];
     if (paragraphStyle) {
-        textLists = [paragraphStyle textLists];
-        listIndex = [textLists indexOfObject:list];
+        textLists = [paragraphStyle.get() textLists];
+        listIndex = [textLists.get() indexOfObject:list];
         if (textLists && listIndex != NSNotFound) {
             for (NSUInteger idx = range.location; idx < NSMaxRange(range);) {
-                paragraphRange = [string paragraphRangeForRange:NSMakeRange(idx, 0)];
+                paragraphRange = [string.get() paragraphRangeForRange:NSMakeRange(idx, 0)];
                 paragraphStyle = [_attrStr attribute:NSParagraphStyleAttributeName atIndex:idx effectiveRange:&styleRange];
-                if ([[paragraphStyle textLists] count] == listIndex + 1) {
+                if ([[paragraphStyle.get() textLists] count] == listIndex + 1) {
                     stringToInsert = [NSString stringWithFormat:@"\t%@\t", [list markerForItemNumber:itemNum++]];
-                    insertLength = [stringToInsert length];
+                    insertLength = [stringToInsert.get() length];
                     attrsToInsert = [PlatformNSTextList _standardMarkerAttributesForAttributes:[_attrStr attributesAtIndex:paragraphRange.location effectiveRange:NULL]];
 
-                    [_attrStr replaceCharactersInRange:NSMakeRange(paragraphRange.location, 0) withString:stringToInsert];
-                    [_attrStr setAttributes:attrsToInsert range:NSMakeRange(paragraphRange.location, insertLength)];
+                    [_attrStr replaceCharactersInRange:NSMakeRange(paragraphRange.location, 0) withString:stringToInsert.get()];
+                    [_attrStr setAttributes:attrsToInsert.get() range:NSMakeRange(paragraphRange.location, insertLength)];
                     range.length += insertLength;
                     paragraphRange.length += insertLength;
                     if (paragraphRange.location < _domRangeStartIndex)
@@ -1955,11 +1955,11 @@ void HTMLConverter::_addMarkersToList(NSTextList *list, NSRange range)
                     while ((count = [[newStyle tabStops] count]) > 0) {
                         for (i = 0, tabToRemove = nil; !tabToRemove && i < count; i++) {
                             tab = [[newStyle tabStops] objectAtIndex:i];
-                            if ([tab location] <= listLocation)
+                            if ([tab.get() location] <= listLocation)
                                 tabToRemove = tab;
                         }
                         if (tabToRemove)
-                            [newStyle removeTabStop:tab];
+                            [newStyle removeTabStop:tab.get()];
                         else
                             break;
                     }
@@ -2013,39 +2013,40 @@ void HTMLConverter::_exitElement(Element& element, NSInteger depth, NSUInteger s
         [_textTableRows removeLastObject];
         [_textTableRowArrays removeLastObject];
     } else if (displayValue == "table-row"_s && [_textTables count] > 0) {
-        NSTextTable *table = [_textTables lastObject];
-        NSTextTableBlock *block;
-        NSMutableArray *rowArray = [_textTableRowArrays lastObject], *previousRowArray;
+        RetainPtr table = [_textTables lastObject];
+        RetainPtr<NSTextTableBlock> block;
+        RetainPtr rowArray = [_textTableRowArrays lastObject];
+        RetainPtr<NSArray> previousRowArray;
         NSUInteger i, count;
-        auto numberOfColumns = [table numberOfColumns];
+        auto numberOfColumns = [table.get() numberOfColumns];
         NSInteger openColumn;
         NSInteger rowNumber = [[_textTableRows lastObject] integerValue];
         do {
             rowNumber++;
             previousRowArray = rowArray;
             rowArray = [NSMutableArray array];
-            count = [previousRowArray count];
+            count = [previousRowArray.get() count];
             for (i = 0; i < count; i++) {
-                block = [previousRowArray objectAtIndex:i];
-                if ([block startingColumn] + [block columnSpan] > static_cast<NSInteger>(numberOfColumns))
-                    numberOfColumns = [block startingColumn] + [block columnSpan];
+                block = [previousRowArray.get() objectAtIndex:i];
+                if ([block.get() startingColumn] + [block.get() columnSpan] > static_cast<NSInteger>(numberOfColumns))
+                    numberOfColumns = [block.get() startingColumn] + [block.get() columnSpan];
 
-                if ([block startingRow] + [block rowSpan] > rowNumber)
-                    [rowArray addObject:block];
+                if ([block.get() startingRow] + [block.get() rowSpan] > rowNumber)
+                    [rowArray.get() addObject:block.get()];
             }
-            count = [rowArray count];
+            count = [rowArray.get() count];
             openColumn = 0;
             for (i = 0; i < count; i++) {
-                block = [rowArray objectAtIndex:i];
-                if (openColumn >= [block startingColumn] && openColumn < [block startingColumn] + [block columnSpan]) openColumn = [block startingColumn] + [block columnSpan];
+                block = [rowArray.get() objectAtIndex:i];
+                if (openColumn >= [block.get() startingColumn] && openColumn < [block.get() startingColumn] + [block.get() columnSpan]) openColumn = [block.get() startingColumn] + [block.get() columnSpan];
             }
         } while (openColumn >= static_cast<NSInteger>(numberOfColumns));
-        if (numberOfColumns > [table numberOfColumns])
-            [table setNumberOfColumns:numberOfColumns];
+        if (numberOfColumns > [table.get() numberOfColumns])
+            [table.get() setNumberOfColumns:numberOfColumns];
         [_textTableRows removeLastObject];
         [_textTableRows addObject:[NSNumber numberWithInteger:rowNumber]];
         [_textTableRowArrays removeLastObject];
-        [_textTableRowArrays addObject:rowArray];
+        [_textTableRowArrays addObject:rowArray.get()];
         if ([_textTableRowBackgroundColors count] > 0)
             [_textTableRowBackgroundColors removeLastObject];
     } else if (displayValue == "table-cell"_s && [_textBlocks count] > 0) {

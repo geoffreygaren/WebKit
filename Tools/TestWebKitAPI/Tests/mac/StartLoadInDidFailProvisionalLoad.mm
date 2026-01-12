@@ -29,7 +29,7 @@
 
 static bool finished = false;
 static bool didFailProvisionalLoad = false;
-static WebView *testView = nullptr;
+static NeverDestroyed<RetainPtr<WebView>> testView;
 
 @interface StartLoadInDidFailProvisionalLoadDelegate : NSObject <WebFrameLoadDelegate>
 @end
@@ -41,7 +41,7 @@ static WebView *testView = nullptr;
     EXPECT_FALSE(didFailProvisionalLoad);
     didFailProvisionalLoad = true;
 
-    [[testView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSBundle.test_resourcesBundle URLForResource:@"simple3" withExtension:@"html"]]];
+    [[testView->get() mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSBundle.test_resourcesBundle URLForResource:@"simple3" withExtension:@"html"]]];
 }
 
 - (void)webView:(WebView *)sender didFinishLoadForFrame:(WebFrame *)frame
@@ -56,7 +56,7 @@ namespace TestWebKitAPI {
 TEST(WebKitLegacy, StartLoadInDidFailProvisionalLoad)
 {
     auto webView = adoptNS([[WebView alloc] init]);
-    testView = webView.get();
+    testView.get() = webView;
     auto frameLoadDelegate = adoptNS([[StartLoadInDidFailProvisionalLoadDelegate alloc] init]);
     webView.get().frameLoadDelegate = frameLoadDelegate.get();
     [[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"]]];

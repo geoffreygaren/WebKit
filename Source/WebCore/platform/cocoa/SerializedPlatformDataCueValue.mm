@@ -48,13 +48,13 @@ SerializedPlatformDataCueValue::SerializedPlatformDataCueValue(AVMetadataItem *i
         NSString *value = [extras objectForKey:key];
         if (![value isKindOfClass:NSString.class])
             continue;
-        NSString *keyString = key;
+        RetainPtr keyString = key;
 
-        if ([key isEqualToString:@"MIMEtype"])
+        if ([keyString.get() isEqualToString:@"MIMEtype"])
             keyString = @"type";
-        else if ([key isEqualToString:@"dataTypeNamespace"] || [key isEqualToString:@"pictureType"])
+        else if ([keyString.get() isEqualToString:@"dataTypeNamespace"] || [keyString.get() isEqualToString:@"pictureType"])
             continue;
-        else if ([key isEqualToString:@"dataType"]) {
+        else if ([keyString.get() isEqualToString:@"dataType"]) {
             id dataTypeNamespace = [extras objectForKey:@"dataTypeNamespace"];
             if (!dataTypeNamespace || ![dataTypeNamespace isKindOfClass:[NSString class]] || ![dataTypeNamespace isEqualToString:@"org.iana.media-type"])
                 continue;
@@ -62,13 +62,13 @@ SerializedPlatformDataCueValue::SerializedPlatformDataCueValue(AVMetadataItem *i
         } else {
             if (![value length])
                 continue;
-            keyString = [key lowercaseString];
+            keyString = [keyString.get() lowercaseString];
         }
 
-        if ([keyString isEqualToString:@"type"])
+        if ([keyString.get() isEqualToString:@"type"])
             m_data->type = value;
         else
-            m_data->otherAttributes.add(keyString, value);
+            m_data->otherAttributes.add(keyString.get(), value);
     }
 
     if (auto *keyString = dynamic_objc_cast<NSString>(item.key))

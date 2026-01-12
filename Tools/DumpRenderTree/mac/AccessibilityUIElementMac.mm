@@ -325,32 +325,32 @@ bool AccessibilityUIElement::isEqual(AccessibilityUIElement* otherElement)
 void AccessibilityUIElement::getLinkedUIElements(Vector<AccessibilityUIElement>& elementVector)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* linkedElements = [m_element accessibilityAttributeValue:NSAccessibilityLinkedUIElementsAttribute];
-    elementVector = makeVector<AccessibilityUIElement>(linkedElements);
+    RetainPtr linkedElements = [m_element accessibilityAttributeValue:NSAccessibilityLinkedUIElementsAttribute];
+    elementVector = makeVector<AccessibilityUIElement>(linkedElements.get());
     END_AX_OBJC_EXCEPTIONS
 }
 
 void AccessibilityUIElement::getDocumentLinks(Vector<AccessibilityUIElement>& elementVector)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* linkElements = [m_element accessibilityAttributeValue:@"AXLinkUIElements"];
-    elementVector = makeVector<AccessibilityUIElement>(linkElements);
+    RetainPtr linkElements = [m_element accessibilityAttributeValue:@"AXLinkUIElements"];
+    elementVector = makeVector<AccessibilityUIElement>(linkElements.get());
     END_AX_OBJC_EXCEPTIONS
 }
 
 void AccessibilityUIElement::getChildren(Vector<AccessibilityUIElement>& elementVector)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* children = [m_element accessibilityAttributeValue:NSAccessibilityChildrenAttribute];
-    elementVector = makeVector<AccessibilityUIElement>(children);
+    RetainPtr children = [m_element accessibilityAttributeValue:NSAccessibilityChildrenAttribute];
+    elementVector = makeVector<AccessibilityUIElement>(children.get());
     END_AX_OBJC_EXCEPTIONS
 }
 
 void AccessibilityUIElement::getChildrenWithRange(Vector<AccessibilityUIElement>& elementVector, unsigned location, unsigned length)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* children = [m_element accessibilityArrayAttributeValues:NSAccessibilityChildrenAttribute index:location maxCount:length];
-    elementVector = makeVector<AccessibilityUIElement>(children);
+    RetainPtr children = [m_element accessibilityArrayAttributeValues:NSAccessibilityChildrenAttribute index:location maxCount:length];
+    elementVector = makeVector<AccessibilityUIElement>(children.get());
     END_AX_OBJC_EXCEPTIONS
 }
 
@@ -389,9 +389,9 @@ AccessibilityUIElement AccessibilityUIElement::getChildAtIndex(unsigned index)
 AccessibilityUIElement AccessibilityUIElement::linkedUIElementAtIndex(unsigned index)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* objects = [m_element accessibilityAttributeValue:NSAccessibilityLinkedUIElementsAttribute];
-    if (index < [objects count])
-        return [objects objectAtIndex:index];
+    RetainPtr objects = [m_element accessibilityAttributeValue:NSAccessibilityLinkedUIElementsAttribute];
+    if (index < [objects.get() count])
+        return [objects.get() objectAtIndex:index];
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -400,9 +400,9 @@ AccessibilityUIElement AccessibilityUIElement::linkedUIElementAtIndex(unsigned i
 AccessibilityUIElement AccessibilityUIElement::ariaOwnsElementAtIndex(unsigned index)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* objects = [m_element accessibilityAttributeValue:NSAccessibilityOwnsAttribute];
-    if (index < [objects count])
-        return [objects objectAtIndex:index];
+    RetainPtr objects = [m_element accessibilityAttributeValue:NSAccessibilityOwnsAttribute];
+    if (index < [objects.get() count])
+        return [objects.get() objectAtIndex:index];
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -411,9 +411,9 @@ AccessibilityUIElement AccessibilityUIElement::ariaOwnsElementAtIndex(unsigned i
 AccessibilityUIElement AccessibilityUIElement::ariaFlowToElementAtIndex(unsigned index)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* objects = [m_element accessibilityAttributeValue:NSAccessibilityLinkedUIElementsAttribute];
-    if (index < [objects count])
-        return [objects objectAtIndex:index];
+    RetainPtr objects = [m_element accessibilityAttributeValue:NSAccessibilityLinkedUIElementsAttribute];
+    if (index < [objects.get() count])
+        return [objects.get() objectAtIndex:index];
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -430,9 +430,9 @@ AccessibilityUIElement AccessibilityUIElement::ariaControlsElementAtIndex(unsign
 AccessibilityUIElement AccessibilityUIElement::disclosedRowAtIndex(unsigned index)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* rows = [m_element accessibilityAttributeValue:NSAccessibilityDisclosedRowsAttribute];
-    if (index < [rows count])
-        return [rows objectAtIndex:index];
+    RetainPtr rows = [m_element accessibilityAttributeValue:NSAccessibilityDisclosedRowsAttribute];
+    if (index < [rows.get() count])
+        return [rows.get() objectAtIndex:index];
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -441,9 +441,9 @@ AccessibilityUIElement AccessibilityUIElement::disclosedRowAtIndex(unsigned inde
 AccessibilityUIElement AccessibilityUIElement::selectedChildAtIndex(unsigned index) const
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* array = [m_element accessibilityAttributeValue:NSAccessibilitySelectedChildrenAttribute];
-    if (index < [array count])
-        return [array objectAtIndex:index];
+    RetainPtr array = [m_element accessibilityAttributeValue:NSAccessibilitySelectedChildrenAttribute];
+    if (index < [array.get() count])
+        return [array.get() objectAtIndex:index];
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -461,9 +461,9 @@ unsigned AccessibilityUIElement::selectedChildrenCount() const
 AccessibilityUIElement AccessibilityUIElement::selectedRowAtIndex(unsigned index)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* rows = [m_element accessibilityAttributeValue:NSAccessibilitySelectedRowsAttribute];
-    if (index < [rows count])
-        return [rows objectAtIndex:index];
+    RetainPtr rows = [m_element accessibilityAttributeValue:NSAccessibilitySelectedRowsAttribute];
+    if (index < [rows.get() count])
+        return [rows.get() objectAtIndex:index];
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -472,9 +472,9 @@ AccessibilityUIElement AccessibilityUIElement::selectedRowAtIndex(unsigned index
 AccessibilityUIElement AccessibilityUIElement::rowAtIndex(unsigned index)
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* rows = [m_element accessibilityAttributeValue:NSAccessibilityRowsAttribute];
-    if (index < [rows count])
-        return [rows objectAtIndex:index];
+    RetainPtr rows = [m_element accessibilityAttributeValue:NSAccessibilityRowsAttribute];
+    if (index < [rows.get() count])
+        return [rows.get() objectAtIndex:index];
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -1182,16 +1182,16 @@ AccessibilityUIElement AccessibilityUIElement::uiElementForSearchPredicate(JSCon
 {
     BEGIN_AX_OBJC_EXCEPTIONS
     NSDictionary *parameter = searchPredicateParameterizedAttributeForSearchCriteria(context, startElement, isDirectionNext, 1, searchKey, searchText, visibleOnly, immediateDescendantsOnly);
-    id value = [m_element accessibilityAttributeValue:@"AXUIElementsForSearchPredicate" forParameter:parameter];
-    if (![value isKindOfClass:[NSArray class]] || ![value count])
+    RetainPtr value = [m_element accessibilityAttributeValue:@"AXUIElementsForSearchPredicate" forParameter:parameter];
+    if (![value.get() isKindOfClass:[NSArray class]] || ![value.get() count])
         return nullptr;
 
-    id result = [value firstObject];
-    if ([result isKindOfClass:NSDictionary.class]) {
-        RELEASE_ASSERT([result objectForKey:@"AXSearchResultElement"]);
-        return AccessibilityUIElement([result objectForKey:@"AXSearchResultElement"]);
+    RetainPtr result = [value.get() firstObject];
+    if ([result.get() isKindOfClass:NSDictionary.class]) {
+        RELEASE_ASSERT([result.get() objectForKey:@"AXSearchResultElement"]);
+        return AccessibilityUIElement([result.get() objectForKey:@"AXSearchResultElement"]);
     }
-    return AccessibilityUIElement(result);
+    return AccessibilityUIElement(result.get());
     END_AX_OBJC_EXCEPTIONS
 
     return nullptr;
@@ -1226,8 +1226,8 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::attributesOfColumnHeaders()
 {
     // not yet defined in AppKit... odd
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* columnHeadersArray = [m_element accessibilityAttributeValue:@"AXColumnHeaderUIElements"];
-    auto columnHeadersVector = makeVector<AccessibilityUIElement>(columnHeadersArray);
+    RetainPtr columnHeadersArray = [m_element accessibilityAttributeValue:@"AXColumnHeaderUIElements"];
+    auto columnHeadersVector = makeVector<AccessibilityUIElement>(columnHeadersArray.get());
     return descriptionOfElements(columnHeadersVector);
     END_AX_OBJC_EXCEPTIONS
 
@@ -1237,8 +1237,8 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::attributesOfColumnHeaders()
 JSRetainPtr<JSStringRef> AccessibilityUIElement::attributesOfRowHeaders()
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* rowHeadersArray = [m_element accessibilityAttributeValue:@"AXRowHeaderUIElements"];
-    auto rowHeadersVector = makeVector<AccessibilityUIElement>(rowHeadersArray);
+    RetainPtr rowHeadersArray = [m_element accessibilityAttributeValue:@"AXRowHeaderUIElements"];
+    auto rowHeadersVector = makeVector<AccessibilityUIElement>(rowHeadersArray.get());
     return descriptionOfElements(rowHeadersVector);
     END_AX_OBJC_EXCEPTIONS
 
@@ -1248,8 +1248,8 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::attributesOfRowHeaders()
 JSRetainPtr<JSStringRef> AccessibilityUIElement::attributesOfColumns()
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* columnsArray = [m_element accessibilityAttributeValue:NSAccessibilityColumnsAttribute];
-    auto columnsVector = makeVector<AccessibilityUIElement>(columnsArray);
+    RetainPtr columnsArray = [m_element accessibilityAttributeValue:NSAccessibilityColumnsAttribute];
+    auto columnsVector = makeVector<AccessibilityUIElement>(columnsArray.get());
     return descriptionOfElements(columnsVector);
     END_AX_OBJC_EXCEPTIONS
 
@@ -1259,8 +1259,8 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::attributesOfColumns()
 JSRetainPtr<JSStringRef> AccessibilityUIElement::attributesOfRows()
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* rowsArray = [m_element accessibilityAttributeValue:NSAccessibilityRowsAttribute];
-    auto rowsVector = makeVector<AccessibilityUIElement>(rowsArray);
+    RetainPtr rowsArray = [m_element accessibilityAttributeValue:NSAccessibilityRowsAttribute];
+    auto rowsVector = makeVector<AccessibilityUIElement>(rowsArray.get());
     return descriptionOfElements(rowsVector);
     END_AX_OBJC_EXCEPTIONS
 
@@ -1270,8 +1270,8 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::attributesOfRows()
 JSRetainPtr<JSStringRef> AccessibilityUIElement::attributesOfVisibleCells()
 {
     BEGIN_AX_OBJC_EXCEPTIONS
-    NSArray* cellsArray = [m_element accessibilityAttributeValue:@"AXVisibleCells"];
-    auto cellsVector = makeVector<AccessibilityUIElement>(cellsArray);
+    RetainPtr cellsArray = [m_element accessibilityAttributeValue:@"AXVisibleCells"];
+    auto cellsVector = makeVector<AccessibilityUIElement>(cellsArray.get());
     return descriptionOfElements(cellsVector);
     END_AX_OBJC_EXCEPTIONS
 
@@ -1505,10 +1505,10 @@ void AccessibilityUIElement::setSelectedChildAtIndex(unsigned index) const
     AccessibilityUIElement element = const_cast<AccessibilityUIElement*>(this)->getChildAtIndex(index);
     if (!element.platformUIElement())
         return;
-    NSArray *selectedChildren = [m_element accessibilityAttributeValue:NSAccessibilitySelectedChildrenAttribute];
+    RetainPtr selectedChildren = [m_element accessibilityAttributeValue:NSAccessibilitySelectedChildrenAttribute];
     NSArray *array = @[element.platformUIElement()];
     if (selectedChildren)
-        array = [selectedChildren arrayByAddingObjectsFromArray:array];
+        array = [selectedChildren.get() arrayByAddingObjectsFromArray:array];
     [m_element _accessibilitySetValue:array forAttribute:NSAccessibilitySelectedChildrenAttribute];
     END_AX_OBJC_EXCEPTIONS
 }
@@ -1517,10 +1517,10 @@ void AccessibilityUIElement::removeSelectionAtIndex(unsigned index) const
 {
     BEGIN_AX_OBJC_EXCEPTIONS
     AccessibilityUIElement element = const_cast<AccessibilityUIElement*>(this)->getChildAtIndex(index);
-    NSArray *selectedChildren = [m_element accessibilityAttributeValue:NSAccessibilitySelectedChildrenAttribute];
+    RetainPtr selectedChildren = [m_element accessibilityAttributeValue:NSAccessibilitySelectedChildrenAttribute];
     if (!element.platformUIElement() || !selectedChildren)
         return;
-    NSMutableArray *array = [NSMutableArray arrayWithArray:selectedChildren];
+    NSMutableArray *array = [NSMutableArray arrayWithArray:selectedChildren.get()];
     [array removeObject:element.platformUIElement()];
     [m_element _accessibilitySetValue:array forAttribute:NSAccessibilitySelectedChildrenAttribute];
     END_AX_OBJC_EXCEPTIONS
@@ -1766,17 +1766,17 @@ AccessibilityTextMarkerRange AccessibilityUIElement::selectedTextMarkerRange()
 
 void AccessibilityUIElement::resetSelectedTextMarkerRange()
 {
-    id start = [m_element accessibilityAttributeValue:@"AXStartTextMarker"];
+    RetainPtr start = [m_element accessibilityAttributeValue:@"AXStartTextMarker"];
     if (!start)
         return;
 
-    NSArray* textMarkers = @[start, start];
-    id textMarkerRange = [m_element accessibilityAttributeValue:@"AXTextMarkerRangeForUnorderedTextMarkers" forParameter:textMarkers];
+    NSArray* textMarkers = @[start.get(), start.get()];
+    RetainPtr textMarkerRange = [m_element accessibilityAttributeValue:@"AXTextMarkerRangeForUnorderedTextMarkers" forParameter:textMarkers];
     if (!textMarkerRange)
         return;
 
     BEGIN_AX_OBJC_EXCEPTIONS
-    [m_element _accessibilitySetValue:textMarkerRange forAttribute:NSAccessibilitySelectedTextMarkerRangeAttribute];
+    [m_element _accessibilitySetValue:textMarkerRange.get() forAttribute:NSAccessibilitySelectedTextMarkerRangeAttribute];
     END_AX_OBJC_EXCEPTIONS
 }
 
@@ -2237,13 +2237,13 @@ JSRetainPtr<JSStringRef> AccessibilityUIElement::supportedActions()
 
 static NSString *convertMathMultiscriptPairsToString(NSArray *pairs)
 {
-    __block NSMutableString *result = [NSMutableString string];
+    __block RetainPtr<NSMutableString> result = [NSMutableString string];
     [pairs enumerateObjectsUsingBlock:^(id pair, NSUInteger index, BOOL *stop) {
         for (NSString *key in pair)
-            [result appendFormat:@"\t%lu. %@ = %@\n", (unsigned long)index, key, [[pair objectForKey:key] accessibilityAttributeValue:NSAccessibilitySubroleAttribute]];
+            [result.get() appendFormat:@"\t%lu. %@ = %@\n", (unsigned long)index, key, [[pair objectForKey:key] accessibilityAttributeValue:NSAccessibilitySubroleAttribute]];
     }];
 
-    return result;
+    return result.autorelease();
 }
 
 JSRetainPtr<JSStringRef> AccessibilityUIElement::mathPostscriptsDescription() const

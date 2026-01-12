@@ -124,15 +124,15 @@ void AVRoutePickerViewTargetPicker::showPlaybackTargetPicker(NSView *view, const
     if (!client())
         return;
 
-    auto *picker = devicePicker();
+    RetainPtr picker = devicePicker();
     if (useDarkAppearance)
-        picker.routeListAlwaysHasDarkAppearance = YES;
+        picker.get().routeListAlwaysHasDarkAppearance = YES;
 
     m_hadActiveRoute = hasActiveRoute;
 
     auto rectInWindowCoordinates = [view.window convertRectFromScreen:NSMakeRect(rectInScreenCoordinates.x(), rectInScreenCoordinates.y(), 1.0, 1.0)];
     auto rectInViewCoordinates = [view convertRect:rectInWindowCoordinates fromView:view];
-    [picker showRoutePickingControlsForOutputContext:outputContextInternal() relativeToRect:rectInViewCoordinates ofView:view];
+    [picker.get() showRoutePickingControlsForOutputContext:outputContextInternal() relativeToRect:rectInViewCoordinates ofView:view];
 }
 
 void AVRoutePickerViewTargetPicker::startingMonitoringPlaybackTargets()

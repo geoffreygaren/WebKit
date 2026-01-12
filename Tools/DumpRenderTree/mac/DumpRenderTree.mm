@@ -157,15 +157,15 @@ static RetainPtr<NSString> toNS(const std::string& string)
 @implementation ScrollViewResizerDelegate
 - (void)view:(UIWebDocumentView *)view didSetFrame:(CGRect)newFrame oldFrame:(CGRect)oldFrame asResultOfZoom:(BOOL)wasResultOfZoom
 {
-    UIView *scrollView = [view superview];
-    while (![scrollView isKindOfClass:[UIWebScrollView class]])
-        scrollView = [scrollView superview];
+    RetainPtr scrollView = [view superview];
+    while (![scrollView.get() isKindOfClass:[UIWebScrollView class]])
+        scrollView = [scrollView.get() superview];
 
-    ASSERT(scrollView && [scrollView isKindOfClass:[UIWebScrollView class]]);
-    const CGSize scrollViewSize = [scrollView bounds].size;
+    ASSERT(scrollView.get() && [scrollView.get() isKindOfClass:[UIWebScrollView class]]);
+    const CGSize scrollViewSize = [scrollView.get() bounds].size;
     CGSize contentSize = newFrame.size;
     contentSize.height = CGRound(std::max(CGRectGetMaxY(newFrame), scrollViewSize.height));
-    [(UIWebScrollView *)scrollView setContentSize:contentSize];
+    [(UIWebScrollView *)scrollView.get() setContentSize:contentSize];
 }
 @end
 #endif
@@ -452,9 +452,9 @@ static NSArray *fontAllowList()
     static NeverDestroyed availableFonts = [] {
         auto availableFonts = adoptNS([[NSMutableArray alloc] init]);
         for (NSString *fontFamily in allowedFontFamilySet()) {
-            NSArray* fontsForFamily = [[NSFontManager sharedFontManager] availableMembersOfFontFamily:fontFamily];
+            RetainPtr fontsForFamily = [[NSFontManager sharedFontManager] availableMembersOfFontFamily:fontFamily];
             [availableFonts addObject:fontFamily];
-            for (NSArray* fontInfo in fontsForFamily) {
+            for (NSArray* fontInfo in fontsForFamily.get()) {
                 // Font name is the first entry in the array.
                 [availableFonts addObject:[fontInfo objectAtIndex:0]];
             }
@@ -523,9 +523,9 @@ static void activateTestingFonts()
         @"FontWithFeatures.otf",
     };
 
-    NSURL *resourcesDirectory = [NSURL URLWithString:@"DumpRenderTree.resources" relativeToURL:[[NSBundle mainBundle] executableURL]];
+    RetainPtr resourcesDirectory = [NSURL URLWithString:@"DumpRenderTree.resources" relativeToURL:[[NSBundle mainBundle] executableURL]];
     auto fontURLs = createNSArray(fontFileNames, [&] (NSString *name) {
-        return [resourcesDirectory URLByAppendingPathComponent:name isDirectory:NO].absoluteURL;
+        return [resourcesDirectory.get() URLByAppendingPathComponent:name isDirectory:NO].absoluteURL;
     });
 
     CFArrayRef errors = nullptr;
@@ -1357,32 +1357,32 @@ static void dumpHistoryItem(WebHistoryItem *item, int indent, BOOL current)
     for (int i = start; i < indent; i++)
         putchar(' ');
 
-    NSString *urlString = [item URLString];
-    if ([[NSURL URLWithString:urlString] isFileURL]) {
-        NSRange range = [urlString rangeOfString:@"/LayoutTests/"];
-        urlString = [@"(file test):" stringByAppendingString:[urlString substringFromIndex:(range.length + range.location)]];
+    RetainPtr urlString = [item URLString];
+    if ([[NSURL URLWithString:urlString.get()] isFileURL]) {
+        NSRange range = [urlString.get() rangeOfString:@"/LayoutTests/"];
+        urlString = [@"(file test):" stringByAppendingString:[urlString.get() substringFromIndex:(range.length + range.location)]];
     }
 
-    printf("%s", [urlString UTF8String]);
-    NSString *target = [item target];
-    if (target && [target length] > 0)
-        printf(" (in frame \"%s\")", [target UTF8String]);
+    printf("%s", [urlString.get() UTF8String]);
+    RetainPtr target = [item target];
+    if (target.get() && [target.get() length] > 0)
+        printf(" (in frame \"%s\")", [target.get() UTF8String]);
     putchar('\n');
-    NSArray *kids = [item children];
-    if (kids) {
+    RetainPtr kids = [item children];
+    if (kids.get()) {
         // must sort to eliminate arbitrary result ordering which defeats reproducible testing
-        kids = [kids sortedArrayUsingFunction:&compareHistoryItems context:nil];
-        for (unsigned i = 0; i < [kids count]; i++)
-            dumpHistoryItem([kids objectAtIndex:i], indent+4, NO);
+        kids = [kids.get() sortedArrayUsingFunction:&compareHistoryItems context:nil];
+        for (unsigned i = 0; i < [kids.get() count]; i++)
+            dumpHistoryItem([kids.get() objectAtIndex:i], indent+4, NO);
     }
 }
 
 static void dumpFrameScrollPosition(WebFrame *f)
 {
-    WebScriptObject* scriptObject = [f windowObject];
+    RetainPtr scriptObject = [f windowObject];
     NSPoint scrollPosition = NSMakePoint(
-        [[scriptObject valueForKey:@"pageXOffset"] floatValue],
-        [[scriptObject valueForKey:@"pageYOffset"] floatValue]);
+        [[scriptObject.get() valueForKey:@"pageXOffset"] floatValue],
+        [[scriptObject.get() valueForKey:@"pageYOffset"] floatValue]);
     if (ABS(scrollPosition.x) > 0.00000001 || ABS(scrollPosition.y) > 0.00000001) {
         if ([f parentFrame] != nil)
             printf("frame '%s' ", [[f name] UTF8String]);
@@ -1390,17 +1390,17 @@ static void dumpFrameScrollPosition(WebFrame *f)
     }
 
     if (gTestRunner->dumpChildFrameScrollPositions()) {
-        NSArray *kids = [f childFrames];
-        if (kids)
-            for (unsigned i = 0; i < [kids count]; i++)
-                dumpFrameScrollPosition([kids objectAtIndex:i]);
+        RetainPtr kids = [f childFrames];
+        if (kids.get())
+            for (unsigned i = 0; i < [kids.get() count]; i++)
+                dumpFrameScrollPosition([kids.get() objectAtIndex:i]);
     }
 }
 
 static RetainPtr<NSString> dumpFramesAsText(WebFrame *frame)
 {
-    DOMDocument *document = [frame DOMDocument];
-    DOMElement *documentElement = [document documentElement];
+    RetainPtr document = [frame DOMDocument];
+    RetainPtr documentElement = [document.get() documentElement];
 
     if (!documentElement)
         return @"";
@@ -1413,7 +1413,7 @@ static RetainPtr<NSString> dumpFramesAsText(WebFrame *frame)
     else
         result = adoptNS([[NSMutableString alloc] init]);
 
-    NSString *innerText = [documentElement innerText];
+    NSString *innerText = [documentElement.get() innerText];
 
     // We use WTF::String::tryGetUTF8 to convert innerText to a UTF8 buffer since
     // it can handle dangling surrogates and the NSString
@@ -1427,10 +1427,10 @@ static RetainPtr<NSString> dumpFramesAsText(WebFrame *frame)
         [result appendString:@"\n"];
 
     if (gTestRunner->dumpChildFramesAsText()) {
-        NSArray *kids = [frame childFrames];
-        if (kids) {
-            for (unsigned i = 0; i < [kids count]; i++)
-                [result appendString:dumpFramesAsText([kids objectAtIndex:i]).get()];
+        RetainPtr kids = [frame childFrames];
+        if (kids.get()) {
+            for (unsigned i = 0; i < [kids.get() count]; i++)
+                [result appendString:dumpFramesAsText([kids.get() objectAtIndex:i]).get()];
         }
     }
 
@@ -1638,12 +1638,12 @@ void dump()
             resultData = dumpFrameAsPDF(mainFrame);
             resultMimeType = @"application/pdf";
         } else if (gTestRunner->dumpDOMAsWebArchive()) {
-            WebArchive *webArchive = [[mainFrame DOMDocument] webArchive];
-            resultString = bridge_cast(WebCoreTestSupport::createXMLStringFromWebArchiveData(bridge_cast([webArchive data])));
+            RetainPtr webArchive = [[mainFrame DOMDocument] webArchive];
+            resultString = bridge_cast(WebCoreTestSupport::createXMLStringFromWebArchiveData(bridge_cast([webArchive.get() data])));
             resultMimeType = @"application/x-webarchive";
         } else if (gTestRunner->dumpSourceAsWebArchive()) {
-            WebArchive *webArchive = [[mainFrame dataSource] webArchive];
-            resultString = bridge_cast(WebCoreTestSupport::createXMLStringFromWebArchiveData(bridge_cast([webArchive data])));
+            RetainPtr webArchive = [[mainFrame dataSource] webArchive];
+            resultString = bridge_cast(WebCoreTestSupport::createXMLStringFromWebArchiveData(bridge_cast([webArchive.get() data])));
             resultMimeType = @"application/x-webarchive";
         } else if (gTestRunner->isPrinting())
             resultString = [mainFrame renderTreeAsExternalRepresentationForPrinting];

@@ -61,8 +61,8 @@ DOMNode *kit(Node* value)
     WebCoreThreadViolationCheckRoundOne();
     if (!value)
         return nil;
-    if (DOMNode *wrapper = getDOMWrapper(value))
-        return retainPtr(wrapper).autorelease();
+    if (RetainPtr wrapper = getDOMWrapper(value))
+        return retainPtr(wrapper.get()).autorelease();
     RetainPtr<DOMNode> wrapper = adoptNS([[kitClass(value) alloc] _init]);
     if (!wrapper)
         return nil;

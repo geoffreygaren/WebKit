@@ -465,8 +465,8 @@ void TestController::resetContentExtensions()
     [[WKContentRuleListStore defaultStore] _removeAllContentRuleLists];
 
     if (auto* webView = mainWebView()) {
-        TestRunnerWKWebView *platformView = webView->platformView();
-        [platformView.configuration.userContentController _removeAllUserContentFilters];
+        RetainPtr platformView = webView->platformView();
+        [platformView.get().configuration.userContentController _removeAllUserContentFilters];
     }
 }
 #endif
@@ -492,22 +492,22 @@ void TestController::cocoaResetStateToConsistentValues(const TestOptions& option
 #endif
     m_calendarSwizzler = nullptr;
     m_overriddenCalendarAndLocaleIdentifiers = { nil, nil };
-    
-    if (auto* webView = mainWebView()) {
-        TestRunnerWKWebView *platformView = webView->platformView();
-        platformView._viewScale = 1;
-        platformView._minimumEffectiveDeviceWidth = 0;
-        platformView._editable = NO;
-#if PLATFORM(MAC)
-        platformView.allowsMagnification = NO;
-        [platformView setMagnification:1 centeredAtPoint:CGPointZero];
-#endif
-        [platformView _setContinuousSpellCheckingEnabledForTesting:options.shouldShowSpellCheckingDots()];
-        [platformView _setGrammarCheckingEnabledForTesting:YES];
-        [platformView resetInteractionCallbacks];
-        [platformView _resetNavigationGestureStateForTesting];
 
-        auto configuration = platformView.configuration;
+    if (auto* webView = mainWebView()) {
+        RetainPtr platformView = webView->platformView();
+        platformView.get()._viewScale = 1;
+        platformView.get()._minimumEffectiveDeviceWidth = 0;
+        platformView.get()._editable = NO;
+#if PLATFORM(MAC)
+        platformView.get().allowsMagnification = NO;
+        [platformView.get() setMagnification:1 centeredAtPoint:CGPointZero];
+#endif
+        [platformView.get() _setContinuousSpellCheckingEnabledForTesting:options.shouldShowSpellCheckingDots()];
+        [platformView.get() _setGrammarCheckingEnabledForTesting:YES];
+        [platformView.get() resetInteractionCallbacks];
+        [platformView.get() _resetNavigationGestureStateForTesting];
+
+        auto configuration = platformView.get().configuration;
         configuration.preferences.textInteractionEnabled = options.textInteractionEnabled();
         configuration.preferences._textExtractionEnabled = options.textExtractionEnabled();
     }
@@ -638,7 +638,7 @@ void TestController::addTestKeyToKeychain(const String& privateKeyBase64, const 
     ));
     ASSERT(!errorRef);
 
-    NSDictionary* addQuery = @{
+    RetainPtr addQuery = @{
         (id)kSecValueRef: (id)key.get(),
         (id)kSecClass: (id)kSecClassKey,
         (id)kSecAttrLabel: attrLabel.createNSString().get(),
@@ -646,7 +646,7 @@ void TestController::addTestKeyToKeychain(const String& privateKeyBase64, const 
         (id)kSecAttrAccessible: (id)kSecAttrAccessibleAfterFirstUnlock,
         (id)kSecUseDataProtectionKeychain: @YES
     };
-    OSStatus status = SecItemAdd((__bridge CFDictionaryRef)addQuery, NULL);
+    OSStatus status = SecItemAdd((__bridge CFDictionaryRef)addQuery.get(), NULL);
     ASSERT_UNUSED(status, !status);
 }
 

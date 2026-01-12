@@ -113,9 +113,9 @@ TEST(WKWebView, LoadAlternateHTMLStringFromProvisionalLoadErrorBackToBack)
         [webView setNavigationDelegate:delegate.get()];
 
         char literal[] = "https://www.example.com<>/";
-        NSURL* targetURL = WTF::URLWithData([NSData dataWithBytes:literal length:strlen(literal)], nil);
-        [webView loadRequest:[NSURLRequest requestWithURL:targetURL]];
-        [webView loadRequest:[NSURLRequest requestWithURL:targetURL]];
+        RetainPtr targetURL = WTF::URLWithData([NSData dataWithBytes:literal length:strlen(literal)], nil);
+        [webView loadRequest:[NSURLRequest requestWithURL:targetURL.get()]];
+        [webView loadRequest:[NSURLRequest requestWithURL:targetURL.get()]];
 
         isDone = false;
         TestWebKitAPI::Util::run(&isDone);

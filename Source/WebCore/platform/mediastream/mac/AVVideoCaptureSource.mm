@@ -229,11 +229,11 @@ void AVVideoCaptureSource::setUseAVCaptureDeviceRotationCoordinatorAPI(bool valu
 
 CaptureSourceOrError AVVideoCaptureSource::create(const CaptureDevice& device, MediaDeviceHashSalts&& hashSalts, const MediaConstraints* constraints, std::optional<PageIdentifier> pageIdentifier)
 {
-    auto *avDevice = [PAL::getAVCaptureDeviceClassSingleton() deviceWithUniqueID:device.persistentId().createNSString().get()];
+    RetainPtr avDevice = [PAL::getAVCaptureDeviceClassSingleton() deviceWithUniqueID:device.persistentId().createNSString().get()];
     if (!avDevice)
         return CaptureSourceOrError({ "No AVVideoCaptureSource device"_s , MediaAccessDenialReason::PermissionDenied });
 
-    Ref<RealtimeMediaSource> source = adoptRef(*new AVVideoCaptureSource(avDevice, device, WTF::move(hashSalts), pageIdentifier));
+    Ref<RealtimeMediaSource> source = adoptRef(*new AVVideoCaptureSource(avDevice.get(), device, WTF::move(hashSalts), pageIdentifier));
 
     if (!source->capabilities().width().max() || !source->capabilities().height().max() || !source->capabilities().frameRate().max())
         return CaptureSourceOrError({ "AVVideoCaptureSource device has invalid width, height or frameRate capabilities"_s , MediaAccessDenialReason::PermissionDenied });
@@ -556,16 +556,16 @@ const RealtimeMediaSourceCapabilities& AVVideoCaptureSource::capabilities()
     capabilities.setDeviceId(hashedId());
     capabilities.setGroupId(hashedGroupId());
 
-    AVCaptureDevice *videoDevice = device();
-    if ([videoDevice position] == AVCaptureDevicePositionFront)
+    RetainPtr videoDevice = device();
+    if ([videoDevice.get() position] == AVCaptureDevicePositionFront)
         capabilities.addFacingMode(VideoFacingMode::User);
-    if ([videoDevice position] == AVCaptureDevicePositionBack)
+    if ([videoDevice.get() position] == AVCaptureDevicePositionBack)
         capabilities.addFacingMode(VideoFacingMode::Environment);
 
     auto supportedConstraints = settings().supportedConstraints();
 
 #if HAVE(AVCAPTUREDEVICE_MINFOCUSLENGTH)
-    double minimumFocusDistance = [videoDevice minimumFocusDistance];
+    double minimumFocusDistance = [videoDevice.get() minimumFocusDistance];
     if (minimumFocusDistance != -1.0) {
         ASSERT(minimumFocusDistance >= 0);
         supportedConstraints.setSupportsFocusDistance(true);
@@ -573,13 +573,13 @@ const RealtimeMediaSourceCapabilities& AVVideoCaptureSource::capabilities()
     }
 #endif // HAVE(AVCAPTUREDEVICE_MINFOCUSLENGTH)
 
-    auto whiteBalanceModes = supportedWhiteBalanceModes(videoDevice);
+    auto whiteBalanceModes = supportedWhiteBalanceModes(videoDevice.get());
     if (!whiteBalanceModes.isEmpty()) {
         supportedConstraints.setSupportsWhiteBalanceMode(true);
         capabilities.setWhiteBalanceModes(WTF::move(whiteBalanceModes));
     }
 
-    if ([videoDevice hasTorch]) {
+    if ([videoDevice.get() hasTorch]) {
         supportedConstraints.setSupportsTorch(true);
         capabilities.setTorch(true);
     }
@@ -688,30 +688,30 @@ RetainPtr<AVCapturePhotoSettings> AVVideoCaptureSource::photoConfiguration(const
     if (photoSettings.imageHeight && photoSettings.imageWidth)
         requestedPhotoDimensions = { static_cast<int>(*photoSettings.imageWidth), static_cast<int>(*photoSettings.imageHeight) };
 
-    AVCapturePhotoSettings* avPhotoSettings = [PAL::getAVCapturePhotoSettingsClassSingleton() photoSettingsWithFormat:@{
+    RetainPtr avPhotoSettings = [PAL::getAVCapturePhotoSettingsClassSingleton() photoSettingsWithFormat:@{
         AVVideoCodecKey : AVVideoCodecTypeJPEG,
         AVVideoCompressionPropertiesKey : @{ AVVideoQualityKey : @(1) }
     }];
 
 #if PLATFORM(IOS_FAMILY)
-    auto* photoOutput = this->photoOutput();
+    RetainPtr photoOutput = this->photoOutput();
     ASSERT(photoOutput);
     if (!photoOutput)
         return nullptr;
 
     if (photoSettings.fillLightMode) {
         auto flashMode = toAVCaptureFlashMode(*photoSettings.fillLightMode);
-        if ([photoOutput.supportedFlashModes containsObject:@(flashMode)])
-            [avPhotoSettings setFlashMode:flashMode];
+        if ([photoOutput.get().supportedFlashModes containsObject:@(flashMode)])
+            [avPhotoSettings.get() setFlashMode:flashMode];
     }
 
-    if (photoSettings.redEyeReduction && photoOutput.isAutoRedEyeReductionSupported)
-        [avPhotoSettings setAutoRedEyeReductionEnabled:!!photoSettings.redEyeReduction.value()];
+    if (photoSettings.redEyeReduction && photoOutput.get().isAutoRedEyeReductionSupported)
+        [avPhotoSettings.get() setAutoRedEyeReductionEnabled:!!photoSettings.redEyeReduction.value()];
 #endif
 
     requestedPhotoDimensions = maxPhotoSizeForCurrentPreset(requestedPhotoDimensions);
-    if (!requestedPhotoDimensions.isEmpty() && [avPhotoSettings respondsToSelector:@selector(setMaxPhotoDimensions:)])
-        [avPhotoSettings setMaxPhotoDimensions: { requestedPhotoDimensions.width(), requestedPhotoDimensions.height() }];
+    if (!requestedPhotoDimensions.isEmpty() && [avPhotoSettings.get() respondsToSelector:@selector(setMaxPhotoDimensions:)])
+        [avPhotoSettings.get() setMaxPhotoDimensions: { requestedPhotoDimensions.width(), requestedPhotoDimensions.height() }];
 
     return avPhotoSettings;
 }
@@ -746,10 +746,10 @@ auto AVVideoCaptureSource::takePhotoInternal(PhotoSettings&& photoSettings) -> R
         ASSERT(!isMainThread());
 
         if ([avPhotoSettings respondsToSelector:@selector(setMaxPhotoDimensions:)]) {
-            auto *format = [device activeFormat];
+            RetainPtr format = [device activeFormat];
             auto maxDimensions = [avPhotoSettings maxPhotoDimensions];
 
-            auto requestedPhotoDimensions = maxPhotoSizeForActiveFormat(format, toIntSize(maxDimensions));
+            auto requestedPhotoDimensions = maxPhotoSizeForActiveFormat(format.get(), toIntSize(maxDimensions));
             if (!requestedPhotoDimensions.isEmpty())
                 [photoOutput setMaxPhotoDimensions:toCMVideoDimensions(requestedPhotoDimensions)];
         }
@@ -798,29 +798,29 @@ auto AVVideoCaptureSource::getPhotoSettings() -> Ref<PhotoSettingsNativePromise>
 NSMutableArray* AVVideoCaptureSource::cameraCaptureDeviceTypes()
 {
     ASSERT(isMainThread());
-    static NSMutableArray *devicePriorities;
-    if (!devicePriorities) {
-        devicePriorities = [[NSMutableArray alloc] initWithCapacity:8];
+    static NeverDestroyed<RetainPtr<NSMutableArray>> devicePriorities;
+    if (!devicePriorities.get()) {
+        devicePriorities.get() = [[NSMutableArray alloc] initWithCapacity:8];
 
         // This order is important as it is used to select the preferred back camera.
         if (PAL::canLoad_AVFoundation_AVCaptureDeviceTypeBuiltInTripleCamera())
-            [devicePriorities addObject:AVCaptureDeviceTypeBuiltInTripleCamera];
+            [devicePriorities->get() addObject:AVCaptureDeviceTypeBuiltInTripleCamera];
         if (PAL::canLoad_AVFoundation_AVCaptureDeviceTypeBuiltInDualWideCamera())
-            [devicePriorities addObject:AVCaptureDeviceTypeBuiltInDualWideCamera];
+            [devicePriorities->get() addObject:AVCaptureDeviceTypeBuiltInDualWideCamera];
         if (PAL::canLoad_AVFoundation_AVCaptureDeviceTypeBuiltInUltraWideCamera())
-            [devicePriorities addObject:AVCaptureDeviceTypeBuiltInUltraWideCamera];
+            [devicePriorities->get() addObject:AVCaptureDeviceTypeBuiltInUltraWideCamera];
         if (PAL::canLoad_AVFoundation_AVCaptureDeviceTypeBuiltInDualCamera())
-            [devicePriorities addObject:AVCaptureDeviceTypeBuiltInDualCamera];
+            [devicePriorities->get() addObject:AVCaptureDeviceTypeBuiltInDualCamera];
         if (PAL::canLoad_AVFoundation_AVCaptureDeviceTypeBuiltInWideAngleCamera())
-            [devicePriorities addObject:AVCaptureDeviceTypeBuiltInWideAngleCamera];
+            [devicePriorities->get() addObject:AVCaptureDeviceTypeBuiltInWideAngleCamera];
         if (PAL::canLoad_AVFoundation_AVCaptureDeviceTypeBuiltInTelephotoCamera())
-            [devicePriorities addObject:AVCaptureDeviceTypeBuiltInTelephotoCamera];
+            [devicePriorities->get() addObject:AVCaptureDeviceTypeBuiltInTelephotoCamera];
         if (PAL::canLoad_AVFoundation_AVCaptureDeviceTypeDeskViewCamera())
-            [devicePriorities addObject:AVCaptureDeviceTypeDeskViewCamera];
+            [devicePriorities->get() addObject:AVCaptureDeviceTypeDeskViewCamera];
         if (PAL::canLoad_AVFoundation_AVCaptureDeviceTypeExternalUnknown())
-            [devicePriorities addObject:AVCaptureDeviceTypeExternalUnknown];
+            [devicePriorities->get() addObject:AVCaptureDeviceTypeExternalUnknown];
     }
-    return devicePriorities;
+    return devicePriorities->get();
 }
 
 double AVVideoCaptureSource::facingModeFitnessScoreAdjustment() const
@@ -938,25 +938,25 @@ void AVVideoCaptureSource::setSessionSizeFrameRateAndZoom()
         [device() setActiveFormat:m_currentPreset->format()];
 
 #if PLATFORM(MAC)
-        auto settingsDictionary = @{
+        RetainPtr settingsDictionary = @{
             (__bridge NSString *)kCVPixelBufferPixelFormatTypeKey: @(preferedPixelBufferFormat()),
             (__bridge NSString *)kCVPixelBufferWidthKey: @(m_currentPreset->size().width()),
             (__bridge NSString *)kCVPixelBufferHeightKey: @(m_currentPreset->size().height()),
             (__bridge NSString *)kCVPixelBufferIOSurfacePropertiesKey : @{ }
         };
-        [m_videoOutput setVideoSettings:settingsDictionary];
+        [m_videoOutput setVideoSettings:settingsDictionary.get()];
 #endif
 
-        auto* frameRateRange = frameDurationForFrameRate(m_currentFrameRate);
+        RetainPtr frameRateRange = frameDurationForFrameRate(m_currentFrameRate);
         ASSERT(frameRateRange);
         if (frameRateRange) {
-            m_currentFrameRate = clampTo(m_currentFrameRate, frameRateRange.minFrameRate, frameRateRange.maxFrameRate);
+            m_currentFrameRate = clampTo(m_currentFrameRate, frameRateRange.get().minFrameRate, frameRateRange.get().maxFrameRate);
 
             auto frameDuration = PAL::CMTimeMake(1, m_currentFrameRate);
-            if (PAL::CMTimeCompare(frameDuration, frameRateRange.minFrameDuration) < 0)
-                frameDuration = frameRateRange.minFrameDuration;
-            else if (PAL::CMTimeCompare(frameDuration, frameRateRange.maxFrameDuration) > 0)
-                frameDuration = frameRateRange.maxFrameDuration;
+            if (PAL::CMTimeCompare(frameDuration, frameRateRange.get().minFrameDuration) < 0)
+                frameDuration = frameRateRange.get().minFrameDuration;
+            else if (PAL::CMTimeCompare(frameDuration, frameRateRange.get().maxFrameDuration) > 0)
+                frameDuration = frameRateRange.get().maxFrameDuration;
 
             ALWAYS_LOG_IF_POSSIBLE(LOGIDENTIFIER, "setting frame rate to ", m_currentFrameRate, ", duration ", PAL::toMediaTime(frameDuration));
 
@@ -1037,14 +1037,14 @@ void AVVideoCaptureSource::updateWhiteBalanceMode()
     if (!lockForConfiguration())
         return;
 
-    auto* device = this->device();
+    RetainPtr device = this->device();
     @try {
-        device.whiteBalanceMode = whiteBalanceModeFromMeteringMode(whiteBalanceMode());
+        device.get().whiteBalanceMode = whiteBalanceModeFromMeteringMode(whiteBalanceMode());
     } @catch(NSException *exception) {
         ERROR_LOG_IF_POSSIBLE(LOGIDENTIFIER, "error setting white balance mode ", [[exception name] UTF8String], ", reason : ", exception.reason);
     }
 
-    [device unlockForConfiguration];
+    [device.get() unlockForConfiguration];
     m_currentSettings = std::nullopt;
 }
 
@@ -1060,22 +1060,22 @@ void AVVideoCaptureSource::updateTorch()
     if (!lockForConfiguration())
         return;
 
-    auto* device = this->device();
+    RetainPtr device = this->device();
     @try {
         if (torch()) {
             NSError *error = nil;
-            if (![device setTorchModeOnWithLevel:AVCaptureMaxAvailableTorchLevel error:&error]) {
+            if (![device.get() setTorchModeOnWithLevel:AVCaptureMaxAvailableTorchLevel error:&error]) {
                 ERROR_LOG_IF(loggerPtr() && error, LOGIDENTIFIER, "error turning on torch ", error);
                 ERROR_LOG_IF(loggerPtr() && !error, LOGIDENTIFIER, "unknown error on torch");
             }
         } else
-            [device setTorchMode:(AVCaptureTorchMode)m_defaultTorchMode];
+            [device.get() setTorchMode:(AVCaptureTorchMode)m_defaultTorchMode];
 
     } @catch(NSException *exception) {
         ERROR_LOG_IF_POSSIBLE(LOGIDENTIFIER, "error turning on torch ", exception.name, ", reason : ", exception.reason);
     }
 
-    [device unlockForConfiguration];
+    [device.get() unlockForConfiguration];
     m_currentSettings = std::nullopt;
 }
 
@@ -1084,9 +1084,9 @@ IntDegrees AVVideoCaptureSource::sensorOrientationFromVideoOutput()
     if (PAL::canLoad_AVFoundation_AVCaptureDeviceTypeExternalUnknown() && [device() deviceType] == AVCaptureDeviceTypeExternalUnknown)
         return 0;
 
-    AVCaptureConnection* connection = [m_videoOutput connectionWithMediaType:AVMediaTypeVideo];
+    RetainPtr connection = [m_videoOutput connectionWithMediaType:AVMediaTypeVideo];
 ALLOW_DEPRECATED_DECLARATIONS_BEGIN
-    return connection ? sensorOrientation([connection videoOrientation]) : 0;
+    return connection ? sensorOrientation([connection.get() videoOrientation]) : 0;
 ALLOW_DEPRECATED_DECLARATIONS_END
 }
 
@@ -1146,10 +1146,10 @@ AVFrameRateRange* AVVideoCaptureSource::frameDurationForFrameRate(double rate)
 {
     using namespace PAL; // For CMTIME_COMPARE_INLINE
 
-    AVFrameRateRange *bestFrameRateRange = nil;
+    RetainPtr<AVFrameRateRange> bestFrameRateRange;
     for (AVFrameRateRange *frameRateRange in [[device() activeFormat] videoSupportedFrameRateRanges]) {
         if (frameRateRangeIncludesRate({ [frameRateRange minFrameRate], [frameRateRange maxFrameRate] }, rate)) {
-            if (!bestFrameRateRange || CMTIME_COMPARE_INLINE([frameRateRange minFrameDuration], >, [bestFrameRateRange minFrameDuration]))
+            if (!bestFrameRateRange || CMTIME_COMPARE_INLINE([frameRateRange minFrameDuration], >, [bestFrameRateRange.get() minFrameDuration]))
                 bestFrameRateRange = frameRateRange;
         }
     }
@@ -1157,7 +1157,7 @@ AVFrameRateRange* AVVideoCaptureSource::frameDurationForFrameRate(double rate)
     if (!bestFrameRateRange)
         ERROR_LOG_IF_POSSIBLE(LOGIDENTIFIER, "no frame rate range for rate ", rate);
 
-    return bestFrameRateRange;
+    return bestFrameRateRange.autorelease();
 }
 
 bool AVVideoCaptureSource::setupCaptureSession()
@@ -1197,10 +1197,10 @@ bool AVVideoCaptureSource::setupCaptureSession()
 
 #if PLATFORM(IOS_FAMILY)
     if (s_useAVCaptureDeviceRotationCoordinatorAPI) {
-        AVCaptureConnection* connection = [m_videoOutput connectionWithMediaType:AVMediaTypeVideo];
-        if ([connection isVideoRotationAngleSupported:0]) {
+        RetainPtr connection = [m_videoOutput connectionWithMediaType:AVMediaTypeVideo];
+        if ([connection.get() isVideoRotationAngleSupported:0]) {
             RELEASE_LOG(WebRTC, "Setting AVVideoCaptureSource connection angle to 0");
-            [connection setVideoRotationAngle:0];
+            [connection.get() setVideoRotationAngle:0];
         }
     }
 #endif
@@ -1312,8 +1312,8 @@ void AVVideoCaptureSource::captureOutputDidFinishProcessingPhoto(RetainPtr<AVCap
         return;
     }
 
-    NSData* data = [photo fileDataRepresentation];
-    resolvePendingPhotoRequest(makeVector(data), "image/jpeg"_s);
+    RetainPtr data = [photo fileDataRepresentation];
+    resolvePendingPhotoRequest(makeVector(data.get()), "image/jpeg"_s);
 }
 
 void AVVideoCaptureSource::reconfigureIfNeeded()
@@ -1478,15 +1478,15 @@ void AVVideoCaptureSource::deviceDisconnected(RetainPtr<NSNotification> notifica
     auto source = m_captureSource.get();
     ASSERT(source);
 
-    NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
+    RetainPtr center = [NSNotificationCenter defaultCenter];
 
-    [center addObserver:self selector:@selector(deviceConnectedDidChange:) name:AVCaptureDeviceWasDisconnectedNotification object:nil];
+    [center.get() addObserver:self selector:@selector(deviceConnectedDidChange:) name:AVCaptureDeviceWasDisconnectedNotification object:nil];
 
 #if PLATFORM(IOS_FAMILY)
-    AVCaptureSession* session = source->session();
-    [center addObserver:self selector:@selector(sessionRuntimeError:) name:AVCaptureSessionRuntimeErrorNotification object:session];
-    [center addObserver:self selector:@selector(beginSessionInterrupted:) name:AVCaptureSessionWasInterruptedNotification object:session];
-    [center addObserver:self selector:@selector(endSessionInterrupted:) name:AVCaptureSessionInterruptionEndedNotification object:session];
+    RetainPtr session = source->session();
+    [center.get() addObserver:self selector:@selector(sessionRuntimeError:) name:AVCaptureSessionRuntimeErrorNotification object:session.get()];
+    [center.get() addObserver:self selector:@selector(beginSessionInterrupted:) name:AVCaptureSessionWasInterruptedNotification object:session.get()];
+    [center.get() addObserver:self selector:@selector(endSessionInterrupted:) name:AVCaptureSessionInterruptionEndedNotification object:session.get()];
 #endif
 }
 
@@ -1516,13 +1516,13 @@ void AVVideoCaptureSource::deviceDisconnected(RetainPtr<NSNotification> notifica
     if (!source)
         return;
 
-    id newValue = [change valueForKey:NSKeyValueChangeNewKey];
+    RetainPtr newValue = [change valueForKey:NSKeyValueChangeNewKey];
     bool willChange = [[change valueForKey:NSKeyValueChangeNotificationIsPriorKey] boolValue];
 
 #if !RELEASE_LOG_DISABLED
     if (RefPtr logger = source->loggerPtr()) {
         auto identifier = Logger::LogSiteIdentifier("AVVideoCaptureSource"_s, "observeValueForKeyPath"_s, source->logIdentifier());
-        RetainPtr<NSString> valueString = adoptNS([[NSString alloc] initWithFormat:@"%@", newValue]);
+        RetainPtr<NSString> valueString = adoptNS([[NSString alloc] initWithFormat:@"%@", newValue.get()]);
         logger->logAlways(source->logChannel(), identifier, willChange ? "will" : "did", " change '", [keyPath UTF8String], "' to ", [valueString UTF8String]);
     }
 #endif
@@ -1531,7 +1531,7 @@ void AVVideoCaptureSource::deviceDisconnected(RetainPtr<NSNotification> notifica
         return;
 
     if ([keyPath isEqualToString:@"running"])
-        source->captureSessionIsRunningDidChange([newValue boolValue]);
+        source->captureSessionIsRunningDidChange([newValue.get() boolValue]);
     if ([keyPath isEqualToString:@"suspended"])
         source->captureDeviceSuspendedDidChange();
     if ([keyPath isEqualToString:@"portraitEffectActive"])
@@ -1547,9 +1547,9 @@ void AVVideoCaptureSource::deviceDisconnected(RetainPtr<NSNotification> notifica
 #if PLATFORM(IOS_FAMILY)
 - (void)sessionRuntimeError:(NSNotification*)notification
 {
-    NSError *error = notification.userInfo[AVCaptureSessionErrorKey];
+    RetainPtr<NSError> error = notification.userInfo[AVCaptureSessionErrorKey];
     if (auto source = m_captureSource.get())
-        source->captureSessionRuntimeError(error);
+        source->captureSessionRuntimeError(error.get());
 }
 
 - (void)beginSessionInterrupted:(NSNotification*)notification

@@ -719,7 +719,7 @@ TEST(WebTransport, ServerCertificateHashes)
             certificateBytes.append(makeString((unsigned)sha2[i]));
         }
 
-        NSString *html = [NSString stringWithFormat:@""
+        RetainPtr html = [NSString stringWithFormat:@""
             "<script>async function test() {"
             "  try {"
             "    const hashValue = new Uint8Array([%s]);"
@@ -749,7 +749,7 @@ TEST(WebTransport, ServerCertificateHashes)
             completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust]);
         };
 
-        [webView loadHTMLString:html baseURL:[NSURL URLWithString:@"https://webkit.org/"]];
+        [webView loadHTMLString:html.get() baseURL:[NSURL URLWithString:@"https://webkit.org/"]];
         NSString *result = [webView _test_waitForAlert];
         EXPECT_FALSE(challenged);
         return result;

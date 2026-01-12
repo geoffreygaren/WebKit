@@ -56,31 +56,31 @@ static void didReceiveMessageFromInjectedBundle(WKContextRef, WKStringRef messag
     
     // It should be a dictionary.
     EXPECT_EQ(CFDictionaryGetTypeID(), CFGetTypeID(propertyList.get()));
-    CFDictionaryRef dictionary = (CFDictionaryRef)propertyList.get();
-    
+    RetainPtr dictionary = (CFDictionaryRef)propertyList.get();
+
     // It should have a main resource.
-    CFTypeRef mainResource = CFDictionaryGetValue(dictionary, CFSTR("WebMainResource"));
+    RetainPtr mainResource = CFDictionaryGetValue(dictionary.get(), CFSTR("WebMainResource"));
     EXPECT_TRUE(mainResource);
-    EXPECT_EQ(CFDictionaryGetTypeID(), CFGetTypeID(mainResource));
-    CFDictionaryRef mainResourceDictionary = (CFDictionaryRef)mainResource;
-    
+    EXPECT_EQ(CFDictionaryGetTypeID(), CFGetTypeID(mainResource.get()));
+    RetainPtr mainResourceDictionary = (CFDictionaryRef)mainResource.get();
+
     // Main resource should have a non-empty url and mime type.
-    CFTypeRef url = CFDictionaryGetValue(mainResourceDictionary, CFSTR("WebResourceURL"));
+    RetainPtr url = CFDictionaryGetValue(mainResourceDictionary.get(), CFSTR("WebResourceURL"));
     EXPECT_TRUE(url);
-    EXPECT_EQ(CFStringGetTypeID(), CFGetTypeID(url));
-    EXPECT_NE(CFStringGetLength((CFStringRef)url), 0);
-    
-    CFTypeRef mimeType = CFDictionaryGetValue(mainResourceDictionary, CFSTR("WebResourceMIMEType"));
+    EXPECT_EQ(CFStringGetTypeID(), CFGetTypeID(url.get()));
+    EXPECT_NE(CFStringGetLength((CFStringRef)url.get()), 0);
+
+    RetainPtr mimeType = CFDictionaryGetValue(mainResourceDictionary.get(), CFSTR("WebResourceMIMEType"));
     EXPECT_TRUE(mimeType);
-    EXPECT_EQ(CFStringGetTypeID(), CFGetTypeID(mimeType));
-    EXPECT_NE(CFStringGetLength((CFStringRef)mimeType), 0);
-    
+    EXPECT_EQ(CFStringGetTypeID(), CFGetTypeID(mimeType.get()));
+    EXPECT_NE(CFStringGetLength((CFStringRef)mimeType.get()), 0);
+
     // Main resource dictionary should have a "WebResourceData" key.
-    CFTypeRef resourceData = CFDictionaryGetValue(mainResourceDictionary, CFSTR("WebResourceData"));
+    RetainPtr resourceData = CFDictionaryGetValue(mainResourceDictionary.get(), CFSTR("WebResourceData"));
     EXPECT_TRUE(resourceData);
-    EXPECT_EQ(CFDataGetTypeID(), CFGetTypeID(resourceData));
-    
-    RetainPtr<CFStringRef> stringData = adoptCF(CFStringCreateFromExternalRepresentation(0, (CFDataRef)resourceData, kCFStringEncodingUTF8));
+    EXPECT_EQ(CFDataGetTypeID(), CFGetTypeID(resourceData.get()));
+
+    RetainPtr<CFStringRef> stringData = adoptCF(CFStringCreateFromExternalRepresentation(0, (CFDataRef)resourceData.get(), kCFStringEncodingUTF8));
     EXPECT_TRUE(stringData);
     
     // It should contain the string "Simple HTML file." in it.

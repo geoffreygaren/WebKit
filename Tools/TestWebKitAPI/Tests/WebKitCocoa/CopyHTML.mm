@@ -114,10 +114,10 @@ TEST(CopyHTML, SanitizationPreservesCharacterSetInSelectedText)
     [webView copy:nil];
     [webView waitForNextPresentationUpdate];
 
-    NSString *copiedMarkup = readHTMLStringFromPasteboard();
-    EXPECT_TRUE([copiedMarkup containsString:@"<span "]);
-    EXPECT_TRUE([copiedMarkup containsString:@"我叫謝文昇"]);
-    EXPECT_TRUE([copiedMarkup containsString:@"</span>"]);
+    RetainPtr copiedMarkup = readHTMLStringFromPasteboard();
+    EXPECT_TRUE([copiedMarkup.get() containsString:@"<span "]);
+    EXPECT_TRUE([copiedMarkup.get() containsString:@"我叫謝文昇"]);
+    EXPECT_TRUE([copiedMarkup.get() containsString:@"</span>"]);
 
     auto attributedString = adoptNS([[NSAttributedString alloc] initWithData:readHTMLDataFromPasteboard() options:@{ NSDocumentTypeDocumentOption: NSHTMLTextDocumentType } documentAttributes:nil error:nil]);
     EXPECT_WK_STREQ("我叫謝文昇", [attributedString string]);

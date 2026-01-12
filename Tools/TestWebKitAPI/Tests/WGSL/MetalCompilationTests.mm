@@ -52,8 +52,8 @@ static void testCompilation(const String& wgsl, Checks&&... checks)
     auto metalCompilationResult = metalCompile(msl);
     EXPECT_TRUE(std::holds_alternative<id<MTLLibrary>>(metalCompilationResult));
 
-    auto library = std::get<id<MTLLibrary>>(metalCompilationResult);
-    EXPECT_TRUE(library != nil);
+    RetainPtr library = std::get<id<MTLLibrary>>(metalCompilationResult);
+    EXPECT_TRUE(library.get() != nil);
 
     performChecks(std::get<String>(generationResult), std::forward<Checks>(checks)...);
 }

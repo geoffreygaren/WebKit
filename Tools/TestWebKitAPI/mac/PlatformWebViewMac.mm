@@ -226,9 +226,9 @@ void PlatformWebView::simulateButtonClick(WKEventMouseButton button, unsigned x,
     if (button == kWKEventMouseButtonMiddleButton
         || button == kWKEventMouseButtonBackButton
         || button == kWKEventMouseButtonForwardButton) {
-        CGEventRef cgEvent = [event CGEvent];
-        CGEventSetIntegerValueField(cgEvent, kCGMouseEventButtonNumber, cgEventField());
-        event = [NSEvent eventWithCGEvent:cgEvent];
+        RetainPtr cgEvent = [event CGEvent];
+        CGEventSetIntegerValueField(cgEvent.get(), kCGMouseEventButtonNumber, cgEventField());
+        event = [NSEvent eventWithCGEvent:cgEvent.get()];
     }
 
     [m_view mouseDown:event.get()];

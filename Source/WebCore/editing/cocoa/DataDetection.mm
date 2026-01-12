@@ -100,12 +100,12 @@ static std::optional<DetectedItem> detectItem(const VisiblePosition& position, c
     RetainPtr results = adoptCF(DDScannerCopyResultsWithOptions(scanner.get(), DDScannerCopyResultsOptionsNoOverlap));
 
     // Find the DDResultRef that intersects the hitTestResult's VisiblePosition.
-    DDResultRef mainResult = nullptr;
+    RetainPtr<DDResultRef> mainResult;
     std::optional<SimpleRange> mainResultRange;
     CFIndex resultCount = CFArrayGetCount(results.get());
     for (CFIndex i = 0; i < resultCount; i++) {
-        auto result = checked_cf_cast<DDResultRef>(CFArrayGetValueAtIndex(results.get(), i));
-        CFRange resultRangeInContext = DDResultGetRange(result);
+        RetainPtr<DDResultRef> result = checked_cf_cast<DDResultRef>(CFArrayGetValueAtIndex(results.get(), i));
+        CFRange resultRangeInContext = DDResultGetRange(result.get());
         if (hitLocation >= resultRangeInContext.location && (hitLocation - resultRangeInContext.location) < resultRangeInContext.length) {
             mainResult = result;
             mainResultRange = resolveCharacterRange(contextRange, resultRangeInContext);
@@ -122,8 +122,8 @@ static std::optional<DetectedItem> detectItem(const VisiblePosition& position, c
 
     RetainPtr actionContext = adoptNS([PAL::allocWKDDActionContextInstance() init]);
 
-    [actionContext setAllResults:@[ (__bridge id)mainResult ]];
-    [actionContext setMainResult:mainResult];
+    [actionContext setAllResults:@[ (__bridge id)mainResult.get() ]];
+    [actionContext setMainResult:mainResult.get()];
 
     return { {
         WTF::move(actionContext),

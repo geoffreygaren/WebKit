@@ -168,8 +168,8 @@ TEST(TypeCastsCocoa, checked_objc_cast)
         AUTORELEASEPOOL_FOR_ARC_DEBUG {
             objectNS = adoptNS([[NSString alloc] initWithFormat:@"%s", helloWorldCString]);
             objectNSPtr = reinterpret_cast<uintptr_t>(objectNS.get());
-            NSObject* objPtr = objectNS.get();
-            EXPECT_EQ(objectNS.get(), objPtr);
+            RetainPtr objPtr = objectNS.get();
+            EXPECT_EQ(objectNS.get(), objPtr.get());
         }
         EXPECT_EQ(1L, CFGetRetainCount((CFTypeRef)objectNSPtr));
     }

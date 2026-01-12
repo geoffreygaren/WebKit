@@ -172,11 +172,11 @@ TEST(RemoteObjectRegistry, Basic)
         isDone = false;
 
         bool exceptionThrown = false;
-        NSMutableDictionary *child = [NSMutableDictionary dictionaryWithObjectsAndKeys:@"foo", @"name", [NSNumber numberWithInt:1], @"value", nil];
-        NSMutableDictionary *dictionaryWithCycle = [NSMutableDictionary dictionaryWithObjectsAndKeys:@"root", @"name", child, @"child", nil];
-        [child setValue:dictionaryWithCycle forKey:@"parent"]; // Creates a cycle.
+        RetainPtr child = [NSMutableDictionary dictionaryWithObjectsAndKeys:@"foo", @"name", [NSNumber numberWithInt:1], @"value", nil];
+        RetainPtr dictionaryWithCycle = [NSMutableDictionary dictionaryWithObjectsAndKeys:@"root", @"name", child.get(), @"child", nil];
+        [child.get() setValue:dictionaryWithCycle.get() forKey:@"parent"]; // Creates a cycle.
         @try {
-            [object takeDictionary:dictionaryWithCycle completionHandler:^(NSDictionary* value) {
+            [object takeDictionary:dictionaryWithCycle.get() completionHandler:^(NSDictionary* value) {
                 EXPECT_TRUE(!value.count);
                 isDone = true;
             }];
@@ -314,9 +314,9 @@ TEST(RemoteObjectRegistry, SerializeErrorWithCertificates)
     __block bool roundTripComplete = false;
     [object sendError:error completionHandler:^(NSError *deserializedError) {
         EXPECT_WK_STREQ(deserializedError.domain, "NSURLErrorDomain");
-        NSArray *chain = deserializedError.userInfo[key];
+        RetainPtr<NSArray> chain = deserializedError.userInfo[key];
         EXPECT_TRUE(chain);
-        EXPECT_EQ(CFGetTypeID(chain[0]), SecCertificateGetTypeID());
+        EXPECT_EQ(CFGetTypeID(chain.get()[0]), SecCertificateGetTypeID());
         roundTripComplete = true;
     }];
     TestWebKitAPI::Util::run(&roundTripComplete);
@@ -344,15 +344,15 @@ TEST(RemoteObjectRegistry, CallReplyBlockWithBadInvocation)
 
     __block bool invalidCallReceived = false;
 
-    id stringReplyObjectProxy = [[webView _remoteObjectRegistry] remoteObjectProxyWithInterface:stringReplyObjectInterface()];
-    [stringReplyObjectProxy methodWithCompletionHandler:^(id, NSString * reply) {
+    RetainPtr stringReplyObjectProxy = [[webView _remoteObjectRegistry] remoteObjectProxyWithInterface:stringReplyObjectInterface()];
+    [stringReplyObjectProxy.get() methodWithCompletionHandler:^(id, NSString * reply) {
         NSLog(@"Failed, should not have received: %@", reply);
         invalidCallReceived = true;
     }];
 
     __block bool validCallReceived = false;
 
-    [stringReplyObjectProxy methodWithCompletionHandler:^(id, NSString * reply) {
+    [stringReplyObjectProxy.get() methodWithCompletionHandler:^(id, NSString * reply) {
         NSLog(@"Success, received: %@", reply);
         validCallReceived = true;
     }];

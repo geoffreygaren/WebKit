@@ -110,8 +110,8 @@ void removeDOMWrapper(DOMObjectInternal* impl)
     }
     
     // Extract the WebCore::Node from the ObjectiveC wrapper.
-    DOMNode *n = (DOMNode *)self;
-    WebCore::Node *nodeImpl = core(n);
+    RetainPtr n = (DOMNode *)self;
+    WebCore::Node *nodeImpl = core(n.get());
 
     // Dig up Interpreter and ExecState.
     auto* frame = nodeImpl->document().frame();

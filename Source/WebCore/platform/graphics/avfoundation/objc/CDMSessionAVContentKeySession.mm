@@ -213,8 +213,8 @@ void CDMSessionAVContentKeySession::releaseKeys()
             return;
 
         RetainPtr certificateData = toNSData(m_certificate->span());
-        NSArray* expiredSessions = [PAL::getAVContentKeySessionClassSingleton() pendingExpiredSessionReportsWithAppIdentifier:certificateData.get() storageDirectoryAtURL:[NSURL fileURLWithPath:storagePath.createNSString().get()]];
-        for (NSData* expiredSessionData in expiredSessions) {
+        RetainPtr expiredSessions = [PAL::getAVContentKeySessionClassSingleton() pendingExpiredSessionReportsWithAppIdentifier:certificateData.get() storageDirectoryAtURL:[NSURL fileURLWithPath:storagePath.createNSString().get()]];
+        for (NSData* expiredSessionData in expiredSessions.get()) {
             static const NSString *PlaybackSessionIdKey = @"PlaybackSessionID";
             NSDictionary *expiredSession = [NSPropertyListSerialization propertyListWithData:expiredSessionData options:kCFPropertyListImmutable format:nullptr error:nullptr];
             RetainPtr playbackSessionIdValue = dynamic_objc_cast<NSString>([expiredSession objectForKey:PlaybackSessionIdKey]);
@@ -382,11 +382,11 @@ bool CDMSessionAVContentKeySession::isAnyKeyUsable(const Keys& keys) const
 
 void CDMSessionAVContentKeySession::attachContentKeyToSample(const MediaSampleAVFObjC& sample)
 {
-    AVContentKey *contentKey = [contentKeyRequest() contentKey];
+    RetainPtr contentKey = [contentKeyRequest() contentKey];
     ASSERT(contentKey);
 
     NSError *error = nil;
-    if (!AVSampleBufferAttachContentKey(sample.platformSample().cmSampleBuffer(), contentKey, &error))
+    if (!AVSampleBufferAttachContentKey(sample.platformSample().cmSampleBuffer(), contentKey.get(), &error))
         ERROR_LOG(LOGIDENTIFIER, "Failed to attach content key with error: %{public}@", error);
 }
 
@@ -412,8 +412,8 @@ RefPtr<Uint8Array> CDMSessionAVContentKeySession::generateKeyReleaseMessage(unsi
         return nullptr;
     }
 
-    NSArray* expiredSessions = [PAL::getAVContentKeySessionClassSingleton() pendingExpiredSessionReportsWithAppIdentifier:certificateData.get() storageDirectoryAtURL:[NSURL fileURLWithPath:storagePath.createNSString().get()]];
-    if (![expiredSessions count]) {
+    RetainPtr expiredSessions = [PAL::getAVContentKeySessionClassSingleton() pendingExpiredSessionReportsWithAppIdentifier:certificateData.get() storageDirectoryAtURL:[NSURL fileURLWithPath:storagePath.createNSString().get()]];
+    if (![expiredSessions.get() count]) {
         ALWAYS_LOG(LOGIDENTIFIER, "no expired sessions found");
 
         errorCode = MediaPlayer::KeySystemNotSupported;
@@ -421,11 +421,11 @@ RefPtr<Uint8Array> CDMSessionAVContentKeySession::generateKeyReleaseMessage(unsi
         return nullptr;
     }
 
-    ALWAYS_LOG(LOGIDENTIFIER, "found ", [expiredSessions count], " expired sessions");
+    ALWAYS_LOG(LOGIDENTIFIER, "found ", [expiredSessions.get() count], " expired sessions");
 
     errorCode = 0;
     systemCode = 0;
-    m_expiredSession = [expiredSessions firstObject];
+    m_expiredSession = [expiredSessions.get() firstObject];
     return Uint8Array::tryCreate(span(m_expiredSession.get()));
 }
 

@@ -43,9 +43,9 @@
 {
     [super init];
 
-    __unsafe_unretained ShouldOpenAppLinksTestNavigationDelegate *unretainedSelf = self;
+    RetainPtr unretainedSelf = self;
     self.decidePolicyForNavigationAction = ^(WKNavigationAction *action, void (^decisionHandler)(WKNavigationActionPolicy)) {
-        unretainedSelf.lastNavigationAction = action;
+        unretainedSelf.get().lastNavigationAction = action;
         decisionHandler(WKNavigationActionPolicyAllow);
     };
 

@@ -165,12 +165,12 @@ void FullscreenZoomInitialFrame::runTest(View view)
     sendMouseDownEvent(view, event);
     Util::run(&didGetPageSignalToContinue);
 
-    id windowController = [[view window] windowController];
-    EXPECT_TRUE([windowController respondsToSelector:@selector(initialFrame)]);
-    EXPECT_TRUE([windowController respondsToSelector:@selector(finalFrame)]);
+    RetainPtr windowController = [[view window] windowController];
+    EXPECT_TRUE([windowController.get() respondsToSelector:@selector(initialFrame)]);
+    EXPECT_TRUE([windowController.get() respondsToSelector:@selector(finalFrame)]);
 
-    NSRect initialFrame = [windowController initialFrame];
-    NSRect finalFrame = [windowController finalFrame];
+    NSRect initialFrame = [windowController.get() initialFrame];
+    NSRect finalFrame = [windowController.get() finalFrame];
 
     EXPECT_EQ(300, initialFrame.size.width);
     EXPECT_EQ(300, initialFrame.size.height);

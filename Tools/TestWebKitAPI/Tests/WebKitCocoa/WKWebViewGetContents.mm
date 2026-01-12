@@ -446,17 +446,17 @@ TEST(WKWebView, AttributedStringFromList)
     };
 
     EXPECT_EQ(allTextLists.size(), 8U);
-    auto firstList = allTextLists.first().second;
-    auto secondList = allTextLists.last().second;
+    RetainPtr firstList = allTextLists.first().second;
+    RetainPtr secondList = allTextLists.last().second;
 
-    checkListAtIndex(0, @"1", firstList);
-    checkListAtIndex(1, @"One", firstList);
-    checkListAtIndex(2, @"2", firstList);
-    checkListAtIndex(3, @"Two", firstList);
-    checkListAtIndex(4, @"•", secondList);
-    checkListAtIndex(5, @"Three", secondList);
-    checkListAtIndex(6, @"•", secondList);
-    checkListAtIndex(7, @"Four", secondList);
+    checkListAtIndex(0, @"1", firstList.get());
+    checkListAtIndex(1, @"One", firstList.get());
+    checkListAtIndex(2, @"2", firstList.get());
+    checkListAtIndex(3, @"Two", firstList.get());
+    checkListAtIndex(4, @"•", secondList.get());
+    checkListAtIndex(5, @"Three", secondList.get());
+    checkListAtIndex(6, @"•", secondList.get());
+    checkListAtIndex(7, @"Four", secondList.get());
 }
 
 TEST(WKWebView, AttributedStringFromListWithNegativeStartValue)

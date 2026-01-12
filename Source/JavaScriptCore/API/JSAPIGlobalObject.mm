@@ -199,23 +199,23 @@ JSInternalPromise* JSAPIGlobalObject::moduleLoaderFetch(JSGlobalObject* globalOb
         // This captures the globalObject but that's ok because our structure keeps it alive anyway.
         VM& vm = globalObject->vm();
         JSContext *context = [JSContext contextWithJSGlobalContextRef:toGlobalRef(globalObject)];
-        id script = valueToObject(context, toRef(globalObject, callFrame->argument(0)));
+        RetainPtr script = valueToObject(context, toRef(globalObject, callFrame->argument(0)));
 
         auto rejectPromise = [&] (String message) {
             strongPromise.get()->reject(vm, globalObject, createTypeError(globalObject, message));
             return encodedJSUndefined();
         };
 
-        if (![script isKindOfClass:[JSScript class]]) [[unlikely]]
+        if (![script.get() isKindOfClass:[JSScript class]]) [[unlikely]]
             return rejectPromise("First argument of resolution callback is not a JSScript"_s);
 
-        JSScript* jsScript = static_cast<JSScript *>(script);
+        RetainPtr jsScript = static_cast<JSScript *>(script.get());
 
-        JSSourceCode* source = [jsScript jsSourceCode];
-        if ([jsScript type] != kJSScriptTypeModule) [[unlikely]]
+        JSSourceCode* source = [jsScript.get() jsSourceCode];
+        if ([jsScript.get() type] != kJSScriptTypeModule) [[unlikely]]
             return rejectPromise("The JSScript that was provided did not have expected type of kJSScriptTypeModule."_s);
 
-        NSURL *sourceURL = [jsScript sourceURL];
+        NSURL *sourceURL = [jsScript.get() sourceURL];
         String oldModuleKey { [sourceURL absoluteString] };
         if (Identifier::fromString(vm, oldModuleKey) != moduleKey) [[unlikely]]
             return rejectPromise(makeString("The same JSScript was provided for two different identifiers, previously: "_s, oldModuleKey, " and now: "_s, moduleKey.string()));

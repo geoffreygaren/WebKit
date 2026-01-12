@@ -39,9 +39,9 @@ static Vector<WebKitTestRunnerWindow *> allWindows;
 + (WebKitTestRunnerWindow *)_WTR_keyWindow
 {
     ASSERT(isMainThread());
-    for (auto window : allWindows) {
-        if ([window isKeyWindow])
-            return window;
+    for (RetainPtr window : allWindows) {
+        if ([window.get() isKeyWindow])
+            return window.autorelease();
     }
     return nil;
 }

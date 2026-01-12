@@ -29,6 +29,7 @@
 #import <Foundation/Foundation.h>
 #import <objc/objc.h>
 #import <objc/runtime.h>
+#import <wtf/RetainPtr.h>
 #import <wtf/darwin/DispatchExtras.h>
 
 #if JSC_OBJC_API_ENABLED
@@ -97,8 +98,8 @@ static const NSString* JSTEvaluatorThreadContextKey = @"JSTEvaluatorThreadContex
 @implementation JSTEvaluator {
     dispatch_queue_t _jsSourcePerformQueue;
     dispatch_semaphore_t _allScriptsDone;
-    CFRunLoopRef _jsThreadRunLoop;
-    CFRunLoopSourceRef _jsThreadRunLoopSource;
+    RetainPtr<CFRunLoopRef> _jsThreadRunLoop;
+    RetainPtr<CFRunLoopSourceRef> _jsThreadRunLoopSource;
     JSContext* _jsContext;
     NSMutableArray* __pendingTasks;
 }
@@ -143,8 +144,8 @@ static const NSString* JSTEvaluatorThreadContextKey = @"JSTEvaluatorThreadContex
         block(__pendingTasks);
         if (__pendingTasks.count > 0) {
             if (_jsThreadRunLoop && _jsThreadRunLoopSource) {
-                CFRunLoopSourceSignal(_jsThreadRunLoopSource);
-                CFRunLoopWakeUp(_jsThreadRunLoop);
+                CFRunLoopSourceSignal(_jsThreadRunLoopSource.get());
+                CFRunLoopWakeUp(_jsThreadRunLoop.get());
             }
         }
     }
@@ -233,10 +234,9 @@ static void __JSTRunLoopSourceCancelCallBack(void* info, CFRunLoopRef rl, CFStri
 
         @synchronized(self) {
             _jsThreadRunLoop = CFRunLoopGetCurrent();
-            CFRetain(_jsThreadRunLoop);
 
-            _jsThreadRunLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &sourceContext);
-            CFRunLoopAddSource(_jsThreadRunLoop, _jsThreadRunLoopSource, kCFRunLoopDefaultMode);
+            _jsThreadRunLoopSource = adoptCF(CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &sourceContext));
+            CFRunLoopAddSource(_jsThreadRunLoop.get(), _jsThreadRunLoopSource.get(), kCFRunLoopDefaultMode);
         }
 
         CFRunLoopRun();
@@ -245,11 +245,9 @@ static void __JSTRunLoopSourceCancelCallBack(void* info, CFRunLoopRef rl, CFStri
             NSMutableDictionary* threadDict = [[NSThread currentThread] threadDictionary];
             [threadDict removeObjectForKey:threadDict[JSTEvaluatorThreadContextKey]];
 
-            CFRelease(_jsThreadRunLoopSource);
-            _jsThreadRunLoopSource = NULL;
+            _jsThreadRunLoopSource = nullptr;
 
-            CFRelease(_jsThreadRunLoop);
-            _jsThreadRunLoop = NULL;
+            _jsThreadRunLoop = nullptr;
 
             __pendingTasks = nil;
         }
@@ -263,8 +261,8 @@ static void __JSTRunLoopSourceCancelCallBack(void* info, CFRunLoopRef rl, CFStri
 
     // Wake up the run loop in case requests were submitted prior to the
     // run loop & run loop source getting created.
-    CFRunLoopSourceSignal(_jsThreadRunLoopSource);
-    CFRunLoopWakeUp(_jsThreadRunLoop);
+    CFRunLoopSourceSignal(_jsThreadRunLoopSource.get());
+    CFRunLoopWakeUp(_jsThreadRunLoop.get());
 }
 
 - (void)_setupEvaluatorThreadContextIfNeeded
@@ -338,8 +336,8 @@ static void __JSTRunLoopSourceCancelCallBack(void* info, CFRunLoopRef rl, CFStri
         assert(_jsThreadRunLoop);
         assert(_jsThreadRunLoopSource);
 
-        CFRunLoopRemoveSource(_jsThreadRunLoop, _jsThreadRunLoopSource, kCFRunLoopDefaultMode);
-        CFRunLoopStop(_jsThreadRunLoop);
+        CFRunLoopRemoveSource(_jsThreadRunLoop.get(), _jsThreadRunLoopSource.get(), kCFRunLoopDefaultMode);
+        CFRunLoopStop(_jsThreadRunLoop.get());
     }
 }
 

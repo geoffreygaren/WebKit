@@ -302,24 +302,24 @@ TEST(URLSchemeHandler, BuiltinSchemes)
     RetainPtr<WKWebViewConfiguration> configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     RetainPtr<SchemeHandler> handler = adoptNS([[SchemeHandler alloc] initWithData:nil mimeType:nil]);
 
-    for (NSString *scheme : handledSchemes) {
-        EXPECT_TRUE([WKWebView handlesURLScheme:scheme]);
+    for (RetainPtr scheme : handledSchemes) {
+        EXPECT_TRUE([WKWebView handlesURLScheme:scheme.get()]);
 
         bool exceptionRaised = false;
         @try {
-            [configuration setURLSchemeHandler:handler.get() forURLScheme:scheme];
+            [configuration setURLSchemeHandler:handler.get() forURLScheme:scheme.get()];
         } @catch (NSException *exception) {
             EXPECT_WK_STREQ(NSInvalidArgumentException, exception.name);
             exceptionRaised = true;
         }
         EXPECT_TRUE(exceptionRaised);
     }
-    for (NSString *scheme : notHandledSchemes) {
-        EXPECT_FALSE([WKWebView handlesURLScheme:scheme]);
+    for (RetainPtr scheme : notHandledSchemes) {
+        EXPECT_FALSE([WKWebView handlesURLScheme:scheme.get()]);
 
         bool exceptionRaised = false;
         @try {
-            [configuration setURLSchemeHandler:handler.get() forURLScheme:scheme];
+            [configuration setURLSchemeHandler:handler.get() forURLScheme:scheme.get()];
         } @catch (NSException *exception) {
             exceptionRaised = true;
         }

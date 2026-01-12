@@ -87,8 +87,8 @@ NSString * const JSPropertyDescriptorSetKey = @"set";
 
 - (NSString *)description
 {
-    if (id wrapped = tryUnwrapObjcObject([_context JSGlobalContextRef], m_value))
-        return [wrapped description];
+    if (RetainPtr wrapped = tryUnwrapObjcObject([_context JSGlobalContextRef], m_value))
+        return [wrapped.get() description];
     return [self toString];
 }
 
@@ -292,8 +292,8 @@ NSString * const JSPropertyDescriptorSetKey = @"set";
 
 - (id)toObjectOfClass:(Class)expectedClass
 {
-    id result = [self toObject];
-    return [result isKindOfClass:expectedClass] ? result : nil;
+    RetainPtr result = [self toObject];
+    return [result.get() isKindOfClass:expectedClass] ? result.autorelease() : nil;
 }
 
 - (BOOL)toBool
@@ -356,46 +356,46 @@ NSString * const JSPropertyDescriptorSetKey = @"set";
 - (NSNumber *)toNumber
 {
     JSValueRef exception = 0;
-    id result = valueToNumber([_context JSGlobalContextRef], m_value, &exception);
+    RetainPtr result = valueToNumber([_context JSGlobalContextRef], m_value, &exception);
     if (exception)
         [_context notifyException:exception];
-    return result;
+    return result.autorelease();
 }
 
 - (NSString *)toString
 {
     JSValueRef exception = 0;
-    id result = valueToString([_context JSGlobalContextRef], m_value, &exception);
+    RetainPtr result = valueToString([_context JSGlobalContextRef], m_value, &exception);
     if (exception)
         [_context notifyException:exception];
-    return result;
+    return result.autorelease();
 }
 
 - (NSDate *)toDate
 {
     JSValueRef exception = 0;
-    id result = valueToDate([_context JSGlobalContextRef], m_value, &exception);
+    RetainPtr result = valueToDate([_context JSGlobalContextRef], m_value, &exception);
     if (exception)
         [_context notifyException:exception];
-    return result;
+    return result.autorelease();
 }
 
 - (NSArray *)toArray
 {
     JSValueRef exception = 0;
-    id result = valueToArray([_context JSGlobalContextRef], m_value, &exception);
+    RetainPtr result = valueToArray([_context JSGlobalContextRef], m_value, &exception);
     if (exception)
         [_context notifyException:exception];
-    return result;
+    return result.autorelease();
 }
 
 - (NSDictionary *)toDictionary
 {
     JSValueRef exception = 0;
-    id result = valueToDictionary([_context JSGlobalContextRef], m_value, &exception);
+    RetainPtr result = valueToDictionary([_context JSGlobalContextRef], m_value, &exception);
     if (exception)
         [_context notifyException:exception];
-    return result;
+    return result.autorelease();
 }
 
 template<typename Result, typename NSStringFunction, typename JSValueFunction, typename... Types>
@@ -890,7 +890,7 @@ static void reportExceptionToInspector(JSGlobalContextRef context, JSC::JSValue 
 static JSContainerConvertor::Task valueToObjectWithoutCopy(JSGlobalContextRef context, JSValueRef value)
 {
     if (!JSValueIsObject(context, value)) {
-        id primitive;
+        RetainPtr<id> primitive;
         if (JSValueIsBoolean(context, value))
             primitive = JSValueToBoolean(context, value) ? @YES : @NO;
         else if (JSValueIsNumber(context, value)) {
@@ -906,13 +906,13 @@ static JSContainerConvertor::Task valueToObjectWithoutCopy(JSGlobalContextRef co
             primitive = [NSNull null];
         else
             primitive = nil;
-        return { value, primitive, ContainerNone };
+        return { value, primitive.autorelease(), ContainerNone };
     }
 
     JSObjectRef object = JSValueToObject(context, value, 0);
 
-    if (id wrapped = tryUnwrapObjcObject(context, object))
-        return { object, wrapped, ContainerNone };
+    if (RetainPtr wrapped = tryUnwrapObjcObject(context, object))
+        return { object, wrapped.autorelease(), ContainerNone };
 
     if (isDate(object, context))
         return { object, [NSDate dateWithTimeIntervalSince1970:JSValueToNumber(context, object, 0) / 1000.0], ContainerNone };
@@ -938,18 +938,18 @@ static id containerValueToObject(JSGlobalContextRef context, JSContainerConverto
 
         if (current.type == ContainerArray) {
             ASSERT([current.objc isKindOfClass:[NSMutableArray class]]);
-            NSMutableArray *array = (NSMutableArray *)current.objc;
-        
+            RetainPtr array = (NSMutableArray *)current.objc;
+
             auto lengthString = OpaqueJSString::tryCreate("length"_s);
             unsigned length = JSC::toUInt32(JSValueToNumber(context, JSObjectGetProperty(context, js, lengthString.get(), 0), 0));
 
             for (unsigned i = 0; i < length; ++i) {
-                id objc = convertor.convert(JSObjectGetPropertyAtIndex(context, js, i, 0));
-                [array addObject:objc ? objc : [NSNull null]];
+                RetainPtr objc = convertor.convert(JSObjectGetPropertyAtIndex(context, js, i, 0));
+                [array.get() addObject:objc.get() ? objc.get() : [NSNull null]];
             }
         } else {
             ASSERT([current.objc isKindOfClass:[NSMutableDictionary class]]);
-            NSMutableDictionary *dictionary = (NSMutableDictionary *)current.objc;
+            RetainPtr dictionary = (NSMutableDictionary *)current.objc;
 
             JSC::JSLockHolder locker(toJS(context));
 
@@ -958,8 +958,8 @@ static id containerValueToObject(JSGlobalContextRef context, JSContainerConverto
 
             for (size_t i = 0; i < length; ++i) {
                 JSStringRef propertyName = JSPropertyNameArrayGetNameAtIndex(propertyNameArray, i);
-                if (id objc = convertor.convert(JSObjectGetProperty(context, js, propertyName, 0)))
-                    dictionary[(__bridge NSString *)adoptCF(JSStringCopyCFString(kCFAllocatorDefault, propertyName)).get()] = objc;
+                if (RetainPtr objc = convertor.convert(JSObjectGetProperty(context, js, propertyName, 0)))
+                    dictionary.get()[(__bridge NSString *)adoptCF(JSStringCopyCFString(kCFAllocatorDefault, propertyName)).get()] = objc.get();
             }
 
             JSPropertyNameArrayRelease(propertyNameArray);
@@ -981,9 +981,9 @@ id valueToObject(JSContext *context, JSValueRef value)
 id valueToNumber(JSGlobalContextRef context, JSValueRef value, JSValueRef* exception)
 {
     ASSERT(!*exception);
-    if (id wrapped = tryUnwrapObjcObject(context, value)) {
-        if ([wrapped isKindOfClass:[NSNumber class]])
-            return wrapped;
+    if (RetainPtr wrapped = tryUnwrapObjcObject(context, value)) {
+        if ([wrapped.get() isKindOfClass:[NSNumber class]])
+            return wrapped.autorelease();
     }
 
     if (JSValueIsBoolean(context, value))
@@ -996,9 +996,9 @@ id valueToNumber(JSGlobalContextRef context, JSValueRef value, JSValueRef* excep
 id valueToString(JSGlobalContextRef context, JSValueRef value, JSValueRef* exception)
 {
     ASSERT(!*exception);
-    if (id wrapped = tryUnwrapObjcObject(context, value)) {
-        if ([wrapped isKindOfClass:[NSString class]])
-            return wrapped;
+    if (RetainPtr wrapped = tryUnwrapObjcObject(context, value)) {
+        if ([wrapped.get() isKindOfClass:[NSString class]])
+            return wrapped.autorelease();
     }
 
     auto jsstring = adoptRef(JSValueToStringCopy(context, value, exception));
@@ -1013,9 +1013,9 @@ id valueToString(JSGlobalContextRef context, JSValueRef value, JSValueRef* excep
 id valueToDate(JSGlobalContextRef context, JSValueRef value, JSValueRef* exception)
 {
     ASSERT(!*exception);
-    if (id wrapped = tryUnwrapObjcObject(context, value)) {
-        if ([wrapped isKindOfClass:[NSDate class]])
-            return wrapped;
+    if (RetainPtr wrapped = tryUnwrapObjcObject(context, value)) {
+        if ([wrapped.get() isKindOfClass:[NSDate class]])
+            return wrapped.autorelease();
     }
 
     double result = JSValueToNumber(context, value, exception) / 1000.0;
@@ -1025,9 +1025,9 @@ id valueToDate(JSGlobalContextRef context, JSValueRef value, JSValueRef* excepti
 id valueToArray(JSGlobalContextRef context, JSValueRef value, JSValueRef* exception)
 {
     ASSERT(!*exception);
-    if (id wrapped = tryUnwrapObjcObject(context, value)) {
-        if ([wrapped isKindOfClass:[NSArray class]])
-            return wrapped;
+    if (RetainPtr wrapped = tryUnwrapObjcObject(context, value)) {
+        if ([wrapped.get() isKindOfClass:[NSArray class]])
+            return wrapped.autorelease();
     }
 
     if (JSValueIsObject(context, value))
@@ -1047,9 +1047,9 @@ id valueToArray(JSGlobalContextRef context, JSValueRef value, JSValueRef* except
 id valueToDictionary(JSGlobalContextRef context, JSValueRef value, JSValueRef* exception)
 {
     ASSERT(!*exception);
-    if (id wrapped = tryUnwrapObjcObject(context, value)) {
-        if ([wrapped isKindOfClass:[NSDictionary class]])
-            return wrapped;
+    if (RetainPtr wrapped = tryUnwrapObjcObject(context, value)) {
+        if ([wrapped.get() isKindOfClass:[NSDictionary class]])
+            return wrapped.autorelease();
     }
 
     if (JSValueIsObject(context, value))
@@ -1197,18 +1197,18 @@ JSValueRef objectToValue(JSContext *context, id object)
 
         if (current.type == ContainerArray) {
             ASSERT([current.objc isKindOfClass:[NSArray class]]);
-            NSArray *array = (NSArray *)current.objc;
-            NSUInteger count = [array count];
+            RetainPtr array = (NSArray *)current.objc;
+            NSUInteger count = [array.get() count];
             for (NSUInteger index = 0; index < count; ++index)
-                JSObjectSetPropertyAtIndex(contextRef, js, index, convertor.convert([array objectAtIndex:index]), 0);
+                JSObjectSetPropertyAtIndex(contextRef, js, index, convertor.convert([array.get() objectAtIndex:index]), 0);
         } else {
             ASSERT(current.type == ContainerDictionary);
             ASSERT([current.objc isKindOfClass:[NSDictionary class]]);
-            NSDictionary *dictionary = (NSDictionary *)current.objc;
-            for (id key in [dictionary keyEnumerator]) {
-                if (auto *keyString = dynamic_objc_cast<NSString>(key)) {
-                    auto propertyName = OpaqueJSString::tryCreate(keyString);
-                    JSObjectSetProperty(contextRef, js, propertyName.get(), convertor.convert([dictionary objectForKey:key]), 0, 0);
+            RetainPtr dictionary = (NSDictionary *)current.objc;
+            for (id key in [dictionary.get() keyEnumerator]) {
+                if (RetainPtr keyString = dynamic_objc_cast<NSString>(key)) {
+                    auto propertyName = OpaqueJSString::tryCreate(keyString.get());
+                    JSObjectSetProperty(contextRef, js, propertyName.get(), convertor.convert([dictionary.get() objectForKey:key]), 0, 0);
                 }
             }
         }

@@ -268,13 +268,13 @@ void InternalAudioEncoderCocoa::processEncodedOutputs()
 
     while (RetainPtr cmSample = converter()->takeOutputSampleBuffer()) {
         Ref sample = MediaSampleAVFObjC::create(cmSample.get(), 0);
-        CMBlockBufferRef rawBuffer = PAL::CMSampleBufferGetDataBuffer(cmSample.get());
+        RetainPtr rawBuffer = adoptCF(PAL::CMSampleBufferGetDataBuffer(cmSample.get()));
         ASSERT(rawBuffer);
-        RetainPtr buffer = rawBuffer;
+        RetainPtr buffer = rawBuffer.get();
         // Make sure block buffer is contiguous.
-        if (!PAL::CMBlockBufferIsRangeContiguous(rawBuffer, 0, 0)) {
+        if (!PAL::CMBlockBufferIsRangeContiguous(rawBuffer.get(), 0, 0)) {
             CMBlockBufferRef contiguousBuffer;
-            if (auto error = PAL::CMBlockBufferCreateContiguous(nullptr, rawBuffer, nullptr, nullptr, 0, 0, 0, &contiguousBuffer)) {
+            if (auto error = PAL::CMBlockBufferCreateContiguous(nullptr, rawBuffer.get(), nullptr, nullptr, 0, 0, 0, &contiguousBuffer)) {
                 RELEASE_LOG_ERROR(MediaStream, "Couldn't create buffer with error %d", error);
                 m_lastError = error;
                 continue;
@@ -317,10 +317,10 @@ Ref<AudioEncoder::EncodePromise> InternalAudioEncoderCocoa::encode(AudioEncoder:
     if (auto error = PAL::CMSampleBufferSetOutputPresentationTimeStamp(cmSample.get(), PAL::CMTimeMake(rawFrame.timestamp, 1000000)))
         RELEASE_LOG_ERROR(MediaStream, "AudioSampleBufferConverter CMSampleBufferSetOutputPresentationTimeStamp failed with %d", error);
 
-    CMFormatDescriptionRef formatDescription = PAL::CMSampleBufferGetFormatDescription(cmSample.get());
+    RetainPtr formatDescription = adoptCF(PAL::CMSampleBufferGetFormatDescription(cmSample.get()));
     if (!formatDescription)
         return EncodePromise::createAndReject("Couldn't retrieve AudioData's format description"_s);
-    const AudioStreamBasicDescription* const asbd = PAL::CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
+    const AudioStreamBasicDescription* const asbd = PAL::CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription.get());
     if (!asbd)
         return EncodePromise::createAndReject("Couldn't retrieve AudioData's basic description"_s);
 

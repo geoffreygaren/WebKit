@@ -38,6 +38,7 @@
 #import <sys/xattr.h>
 #import <wtf/BlockPtr.h>
 #import <wtf/FileSystem.h>
+#import <wtf/NeverDestroyed.h>
 #import <wtf/RetainPtr.h>
 #import <wtf/WeakObjCPtr.h>
 
@@ -62,18 +63,18 @@ enum class DownloadStartType {
 
 @implementation DownloadProgressTestProtocol
 
-static DownloadProgressTestRunner *currentTestRunner;
+static NeverDestroyed<RetainPtr<DownloadProgressTestRunner>> currentTestRunner;
 
 + (void)registerProtocolForTestRunner:(DownloadProgressTestRunner *)testRunner
 {
-    currentTestRunner = testRunner;
+    currentTestRunner.get() = testRunner;
     [NSURLProtocol registerClass:self];
     [WKBrowsingContextController registerSchemeForCustomProtocol:@"http"];
 }
 
 + (void)unregisterProtocol
 {
-    currentTestRunner = nullptr;
+    currentTestRunner.get() = nullptr;
     [WKBrowsingContextController unregisterSchemeForCustomProtocol:@"http"];
     [NSURLProtocol unregisterClass:self];
 }
@@ -97,7 +98,7 @@ static DownloadProgressTestRunner *currentTestRunner;
 
 - (void)startLoading
 {
-    [currentTestRunner startLoadingWithProtocol:self];
+    [currentTestRunner->get() startLoadingWithProtocol:self];
 }
 
 - (void)stopLoading
@@ -138,7 +139,7 @@ static void* progressObservingContext = &progressObservingContext;
     m_progressURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:fileName] isDirectory:NO];
     [NSFileManager.defaultManager createFileAtPath:m_progressURL.get().path contents:nil attributes:nil];
 
-    currentTestRunner = self;
+    currentTestRunner.get() = self;
 
     m_unpublishingBlock = makeBlockPtr([self] {
         [self _didLoseProgress];

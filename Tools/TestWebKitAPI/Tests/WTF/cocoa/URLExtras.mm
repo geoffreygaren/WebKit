@@ -301,8 +301,8 @@ TEST(URLExtras, URLExtras_File)
 TEST(URLExtras, URLExtras_ParsingError)
 {
     // Expect IDN failure.
-    NSURL *url = WTF::URLWithUserTypedString(@"http://.com", nil);
-    EXPECT_TRUE(url == nil);
+    RetainPtr url = WTF::URLWithUserTypedString(@"http://.com", nil);
+    EXPECT_TRUE(url.get() == nil);
 
     RetainPtr encodedHostName = WTF::encodeHostName(@"http://.com");
     EXPECT_TRUE(encodedHostName.get() == nil);
@@ -330,11 +330,11 @@ TEST(URLExtras, URLExtras_ParsingError)
 
 TEST(URLExtras, URLExtras_Nil)
 {
-    NSURL *url1 = WTF::URLWithUserTypedString(nil);
-    EXPECT_TRUE(url1 == nil);
+    RetainPtr url1 = WTF::URLWithUserTypedString(nil);
+    EXPECT_TRUE(url1.get() == nil);
 
-    NSURL *url2 = WTF::URLWithUserTypedStringDeprecated(nil);
-    EXPECT_TRUE(url2 == nil);
+    RetainPtr url2 = WTF::URLWithUserTypedStringDeprecated(nil);
+    EXPECT_TRUE(url2.get() == nil);
 }
 
 TEST(URLExtras, CreateNSArray)

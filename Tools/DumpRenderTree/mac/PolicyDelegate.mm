@@ -121,8 +121,8 @@ static NSString *dispositionTypeFromContentDispositionHeader(NSString *header)
     if (![HTTPResponse isKindOfClass:[NSHTTPURLResponse class]])
         HTTPResponse = nil;
 
-    NSString *dispositionType = dispositionTypeFromContentDispositionHeader([[HTTPResponse allHeaderFields] objectForKey:@"Content-Disposition"]);
-    if (dispositionType && [dispositionType compare:@"attachment" options:NSCaseInsensitiveSearch] == NSOrderedSame) {
+    RetainPtr dispositionType = dispositionTypeFromContentDispositionHeader([[HTTPResponse allHeaderFields] objectForKey:@"Content-Disposition"]);
+    if (dispositionType && [dispositionType.get() compare:@"attachment" options:NSCaseInsensitiveSearch] == NSOrderedSame) {
         printf("Policy delegate: resource is an attachment, suggested file name '%s'\n", [[HTTPResponse suggestedFilename] UTF8String]);
         [listener ignore];
         return;

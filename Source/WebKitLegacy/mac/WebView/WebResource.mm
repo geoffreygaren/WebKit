@@ -119,36 +119,36 @@ static NSString * const WebResourceResponseKey =          @"WebResourceResponse"
     if (!self)
         return nil;
 
-    NSData *data = nil;
-    NSURL *url = nil;
-    NSString *mimeType = nil, *textEncoding = nil, *frameName = nil;
-    NSURLResponse *response = nil;
-    
+    RetainPtr<NSData> data;
+    RetainPtr<NSURL> url;
+    RetainPtr<NSString> mimeType, textEncoding, frameName;
+    RetainPtr<NSURLResponse> response;
+
     @try {
-        id object = [decoder decodeObjectForKey:WebResourceDataKey];
+        RetainPtr object = [decoder decodeObjectForKey:WebResourceDataKey];
         if ([object isKindOfClass:[NSData class]])
-            data = object;
+            data = object.get();
         object = [decoder decodeObjectForKey:WebResourceURLKey];
         if ([object isKindOfClass:[NSURL class]])
-            url = object;
+            url = object.get();
         object = [decoder decodeObjectForKey:WebResourceMIMETypeKey];
         if ([object isKindOfClass:[NSString class]])
-            mimeType = object;
+            mimeType = object.get();
         object = [decoder decodeObjectForKey:WebResourceTextEncodingNameKey];
         if ([object isKindOfClass:[NSString class]])
-            textEncoding = object;
+            textEncoding = object.get();
         object = [decoder decodeObjectForKey:WebResourceFrameNameKey];
         if ([object isKindOfClass:[NSString class]])
-            frameName = object;
+            frameName = object.get();
         object = [decoder decodeObjectForKey:WebResourceResponseKey];
         if ([object isKindOfClass:[NSURLResponse class]])
-            response = object;
+            response = object.get();
     } @catch(id) {
         [self release];
         return nil;
     }
 
-    auto coreResource = ArchiveResource::create(SharedBuffer::create(data), url, mimeType, textEncoding, frameName, response);
+    auto coreResource = ArchiveResource::create(SharedBuffer::create(data.get()), url.get(), mimeType.get(), textEncoding.get(), frameName.get(), response.get());
     if (!coreResource) {
         [self release];
         return nil;
@@ -334,11 +334,11 @@ static NSString * const WebResourceResponseKey =          @"WebResourceResponse"
 #if !PLATFORM(IOS_FAMILY)
 - (NSFileWrapper *)_fileWrapperRepresentation
 {
-    auto wrapper = adoptNS([[NSFileWrapper alloc] initRegularFileWithContents:[self data]]);
-    NSString *filename = [self _suggestedFilename];
-    if (!filename || ![filename length])
+    RetainPtr wrapper = adoptNS([[NSFileWrapper alloc] initRegularFileWithContents:[self data]]);
+    RetainPtr filename = [self _suggestedFilename];
+    if (!filename || ![filename.get() length])
         filename = [[self URL] _webkit_suggestedFilenameWithMIMEType:[self MIMEType]];
-    [wrapper setPreferredFilename:filename];
+    [wrapper.get() setPreferredFilename:filename.get()];
     return wrapper.autorelease();
 }
 #endif

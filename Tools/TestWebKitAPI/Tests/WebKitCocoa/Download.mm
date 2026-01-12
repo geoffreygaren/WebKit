@@ -72,8 +72,8 @@
 
 static unsigned redirectCount = 0;
 static bool hasReceivedResponse;
-static NSURL *sourceURL = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-static WKWebView* expectedOriginatingWebView;
+static NeverDestroyed<RetainPtr<NSURL>> sourceURL = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+SUPPRESS_UNCOUNTED_LOCAL static WKWebView *expectedOriginatingWebView;
 static bool expectedUserInitiatedState = false;
 
 @interface DownloadDelegate : NSObject <_WKDownloadDelegate>
@@ -90,7 +90,7 @@ static bool expectedUserInitiatedState = false;
 {
     EXPECT_NULL(_download);
     EXPECT_NOT_NULL(download);
-    EXPECT_TRUE([[[[download request] URL] path] isEqualToString:[sourceURL path]]);
+    EXPECT_TRUE([[[[download request] URL] path] isEqualToString:[sourceURL->get() path]]);
     EXPECT_EQ(expectedUserInitiatedState, download.wasUserInitiated);
     _download = download;
 }
@@ -101,7 +101,7 @@ static bool expectedUserInitiatedState = false;
     EXPECT_EQ(_download, download);
     EXPECT_TRUE(_expectedContentLength == 0);
     EXPECT_TRUE(_receivedContentLength == 0);
-    EXPECT_TRUE([[[response URL] path] isEqualToString:[sourceURL path]]);
+    EXPECT_TRUE([[[response URL] path] isEqualToString:[sourceURL->get() path]]);
     _expectedContentLength = [response expectedContentLength];
 }
 
@@ -130,7 +130,7 @@ IGNORE_WARNINGS_END
     EXPECT_EQ(_download, download);
     EXPECT_EQ(expectedUserInitiatedState, download.wasUserInitiated);
     EXPECT_TRUE(_expectedContentLength == NSURLResponseUnknownLength || static_cast<uint64_t>(_expectedContentLength) == _receivedContentLength);
-    EXPECT_TRUE([[NSFileManager defaultManager] contentsEqualAtPath:_destinationPath.createNSString().get() andPath:[sourceURL path]]);
+    EXPECT_TRUE([[NSFileManager defaultManager] contentsEqualAtPath:_destinationPath.createNSString().get() andPath:[sourceURL->get() path]]);
     FileSystem::deleteFile(_destinationPath);
     isDone = true;
 }
@@ -176,7 +176,7 @@ static void runTest(id <WKNavigationDelegate> navigationDelegate, id <_WKDownloa
 
 TEST(_WKDownload, DownloadRequest)
 {
-    runTest(adoptNS([[DownloadNavigationDelegate alloc] init]).get(), adoptNS([[DownloadDelegate alloc] init]).get(), sourceURL);
+    runTest(adoptNS([[DownloadNavigationDelegate alloc] init]).get(), adoptNS([[DownloadDelegate alloc] init]).get(), sourceURL->get());
 }
 
 @interface ConvertResponseToDownloadNavigationDelegate : NSObject <WKNavigationDelegate>
@@ -191,7 +191,7 @@ TEST(_WKDownload, DownloadRequest)
 
 TEST(_WKDownload, ConvertResponseToDownload)
 {
-    runTest(adoptNS([[ConvertResponseToDownloadNavigationDelegate alloc] init]).get(), adoptNS([[DownloadDelegate alloc] init]).get(), sourceURL);
+    runTest(adoptNS([[ConvertResponseToDownloadNavigationDelegate alloc] init]).get(), adoptNS([[DownloadDelegate alloc] init]).get(), sourceURL->get());
 }
 
 @interface FailingDownloadDelegate : NSObject <_WKDownloadDelegate>
@@ -254,7 +254,7 @@ TEST(_WKDownload, DownloadMissingResource)
 
 TEST(_WKDownload, CancelDownload)
 {
-    runTest(adoptNS([[DownloadNavigationDelegate alloc] init]).get(), adoptNS([[CancelledDownloadDelegate alloc] init]).get(), sourceURL);
+    runTest(adoptNS([[DownloadNavigationDelegate alloc] init]).get(), adoptNS([[CancelledDownloadDelegate alloc] init]).get(), sourceURL->get());
 }
 
 @interface OriginatingWebViewDownloadDelegate : NSObject <_WKDownloadDelegate>
@@ -297,7 +297,7 @@ TEST(_WKDownload, OriginatingWebView)
         [webView setNavigationDelegate:navigationDelegate.get()];
         downloadDelegate = adoptNS([[OriginatingWebViewDownloadDelegate alloc] initWithWebView:webView.get()]);
         [[[webView configuration] processPool] _setDownloadDelegate:downloadDelegate.get()];
-        [webView loadRequest:[NSURLRequest requestWithURL:sourceURL]];
+        [webView loadRequest:[NSURLRequest requestWithURL:sourceURL->get()]];
     }
 
     isDone = false;
@@ -323,7 +323,7 @@ TEST(_WKDownload, OriginatingWebView)
 
 - (void)_downloadDidStart:(_WKDownload *)download
 {
-    if ([_expectedOriginalURL isEqual:sourceURL])
+    if ([_expectedOriginalURL isEqual:sourceURL->get()])
         EXPECT_TRUE(!download.request.mainDocumentURL);
     else
         EXPECT_TRUE([_expectedOriginalURL isEqual:download.request.mainDocumentURL]);
@@ -338,7 +338,7 @@ TEST(_WKDownload, OriginatingWebView)
 @implementation DownloadRequestOriginalURLNavigationDelegate
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 {
-    if ([navigationAction.request.URL isEqual:sourceURL])
+    if ([navigationAction.request.URL isEqual:sourceURL->get()])
         decisionHandler(_WKNavigationActionPolicyDownload);
     else
         decisionHandler(WKNavigationActionPolicyAllow);
@@ -359,7 +359,7 @@ TEST(_WKDownload, DownloadRequestOriginalURLFrame)
 
 TEST(_WKDownload, DownloadRequestOriginalURLDirectDownload)
 {
-    runTest(adoptNS([[DownloadRequestOriginalURLNavigationDelegate alloc] init]).get(), adoptNS([[DownloadRequestOriginalURLDelegate alloc] initWithExpectedOriginalURL:sourceURL]).get(), sourceURL);
+    runTest(adoptNS([[DownloadRequestOriginalURLNavigationDelegate alloc] init]).get(), adoptNS([[DownloadRequestOriginalURLDelegate alloc] initWithExpectedOriginalURL:sourceURL->get()]).get(), sourceURL->get());
 }
 
 TEST(_WKDownload, DownloadRequestOriginalURLDirectDownloadWithLoadedContent)
@@ -367,7 +367,7 @@ TEST(_WKDownload, DownloadRequestOriginalURLDirectDownloadWithLoadedContent)
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600)]);
     auto navigationDelegate = adoptNS([[DownloadRequestOriginalURLNavigationDelegate alloc] init]);
     [webView setNavigationDelegate:navigationDelegate.get()];
-    auto downloadDelegate = adoptNS([[DownloadRequestOriginalURLDelegate alloc] initWithExpectedOriginalURL:sourceURL]);
+    auto downloadDelegate = adoptNS([[DownloadRequestOriginalURLDelegate alloc] initWithExpectedOriginalURL:sourceURL->get()]);
     [[[webView configuration] processPool] _setDownloadDelegate:downloadDelegate.get()];
 
     expectedUserInitiatedState = false;
@@ -375,7 +375,7 @@ TEST(_WKDownload, DownloadRequestOriginalURLDirectDownloadWithLoadedContent)
     // Here is to test if the original URL can be set correctly when the current document
     // is completely unrelated to the download.
     [webView loadRequest:[NSURLRequest requestWithURL:contentURL]];
-    [webView loadRequest:[NSURLRequest requestWithURL:sourceURL]];
+    [webView loadRequest:[NSURLRequest requestWithURL:sourceURL->get()]];
     isDone = false;
     TestWebKitAPI::Util::run(&isDone);
 }
@@ -795,7 +795,7 @@ TEST(_WKDownload, CrashAfterDownloadDidFinishWhenDownloadProxyHoldsTheLastRefOnW
         [webView setNavigationDelegate:navigationDelegate.get()];
         processPool = [webView configuration].processPool;
         [webView configuration].processPool._downloadDelegate = downloadDelegate.get();
-        [webView loadRequest:[NSURLRequest requestWithURL:sourceURL]];
+        [webView loadRequest:[NSURLRequest requestWithURL:sourceURL->get()]];
 
         didDownloadStart = false;
         TestWebKitAPI::Util::run(&didDownloadStart);
@@ -807,7 +807,7 @@ TEST(_WKDownload, CrashAfterDownloadDidFinishWhenDownloadProxyHoldsTheLastRefOnW
 }
 
 static bool receivedData;
-static RetainPtr<NSString> destination;
+SUPPRESS_UNCOUNTED_LOCAL static NSString *destination;
 
 @interface DownloadMonitorTestDelegate : NSObject <_WKDownloadDelegate>
 - (void)waitForDidFail;
@@ -846,8 +846,8 @@ static RetainPtr<NSString> destination;
 - (void)_download:(_WKDownload *)download decideDestinationWithSuggestedFilename:(NSString *)filename completionHandler:(void (^)(BOOL allowOverwrite, NSString *destination))completionHandler
 {
     EXPECT_TRUE([filename isEqualToString:@"filename.dat"]);
-    destination = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
-    completionHandler(YES, destination.get());
+    ::destination = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
+    completionHandler(YES, ::destination);
 }
 
 - (void)_download:(_WKDownload *)download didReceiveData:(uint64_t)length
@@ -921,7 +921,7 @@ void downloadAtRate(double desiredKbps, unsigned speedMultiplier, AppReturnsToFo
     if (returnToForeground == AppReturnsToForeground::Yes)
         [[webView configuration].websiteDataStore _synthesizeAppIsBackground:NO];
     [monitorDelegate() waitForDidFail];
-    [[NSFileManager defaultManager] removeItemAtURL:[NSURL fileURLWithPath:destination.get() isDirectory:NO] error:nil];
+    [[NSFileManager defaultManager] removeItemAtURL:[NSURL fileURLWithPath:destination isDirectory:NO] error:nil];
 }
 
 TEST(_WKDownload, DownloadMonitorCancel)

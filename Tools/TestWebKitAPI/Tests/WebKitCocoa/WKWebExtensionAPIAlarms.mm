@@ -45,7 +45,7 @@ static auto *alarmsManifest = @{
 
 TEST(WKWebExtensionAPIAlarms, Errors)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.alarms.create(null), /'info' value is invalid, because an object is expected/i)",
         @"browser.test.assertThrows(() => browser.alarms.create(undefined), /'info' value is invalid, because an object is expected/i)",
 
@@ -74,12 +74,12 @@ TEST(WKWebExtensionAPIAlarms, Errors)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAlarms, DelaySingleShot)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Setup
         @"const startDate = Date.now()",
         @"const delayInMilliseconds = 100",
@@ -113,12 +113,12 @@ TEST(WKWebExtensionAPIAlarms, DelaySingleShot)
         @"}, 500)",
     ]);
 
-    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAlarms, DelayRepeating)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Setup
         @"const startDate = Date.now()",
         @"const delayInMilliseconds = 100",
@@ -152,12 +152,12 @@ TEST(WKWebExtensionAPIAlarms, DelayRepeating)
         // The listener firing will indicate that the test passed.
     ]);
 
-    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAlarms, WhenSingleShot)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Setup
         @"const startDate = Date.now()",
         @"const delayInMilliseconds = 100",
@@ -191,12 +191,12 @@ TEST(WKWebExtensionAPIAlarms, WhenSingleShot)
         @"}, 500)",
     ]);
 
-    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAlarms, WhenRepeating)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Setup
         @"const startDate = Date.now()",
         @"const delayInMilliseconds = 100",
@@ -230,12 +230,12 @@ TEST(WKWebExtensionAPIAlarms, WhenRepeating)
         // The listener firing will indicate that the test passed.
     ]);
 
-    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAlarms, ClearSingleAlarm)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Setup
         @"function listener(alarmInfo) {",
         @"  browser.test.assertEq(alarmInfo.name, 'two', 'Should only be called for alarm two.')",
@@ -254,12 +254,12 @@ TEST(WKWebExtensionAPIAlarms, ClearSingleAlarm)
         // The listener firing will indicate that the test passed.
     ]);
 
-    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAlarms, GetSingleAlarm)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Test
         @"browser.alarms.create('one', { delayInMinutes: 1 })",
         @"browser.alarms.create('two', { delayInMinutes: 1, periodInMinutes: 1 })",
@@ -280,12 +280,12 @@ TEST(WKWebExtensionAPIAlarms, GetSingleAlarm)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAlarms, ClearAllAlarms)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Setup
         @"function listener(alarmInfo) {",
         @"  browser.test.notifyFail('This listener should not have been called.')",
@@ -304,12 +304,12 @@ TEST(WKWebExtensionAPIAlarms, ClearAllAlarms)
         @"}, 500)",
     ]);
 
-    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAlarms, GetAllAlarms)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Test
         @"browser.alarms.create('one', { delayInMinutes: 1 })",
         @"browser.alarms.create('two', { delayInMinutes: 1, periodInMinutes: 1 })",
@@ -334,12 +334,12 @@ TEST(WKWebExtensionAPIAlarms, GetAllAlarms)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAlarms, UnnamedAlarm)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Setup
         @"function listener(alarmInfo) {",
         @"  browser.test.assertEq(alarmInfo.name, '', 'Should only be called for alarm with an empty string name.')",
@@ -355,12 +355,12 @@ TEST(WKWebExtensionAPIAlarms, UnnamedAlarm)
         // The listener firing will indicate that the test passed.
     ]);
 
-    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIAlarms, RemoveListenerDuringEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"function alarmListener() {",
         @"  browser.alarms.onAlarm.removeListener(alarmListener)",
         @"  browser.test.assertFalse(browser.alarms.onAlarm.hasListener(alarmListener), 'Listener should be removed')",
@@ -374,7 +374,7 @@ TEST(WKWebExtensionAPIAlarms, RemoveListenerDuringEvent)
         @"browser.alarms.create('test-alarm', { delayInMinutes: (500 / 1000 / 60) })"
     ]);
 
-    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(alarmsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 } // namespace TestWebKitAPI

@@ -185,8 +185,8 @@ void EventHandler::focusDocumentView()
         return;
 
     if (RefPtr frameView = m_frame->view()) {
-        if (NSView *documentView = frameView->documentView()) {
-            page->chrome().focusNSView(documentView);
+        if (RetainPtr documentView = frameView->documentView()) {
+            page->chrome().focusNSView(documentView.get());
             // Check page() again because focusNSView can cause reentrancy.
             if (!m_frame->page())
                 return;
@@ -256,9 +256,9 @@ bool EventHandler::passMouseDownEventToWidget(Widget* pWidget)
 
     BEGIN_BLOCK_OBJC_EXCEPTIONS
 
-    NSView *nodeView = widget->platformWidget();
-    ASSERT([nodeView superview]);
-    NSView *view = [nodeView hitTest:[[nodeView superview] convertPoint:[currentNSEvent() locationInWindow] fromView:nil]];
+    RetainPtr nodeView = widget->platformWidget();
+    ASSERT([nodeView.get() superview]);
+    RetainPtr view = [nodeView.get() hitTest:[[nodeView.get() superview] convertPoint:[currentNSEvent() locationInWindow] fromView:nil]];
     if (!view) {
         // We probably hit the border of a RenderWidget
         return true;
@@ -268,11 +268,11 @@ bool EventHandler::passMouseDownEventToWidget(Widget* pWidget)
     if (!page)
         return true;
 
-    if (page->chrome().client().firstResponder() != view) {
+    if (page->chrome().client().firstResponder() != view.get()) {
         // Normally [NSWindow sendEvent:] handles setting the first responder.
         // But in our case, the event was sent to the view representing the entire web page.
-        if ([currentNSEvent() clickCount] <= 1 && [view acceptsFirstResponder] && [view needsPanelToBecomeKey])
-            page->chrome().client().makeFirstResponder(view);
+        if ([currentNSEvent() clickCount] <= 1 && [view.get() acceptsFirstResponder] && [view.get() needsPanelToBecomeKey])
+            page->chrome().client().makeFirstResponder(view.get());
     }
 
     // We need to "defer loading" while tracking the mouse, because tearing down the
@@ -291,16 +291,16 @@ bool EventHandler::passMouseDownEventToWidget(Widget* pWidget)
 
     {
         WidgetHierarchyUpdatesSuspensionScope suspendWidgetHierarchyUpdates;
-        [view mouseDown:currentNSEvent()];
+        [view.get() mouseDown:currentNSEvent()];
     }
 
     m_sendingEventToSubview = false;
-    
+
     if (!wasDeferringLoading)
         page->setDefersLoading(false);
 
     // Remember which view we sent the event to, so we can direct the release event properly.
-    m_mouseDownView = view;
+    m_mouseDownView = view.get();
     m_mouseDownWasInSubframe = false;
 
     // Many AppKit widgets run their own event loops and consume events while the mouse is down.
@@ -344,8 +344,8 @@ RetainPtr<NSView> EventHandler::mouseDownViewIfStillGood()
         return nil;
     }
     auto* topFrameView = m_frame->view();
-    NSView *topView = topFrameView ? topFrameView->platformWidget() : nil;
-    if (!topView || !findViewInSubviews(topView, mouseDownView.get())) {
+    RetainPtr topView = topFrameView ? topFrameView->platformWidget() : nil;
+    if (!topView || !findViewInSubviews(topView.get(), mouseDownView.get())) {
         m_mouseDownView = nil;
         return nil;
     }
@@ -486,7 +486,7 @@ bool EventHandler::passWheelEventToWidget(const PlatformWheelEvent& wheelEvent, 
 {
     BEGIN_BLOCK_OBJC_EXCEPTIONS
 
-    NSView* nodeView = widget.platformWidget();
+    RetainPtr nodeView = widget.platformWidget();
     if (!nodeView) {
         // WebKit2 code path.
         RefPtr frameView = dynamicDowncast<LocalFrameView>(widget);
@@ -500,8 +500,8 @@ bool EventHandler::passWheelEventToWidget(const PlatformWheelEvent& wheelEvent, 
         return false;
 
     ASSERT(nodeView);
-    ASSERT([nodeView superview]);
-    NSView *view = [nodeView hitTest:[[nodeView superview] convertPoint:[currentNSEvent() locationInWindow] fromView:nil]];
+    ASSERT([nodeView.get() superview]);
+    RetainPtr view = [nodeView.get() hitTest:[[nodeView.get() superview] convertPoint:[currentNSEvent() locationInWindow] fromView:nil]];
     if (!view) {
         // We probably hit the border of a RenderWidget
         return false;
@@ -513,7 +513,7 @@ bool EventHandler::passWheelEventToWidget(const PlatformWheelEvent& wheelEvent, 
     // crash if the NSScrollView is released during timer or network callback dispatch
     // in the nested tracking runloop that -[NSScrollView scrollWheel:] runs.
     setNSScrollViewScrollWheelShouldRetainSelf(true);
-    [view scrollWheel:currentNSEvent()];
+    [view.get() scrollWheel:currentNSEvent()];
     setNSScrollViewScrollWheelShouldRetainSelf(false);
     m_sendingEventToSubview = false;
     return true;
@@ -739,10 +739,10 @@ HandleUserInputEventResult EventHandler::passMouseReleaseEventToSubframe(MouseEv
 
 PlatformMouseEvent EventHandler::currentPlatformMouseEvent() const
 {
-    NSView *windowView = nil;
+    RetainPtr<NSView> windowView;
     if (RefPtr page = m_frame->page())
         windowView = page->chrome().platformPageClient();
-    return PlatformEventFactory::createPlatformMouseEvent(currentNSEvent(), correspondingPressureEvent(), windowView);
+    return PlatformEventFactory::createPlatformMouseEvent(currentNSEvent(), correspondingPressureEvent(), windowView.get());
 }
 
 bool EventHandler::eventActivatedView(const PlatformMouseEvent& event) const

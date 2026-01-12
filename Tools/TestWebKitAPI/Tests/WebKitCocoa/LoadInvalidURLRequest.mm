@@ -119,7 +119,8 @@ TEST(WebKit, LoadInvalidURLRequestNonASCII)
     auto webView = adoptNS([WKWebView new]);
     [webView setNavigationDelegate:delegate.get()];
     const UInt8 bytes[10] = { 'h', 't', 't', 'p', ':', '/', '/', 0xE2, 0x80, 0x80 };
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:bridge_cast(adoptCF(CFURLCreateAbsoluteURLWithBytes(nullptr, bytes, 10, kCFStringEncodingUTF8, nullptr, true))).get()];
+    RetainPtr url = bridge_cast(adoptCF(CFURLCreateAbsoluteURLWithBytes(nullptr, bytes, 10, kCFStringEncodingUTF8, nullptr, true)));
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url.get()];
     [request _setProperty:request.URL forKey:@"_kCFHTTPCookiePolicyPropertySiteForCookies"];
     [webView loadRequest:request];
     Util::run(&done);

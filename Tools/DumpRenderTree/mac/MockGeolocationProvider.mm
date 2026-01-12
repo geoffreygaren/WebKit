@@ -127,22 +127,22 @@
     // Expect that views won't be (un)registered while iterating.
     auto copyOfRegisteredViews { _registeredViews };
     for (auto typelessView : copyOfRegisteredViews) {
-        auto webView = (__bridge WebView *)typelessView;
+        RetainPtr webView = (__bridge WebView *)typelessView;
 #if !PLATFORM(IOS_FAMILY)
         if (_hasError)
-            [webView _geolocationDidFailWithMessage:_errorMessage.get()];
+            [webView.get() _geolocationDidFailWithMessage:_errorMessage.get()];
         else
-            [webView _geolocationDidChangePosition:_lastPosition.get()];
+            [webView.get() _geolocationDidChangePosition:_lastPosition.get()];
 #else
         WebGeolocationPosition *lastPosition = _lastPosition.get();
         NSString *errorMessage = _errorMessage.get();
         if (_hasError) {
             WebThreadRun(^{
-                [webView _geolocationDidFailWithMessage:errorMessage];
+                [webView.get() _geolocationDidFailWithMessage:errorMessage];
             });
         } else {
             WebThreadRun(^{
-                [webView _geolocationDidChangePosition:lastPosition];
+                [webView.get() _geolocationDidChangePosition:lastPosition];
             });
         }
 #endif

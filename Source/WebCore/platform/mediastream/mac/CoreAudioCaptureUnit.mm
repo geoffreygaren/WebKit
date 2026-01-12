@@ -106,26 +106,26 @@ static void setNoopInputMuteStateChangeHandler(AVAudioApplication *audioApplicat
 
 void registerAudioInputMuteChangeListener(WebCoreAudioInputMuteChangeListener *listener)
 {
-    auto *audioApplication = getSharedAVAudioApplication();
+    RetainPtr audioApplication = getSharedAVAudioApplication();
     if (!audioApplication)
         return;
 
 #if PLATFORM(MAC)
-    setNoopInputMuteStateChangeHandler(audioApplication, true);
+    setNoopInputMuteStateChangeHandler(audioApplication.get(), true);
 #endif
 
-    [[NSNotificationCenter defaultCenter] addObserver:listener selector:@selector(handleMuteStatusChangedNotification:) name:AVAudioApplicationInputMuteStateChangeNotification object:audioApplication];
+    [[NSNotificationCenter defaultCenter] addObserver:listener selector:@selector(handleMuteStatusChangedNotification:) name:AVAudioApplicationInputMuteStateChangeNotification object:audioApplication.get()];
 
 }
 
 void unregisterAudioInputMuteChangeListener(WebCoreAudioInputMuteChangeListener *listener)
 {
-    auto *audioApplication = getSharedAVAudioApplication();
+    RetainPtr audioApplication = getSharedAVAudioApplication();
     if (!audioApplication)
         return;
 
 #if PLATFORM(MAC)
-    setNoopInputMuteStateChangeHandler(audioApplication, false);
+    setNoopInputMuteStateChangeHandler(audioApplication.get(), false);
 #endif
 
     [[NSNotificationCenter defaultCenter] removeObserver:listener];
@@ -244,12 +244,12 @@ void CoreAudioCaptureUnit::setMuteStatusChangedCallback(Function<void(bool)>&& c
 void CoreAudioCaptureUnit::setMutedState(bool isMuted)
 {
 #if HAVE(AVAUDIOAPPLICATION)
-    auto *audioApplication = getSharedAVAudioApplication();
+    RetainPtr audioApplication = getSharedAVAudioApplication();
     if (!audioApplication)
         return;
 
     NSError *error = nil;
-    [audioApplication setInputMuted:isMuted error:&error];
+    [audioApplication.get() setInputMuted:isMuted error:&error];
     RELEASE_LOG_ERROR_IF(error, WebRTC, "CoreAudioCaptureUnit::setMutedState failed due to error: %@.", error.localizedDescription);
 #else
     UNUSED_PARAM(isMuted);

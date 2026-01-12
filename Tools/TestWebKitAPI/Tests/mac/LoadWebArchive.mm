@@ -48,7 +48,7 @@
 static bool navigationComplete = false;
 static bool navigationFail = false;
 static String finalURL;
-static id<WKNavigationDelegate> gDelegate;
+static NeverDestroyed<RetainPtr<id<WKNavigationDelegate>>> gDelegate;
 static RetainPtr<WKWebView> newWebView;
 
 @interface TestLoadWebArchiveNavigationDelegate : NSObject <WKNavigationDelegate, WKUIDelegate>
@@ -71,7 +71,7 @@ static RetainPtr<WKWebView> newWebView;
 - (WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures
 {
     newWebView = adoptNS([[WKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:configuration]);
-    [newWebView setNavigationDelegate:gDelegate];
+    [newWebView setNavigationDelegate:gDelegate->get()];
 
     return newWebView.get();
 }
@@ -109,7 +109,7 @@ TEST(LoadWebArchive, FailNavigation2)
     RetainPtr<NSURL> testURL = [NSBundle.test_resourcesBundle URLForResource:@"load-web-archive-2" withExtension:@"html"];
 
     auto delegate = adoptNS([[TestLoadWebArchiveNavigationDelegate alloc] init]);
-    gDelegate = delegate.get();
+    gDelegate.get() = delegate.get();
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     for (_WKFeature *feature in WKPreferences._features) {
@@ -357,7 +357,7 @@ static NSData* constructArchive()
 
 TEST(LoadWebArchive, HTTPSUpgrade)
 {
-    NSData *data = constructArchive();
+    RetainPtr data = constructArchive();
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     for (_WKFeature *feature in WKPreferences._features) {
@@ -368,13 +368,13 @@ TEST(LoadWebArchive, HTTPSUpgrade)
 
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:configuration.get()]);
 
-    [webView loadData:data MIMEType:@"application/x-webarchive" characterEncodingName:@"utf-8" baseURL:[NSURL URLWithString:@"http://download.example/"]];
+    [webView loadData:data.get() MIMEType:@"application/x-webarchive" characterEncodingName:@"utf-8" baseURL:[NSURL URLWithString:@"http://download.example/"]];
     EXPECT_WK_STREQ([webView _test_waitForAlert], "loaded http subresource successfully");
 }
 
 TEST(LoadWebArchive, DisallowedNetworkHosts)
 {
-    NSData *data = constructArchive();
+    RetainPtr data = constructArchive();
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get()._allowedNetworkHosts = [NSSet set];
@@ -386,7 +386,7 @@ TEST(LoadWebArchive, DisallowedNetworkHosts)
     }
 
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:configuration.get()]);
-    [webView loadData:data MIMEType:@"application/x-webarchive" characterEncodingName:@"utf-8" baseURL:[NSURL URLWithString:@"http://download.example/"]];
+    [webView loadData:data.get() MIMEType:@"application/x-webarchive" characterEncodingName:@"utf-8" baseURL:[NSURL URLWithString:@"http://download.example/"]];
     EXPECT_WK_STREQ([webView _test_waitForAlert], "loaded http subresource successfully");
 }
 
@@ -642,8 +642,8 @@ TEST(LoadWebArchive, FileWebArchiveToDataWebArchiveAndBack)
     TestWebKitAPI::Util::run(&doneEvaluatingJavaScript);
     doneEvaluatingJavaScript = false;
 
-    NSData *data = constructArchive();
-    [webView loadData:data MIMEType:@"application/x-webarchive" characterEncodingName:@"utf-8" baseURL:[NSURL URLWithString:@"http://download.example/"]];
+    RetainPtr data = constructArchive();
+    [webView loadData:data.get() MIMEType:@"application/x-webarchive" characterEncodingName:@"utf-8" baseURL:[NSURL URLWithString:@"http://download.example/"]];
     Util::run(&navigationComplete);
     EXPECT_WK_STREQ([webView URL].absoluteString, @"http://download.example/");
     navigationComplete = false;

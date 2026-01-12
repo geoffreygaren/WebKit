@@ -56,11 +56,11 @@ TEST(WKWebExtensionAPIDevTools, Basics)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(browser?.devtools, undefined, 'browser.devtools should be undefined in background script')",
     ]);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"browser.test.assertEq(typeof browser?.devtools, 'object', 'browser.devtools should be available in devtools page script')",
         @"browser.test.assertEq(typeof browser?.devtools?.panels, 'object', 'browser.devtools.panels should be available')",
         @"browser.test.assertEq(typeof browser?.devtools?.network, 'object', 'browser.devtools.network should be available')",
@@ -72,9 +72,9 @@ TEST(WKWebExtensionAPIDevTools, Basics)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript
+        @"devtools.js": devToolsScript.get()
     };
 
     auto manager = Util::loadExtension(devToolsManifest, resources);
@@ -92,7 +92,7 @@ TEST(WKWebExtensionAPIDevTools, DISABLED_CreatePanel)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"let cachedPanelWindow = null",
 
         @"let panel = await browser.test.assertSafeResolve(() => browser.devtools.panels.create('Test Panel', 'icon.svg', 'panel.html'))",
@@ -114,7 +114,7 @@ TEST(WKWebExtensionAPIDevTools, DISABLED_CreatePanel)
         @"browser.test.sendMessage('Panel Created')",
     ]);
 
-    auto *panelScript = Util::constructScript(@[
+    RetainPtr panelScript = Util::constructScript(@[
         @"browser.test.assertEq(typeof browser?.devtools?.inspectedWindow?.tabId, 'number', 'browser.devtools.inspectedWindow.tabId should be available')",
         @"browser.test.assertTrue(browser?.devtools?.inspectedWindow?.tabId > 0, 'browser.devtools.inspectedWindow.tabId should be a positive value')",
 
@@ -130,9 +130,9 @@ TEST(WKWebExtensionAPIDevTools, DISABLED_CreatePanel)
     auto *resources = @{
         @"background.js": @"// This script is intentionally left blank.",
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript,
+        @"devtools.js": devToolsScript.get(),
         @"panel.html": @"<script type='module' src='panel.js'></script>",
-        @"panel.js": panelScript,
+        @"panel.js": panelScript.get(),
         @"icon.svg": iconSVG,
     };
 
@@ -162,7 +162,7 @@ TEST(WKWebExtensionAPIDevTools, DISABLED_InspectedWindowEval)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<title>Test Page</title><script>const secretNumber = 42; window.customTitle = 'Dynamic Title'</script>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         // Evaluate a simple expression that should succeed
         @"await browser.test.assertSafeResolve(async () => {",
         @"  const [result, exceptionInfo] = await browser.devtools.inspectedWindow.eval('document.title')",
@@ -193,7 +193,7 @@ TEST(WKWebExtensionAPIDevTools, DISABLED_InspectedWindowEval)
     auto *resources = @{
         @"background.js": @"// This script is intentionally left blank.",
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript
+        @"devtools.js": devToolsScript.get()
     };
 
     auto manager = Util::loadExtension(devToolsManifest, resources);
@@ -212,7 +212,7 @@ TEST(WKWebExtensionAPIDevTools, InspectedWindowReload)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s }, { "Cache-Control"_s, "max-age=3600"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"browser.test.assertSafe(() => browser.devtools.inspectedWindow.reload())",
 
         @"browser.test.sendMessage('Reload Called')",
@@ -221,7 +221,7 @@ TEST(WKWebExtensionAPIDevTools, InspectedWindowReload)
     auto *resources = @{
         @"background.js": @"// This script is intentionally left blank.",
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript
+        @"devtools.js": devToolsScript.get()
     };
 
     auto manager = Util::loadExtension(devToolsManifest, resources);
@@ -245,7 +245,7 @@ TEST(WKWebExtensionAPIDevTools, DISABLED_InspectedWindowReloadIgnoringCache)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s }, { "Cache-Control"_s, "max-age=3600"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"browser.test.assertSafe(() => browser.devtools.inspectedWindow.reload({ ignoreCache: true }))",
 
         @"browser.test.sendMessage('Reload Called')",
@@ -254,7 +254,7 @@ TEST(WKWebExtensionAPIDevTools, DISABLED_InspectedWindowReloadIgnoringCache)
     auto *resources = @{
         @"background.js": @"// This script is intentionally left blank.",
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript
+        @"devtools.js": devToolsScript.get()
     };
 
     auto manager = Util::loadExtension(devToolsManifest, resources);
@@ -276,7 +276,7 @@ TEST(WKWebExtensionAPIDevTools, NetworkNavigatedEvent)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"browser.devtools.network.onNavigated.addListener((url) => {",
         @"  browser.test.assertEq(typeof url, 'string', 'url should be a string')",
         @"  browser.test.assertTrue(url?.startsWith('http://127.0.0.1:'), 'url should be local IP address')",
@@ -290,7 +290,7 @@ TEST(WKWebExtensionAPIDevTools, NetworkNavigatedEvent)
     auto *resources = @{
         @"background.js": @"// This script is intentionally left blank.",
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript
+        @"devtools.js": devToolsScript.get()
     };
 
     auto manager = Util::loadExtension(devToolsManifest, resources);
@@ -312,7 +312,7 @@ TEST(WKWebExtensionAPIDevTools, PanelsThemeName)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"browser.test.assertEq(browser?.devtools?.panels?.themeName, 'light', 'panels.themeName should be light')",
 
         @"browser?.devtools?.panels?.onThemeChanged.addListener((newTheme) => {",
@@ -328,7 +328,7 @@ TEST(WKWebExtensionAPIDevTools, PanelsThemeName)
     auto *resources = @{
         @"background.js": @"// This script is intentionally left blank.",
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript
+        @"devtools.js": devToolsScript.get()
     };
 
     // Force light mode for the app, so the switch to dark will trigger the event.
@@ -355,14 +355,14 @@ TEST(WKWebExtensionAPIDevTools, MessagePassingToBackground)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message, 'Hello from Inspector', 'Should get the correct message from the Inspector script')",
         @"  sendResponse('Acknowledged by background')",
         @"})"
     ]);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"const response = await browser.runtime.sendMessage('Hello from Inspector')",
         @"browser.test.assertEq(response, 'Acknowledged by background', 'Should get the correct response from the background script')",
 
@@ -370,9 +370,9 @@ TEST(WKWebExtensionAPIDevTools, MessagePassingToBackground)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript
+        @"devtools.js": devToolsScript.get()
     };
 
     auto manager = Util::loadExtension(devToolsManifest, resources);
@@ -389,21 +389,21 @@ TEST(WKWebExtensionAPIDevTools, MessagePassingFromPanelToBackground)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message, 'Hello from Inspector panel', 'Should get the correct message from the pane script')",
         @"  sendResponse('Acknowledged by Inspector panel')",
         @"})"
     ]);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"let panel = await browser.devtools.panels.create('Test Panel', 'icon.svg', 'panel.html')",
         @"browser.test.assertEq(typeof panel, 'object', 'Panel should be created successfully')",
 
         @"browser.test.sendMessage('Panel Created')",
     ]);
 
-    auto *panelScript = Util::constructScript(@[
+    RetainPtr panelScript = Util::constructScript(@[
         @"const response = await browser.runtime.sendMessage('Hello from Inspector panel')",
         @"browser.test.assertEq(response, 'Acknowledged by Inspector panel', 'Should get the correct response from the background script')",
 
@@ -413,11 +413,11 @@ TEST(WKWebExtensionAPIDevTools, MessagePassingFromPanelToBackground)
     auto *iconSVG = @"<svg width='16' height='16' xmlns='http://www.w3.org/2000/svg'><circle cx='8' cy='8' r='8' fill='red' /></svg>";
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript,
+        @"devtools.js": devToolsScript.get(),
         @"panel.html": @"<script type='module' src='panel.js'></script>",
-        @"panel.js": panelScript,
+        @"panel.js": panelScript.get(),
         @"icon.svg": iconSVG,
     };
 
@@ -442,7 +442,7 @@ TEST(WKWebExtensionAPIDevTools, MessagePassingFromPanelToDevToolsBackground)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"let panel = await browser.devtools.panels.create('Test Panel', 'icon.svg', 'panel.html')",
         @"browser.test.assertEq(typeof panel, 'object', 'Panel should be created successfully')",
 
@@ -454,7 +454,7 @@ TEST(WKWebExtensionAPIDevTools, MessagePassingFromPanelToDevToolsBackground)
         @"browser.test.sendMessage('Panel Created')",
     ]);
 
-    auto *panelScript = Util::constructScript(@[
+    RetainPtr panelScript = Util::constructScript(@[
         @"const response = await browser.runtime.sendMessage('Hello from Inspector panel')",
         @"browser.test.assertEq(response, 'Acknowledged by Inspector background', 'Should get the correct response from the Inspector background')",
 
@@ -466,9 +466,9 @@ TEST(WKWebExtensionAPIDevTools, MessagePassingFromPanelToDevToolsBackground)
     auto *resources = @{
         @"background.js": @"// This script is intentionally left blank.",
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript,
+        @"devtools.js": devToolsScript.get(),
         @"panel.html": @"<script type='module' src='panel.js'></script>",
-        @"panel.js": panelScript,
+        @"panel.js": panelScript.get(),
         @"icon.svg": iconSVG,
     };
 
@@ -494,7 +494,7 @@ TEST(WKWebExtensionAPIDevTools, DISABLED_PortMessagePassingToBackground)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onConnect.addListener(port => {",
         @"  port.onMessage.addListener((message) => {",
         @"    browser.test.assertEq(message, 'Hello from Inspector', 'Should get the correct message from the Inspector script')",
@@ -503,7 +503,7 @@ TEST(WKWebExtensionAPIDevTools, DISABLED_PortMessagePassingToBackground)
         @"})"
     ]);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"const port = browser.runtime.connect()",
         @"port.postMessage('Hello from Inspector')",
 
@@ -515,9 +515,9 @@ TEST(WKWebExtensionAPIDevTools, DISABLED_PortMessagePassingToBackground)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript,
+        @"devtools.js": devToolsScript.get(),
     };
 
     auto manager = Util::loadExtension(devToolsManifest, resources);
@@ -534,7 +534,7 @@ TEST(WKWebExtensionAPIDevTools, PortMessagePassingFromPanelToBackground)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onConnect.addListener(port => {",
         @"  port.onMessage.addListener((message) => {",
         @"    browser.test.assertEq(message, 'Hello from Inspector panel', 'Should get the correct message from the panel script')",
@@ -543,14 +543,14 @@ TEST(WKWebExtensionAPIDevTools, PortMessagePassingFromPanelToBackground)
         @"})"
     ]);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"let panel = await browser.devtools.panels.create('Test Panel', 'icon.svg', 'panel.html')",
         @"browser.test.assertEq(typeof panel, 'object', 'Panel should be created successfully')",
 
         @"browser.test.sendMessage('Panel Created')",
     ]);
 
-    auto *panelScript = Util::constructScript(@[
+    RetainPtr panelScript = Util::constructScript(@[
         @"const port = browser.runtime.connect()",
         @"port.postMessage('Hello from Inspector panel')",
         @"port.onMessage.addListener((response) => {",
@@ -563,11 +563,11 @@ TEST(WKWebExtensionAPIDevTools, PortMessagePassingFromPanelToBackground)
     auto *iconSVG = @"<svg width='16' height='16' xmlns='http://www.w3.org/2000/svg'><circle cx='8' cy='8' r='8' fill='red' /></svg>";
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript,
+        @"devtools.js": devToolsScript.get(),
         @"panel.html": @"<script type='module' src='panel.js'></script>",
-        @"panel.js": panelScript,
+        @"panel.js": panelScript.get(),
         @"icon.svg": iconSVG,
     };
 
@@ -592,7 +592,7 @@ TEST(WKWebExtensionAPIDevTools, PortMessagePassingFromPanelToDevToolsBackground)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *devToolsScript = Util::constructScript(@[
+    RetainPtr devToolsScript = Util::constructScript(@[
         @"let panel = await browser.devtools.panels.create('Test Panel', 'icon.svg', 'panel.html')",
         @"browser.test.assertEq(typeof panel, 'object', 'Panel should be created successfully')",
 
@@ -606,7 +606,7 @@ TEST(WKWebExtensionAPIDevTools, PortMessagePassingFromPanelToDevToolsBackground)
         @"browser.test.sendMessage('Panel Created')",
     ]);
 
-    auto *panelScript = Util::constructScript(@[
+    RetainPtr panelScript = Util::constructScript(@[
         @"const port = browser.runtime.connect()",
         @"port.postMessage('Hello from Inspector panel')",
 
@@ -622,9 +622,9 @@ TEST(WKWebExtensionAPIDevTools, PortMessagePassingFromPanelToDevToolsBackground)
     auto *resources = @{
         @"background.js": @"// This script is intentionally left blank.",
         @"devtools.html": @"<script type='module' src='devtools.js'></script>",
-        @"devtools.js": devToolsScript,
+        @"devtools.js": devToolsScript.get(),
         @"panel.html": @"<script type='module' src='panel.js'></script>",
-        @"panel.js": panelScript,
+        @"panel.js": panelScript.get(),
         @"icon.svg": iconSVG,
     };
 

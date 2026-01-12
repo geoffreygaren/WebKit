@@ -294,12 +294,12 @@ TEST(ImageAnalysisTests, ImageAnalysisPrioritizesVisibleImages)
     [webView _startImageAnalysis:nil target:nil];
     [webView waitForImageAnalysisRequests:2];
 
-    auto firstRequestedImage = [processedRequests().first() image];
-    auto lastRequestedImage = [processedRequests().last() image];
-    EXPECT_EQ(200U, CGImageGetWidth(firstRequestedImage));
-    EXPECT_EQ(150U, CGImageGetHeight(firstRequestedImage));
-    EXPECT_EQ(600U, CGImageGetWidth(lastRequestedImage));
-    EXPECT_EQ(450U, CGImageGetHeight(lastRequestedImage));
+    RetainPtr<CGImageRef> firstRequestedImage = [processedRequests().first() image];
+    RetainPtr<CGImageRef> lastRequestedImage = [processedRequests().last() image];
+    EXPECT_EQ(200U, CGImageGetWidth(firstRequestedImage.get()));
+    EXPECT_EQ(150U, CGImageGetHeight(firstRequestedImage.get()));
+    EXPECT_EQ(600U, CGImageGetWidth(lastRequestedImage.get()));
+    EXPECT_EQ(450U, CGImageGetHeight(lastRequestedImage.get()));
 }
 
 TEST(ImageAnalysisTests, ImageAnalysisWithTransparentImages)

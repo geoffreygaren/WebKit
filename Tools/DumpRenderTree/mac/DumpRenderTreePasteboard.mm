@@ -274,9 +274,9 @@ static RetainPtr<CFStringRef> toUTI(NSString *type)
     }
 
     for (const auto& typeAndData : _data) {
-        NSData *data = (__bridge NSData *)typeAndData.value.get();
-        NSString *type = (__bridge NSString *)typeAndData.key.get();
-        [item setData:data forType:[NSPasteboard _modernPasteboardType:type]];
+        RetainPtr data = (__bridge NSData *)typeAndData.value.get();
+        RetainPtr type = (__bridge NSString *)typeAndData.key.get();
+        [item setData:data.get() forType:[NSPasteboard _modernPasteboardType:type.get()]];
     }
 
     _cachedPasteboardItems = @[ item.get() ];

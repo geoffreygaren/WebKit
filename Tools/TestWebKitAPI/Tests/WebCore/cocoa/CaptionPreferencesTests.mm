@@ -449,26 +449,26 @@ TEST_F(CaptionPreferenceTests, CaptionStyleMenu)
     if (!CaptionUserPreferencesMediaAF::canSetActiveProfileID())
         return;
 
-    PlatformMenu *menu = ensureMenu();
+    RetainPtr menu = ensureMenu();
 
 #if PLATFORM(MAC)
-    EXPECT_EQ(menu.numberOfItems, 5);
-    EXPECT_WK_STREQ("Profile 1", [[menu itemAtIndex:0] title]);
-    EXPECT_WK_STREQ("Profile 2", [[menu itemAtIndex:1] title]);
-    EXPECT_WK_STREQ("Profile 3", [[menu itemAtIndex:2] title]);
+    EXPECT_EQ([menu.get() numberOfItems], 5);
+    EXPECT_WK_STREQ("Profile 1", [[menu.get() itemAtIndex:0] title]);
+    EXPECT_WK_STREQ("Profile 2", [[menu.get() itemAtIndex:1] title]);
+    EXPECT_WK_STREQ("Profile 3", [[menu.get() itemAtIndex:2] title]);
 
-    EXPECT_EQ(NSControlStateValueOn, [[menu itemAtIndex:0] state]);
-    EXPECT_EQ(NSControlStateValueOff, [[menu itemAtIndex:1] state]);
-    EXPECT_EQ(NSControlStateValueOff, [[menu itemAtIndex:2] state]);
+    EXPECT_EQ(NSControlStateValueOn, [[menu.get() itemAtIndex:0] state]);
+    EXPECT_EQ(NSControlStateValueOff, [[menu.get() itemAtIndex:1] state]);
+    EXPECT_EQ(NSControlStateValueOff, [[menu.get() itemAtIndex:2] state]);
 
-    [menu performActionForItemAtIndex:1];
+    [menu.get() performActionForItemAtIndex:1];
     EXPECT_WK_STREQ("Profile 2", CaptionUserPreferencesMediaAF::platformActiveProfileID());
 
-    [menu performActionForItemAtIndex:2];
+    [menu.get() performActionForItemAtIndex:2];
     EXPECT_WK_STREQ("Profile 3", CaptionUserPreferencesMediaAF::platformActiveProfileID());
 #elif PLATFORM(IOS_FAMILY)
-    EXPECT_EQ(menu.children.count, 2UL);
-    PlatformMenu *profileMenu = dynamic_objc_cast<PlatformMenu>(menu.children.firstObject);
+    EXPECT_EQ([menu.get() children].count, 2UL);
+    PlatformMenu *profileMenu = dynamic_objc_cast<PlatformMenu>([menu.get() children].firstObject);
 
     EXPECT_EQ(profileMenu.children.count, 3UL);
     EXPECT_WK_STREQ("Profile 1", profileMenu.children[0].title);
@@ -627,8 +627,8 @@ TEST_F(CaptionPreferenceTests, MenuAncestryCheck)
     if (!CaptionUserPreferencesMediaAF::canSetActiveProfileID())
         return;
 
-    WKCaptionStyleMenuController *controller = ensureController();
-    PlatformMenu *captionStyleMenu = controller.captionStyleMenu;
+    RetainPtr controller = ensureController();
+    PlatformMenu *captionStyleMenu = [controller.get() captionStyleMenu];
 
 #if PLATFORM(IOS_FAMILY)
     RetainPtr otherMenu = [UIMenu menuWithTitle:@"Other" children:@[]];
@@ -641,12 +641,12 @@ TEST_F(CaptionPreferenceTests, MenuAncestryCheck)
     [parentMenu addItem:parentItem.get()];
 #endif
 
-    EXPECT_FALSE([controller hasAncestor:captionStyleMenu]);
-    EXPECT_TRUE([controller isAncestorOf:captionStyleMenu]);
-    EXPECT_FALSE([controller isAncestorOf:otherMenu.get()]);
+    EXPECT_FALSE([controller.get() hasAncestor:captionStyleMenu]);
+    EXPECT_TRUE([controller.get() isAncestorOf:captionStyleMenu]);
+    EXPECT_FALSE([controller.get() isAncestorOf:otherMenu.get()]);
 
-    EXPECT_FALSE([controller hasAncestor:otherMenu.get()]);
-    EXPECT_TRUE([controller hasAncestor:parentMenu.get()]);
+    EXPECT_FALSE([controller.get() hasAncestor:otherMenu.get()]);
+    EXPECT_TRUE([controller.get() hasAncestor:parentMenu.get()]);
 }
 
 // FIXME: Re-enable this test for iOS when rdar://166158601 is resolved.

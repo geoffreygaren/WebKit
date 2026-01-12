@@ -77,17 +77,17 @@ static void printPNG(CGImageRef image, const char* checksum, double scaleFactor)
 
 void computeSHA1HashStringForBitmapContext(BitmapContext* context, char hashString[33])
 {
-    CGContextRef bitmapContext = context->cgContext();
+    RetainPtr bitmapContext = context->cgContext();
 
-    ASSERT(CGBitmapContextGetBitsPerPixel(bitmapContext) == 32); // ImageDiff assumes 32 bit RGBA, we must as well.
-    size_t pixelsHigh = CGBitmapContextGetHeight(bitmapContext);
-    size_t pixelsWide = CGBitmapContextGetWidth(bitmapContext);
-    size_t bytesPerRow = CGBitmapContextGetBytesPerRow(bitmapContext);
+    ASSERT(CGBitmapContextGetBitsPerPixel(bitmapContext.get()) == 32); // ImageDiff assumes 32 bit RGBA, we must as well.
+    size_t pixelsHigh = CGBitmapContextGetHeight(bitmapContext.get());
+    size_t pixelsWide = CGBitmapContextGetWidth(bitmapContext.get());
+    size_t bytesPerRow = CGBitmapContextGetBytesPerRow(bitmapContext.get());
 
     // We need to swap the bytes to ensure consistent hashes independently of endianness
     SHA1 sha1;
-    unsigned char* bitmapData = static_cast<unsigned char*>(CGBitmapContextGetData(bitmapContext));
-    if ((CGBitmapContextGetBitmapInfo(bitmapContext) & kCGBitmapByteOrderMask) == kCGBitmapByteOrder32Big) {
+    unsigned char* bitmapData = static_cast<unsigned char*>(CGBitmapContextGetData(bitmapContext.get()));
+    if ((CGBitmapContextGetBitmapInfo(bitmapContext.get()) & kCGBitmapByteOrderMask) == kCGBitmapByteOrder32Big) {
         for (unsigned row = 0; row < pixelsHigh; row++) {
             Vector<uint32_t> buffer(pixelsWide);
             for (unsigned column = 0; column < pixelsWide; column++)

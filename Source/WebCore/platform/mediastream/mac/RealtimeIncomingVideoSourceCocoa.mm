@@ -123,11 +123,11 @@ RefPtr<VideoFrame> RealtimeIncomingVideoSourceCocoa::toVideoFrame(const webrtc::
     return VideoFrameLibWebRTC::create(MediaTime(frame.timestamp_us(), 1000000), false, rotation, colorSpaceFromLibWebRTCVideoFrame(frame), toRef(frame.video_frame_buffer()), [protectedThis = Ref { *this }, this](auto& buffer) {
         return adoptCF(webrtc::createPixelBufferFromFrameBuffer(buffer, [this](size_t width, size_t height, webrtc::BufferType bufferType) -> CVPixelBufferRef {
             Locker lock(m_pixelBufferPoolLock);
-            auto pixelBufferPool = this->pixelBufferPool(width, height, bufferType);
-            if (!pixelBufferPool)
+            RetainPtr<CVPixelBufferPoolRef> pixelBufferPool = this->pixelBufferPool(width, height, bufferType);
+            if (!pixelBufferPool.get())
                 return nullptr;
             CVPixelBufferRef pixelBuffer = nullptr;
-            auto status = CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, m_pixelBufferPool.get(), &pixelBuffer);
+            auto status = CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pixelBufferPool.get(), &pixelBuffer);
             if (status != kCVReturnSuccess) {
                 ERROR_LOG_IF(loggerPtr(), LOGIDENTIFIER, "Failed creating a pixel buffer with error ", status);
                 return nullptr;

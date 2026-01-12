@@ -41,16 +41,16 @@
 bool LoadItem::invoke() const
 {
     RetainPtr<CFStringRef> urlCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, m_url.get()));
-    NSString *urlNS = (__bridge NSString *)urlCF.get();
+    RetainPtr urlNS = (__bridge NSString *)urlCF.get();
     RetainPtr<CFStringRef> targetCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, m_target.get()));
-    NSString *targetNS = (__bridge NSString *)targetCF.get();
+    RetainPtr targetNS = (__bridge NSString *)targetCF.get();
 
-    WebFrame *targetFrame;
-    if (targetNS && [targetNS length])
-        targetFrame = [mainFrame findFrameNamed:targetNS];
+    RetainPtr<WebFrame> targetFrame;
+    if (targetNS && [targetNS.get() length])
+        targetFrame = [mainFrame findFrameNamed:targetNS.get()];
     else
         targetFrame = mainFrame;
-    [targetFrame loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlNS]]];
+    [targetFrame.get() loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlNS.get()]]];
     return true;
 }
 
@@ -78,8 +78,8 @@ bool ReloadItem::invoke() const
 bool ScriptItem::invoke() const
 {
     RetainPtr<CFStringRef> scriptCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, m_script.get()));
-    NSString *scriptNS = (__bridge NSString *)scriptCF.get();
-    [[mainFrame webView] stringByEvaluatingJavaScriptFromString:scriptNS];
+    RetainPtr scriptNS = (__bridge NSString *)scriptCF.get();
+    [[mainFrame webView] stringByEvaluatingJavaScriptFromString:scriptNS.get()];
     return true;
 }
 
@@ -90,8 +90,8 @@ bool BackForwardItem::invoke() const
     else if (m_howFar == -1)
         [[mainFrame webView] goBack];
     else {
-        WebBackForwardList *bfList = [[mainFrame webView] backForwardList];
-        [[mainFrame webView] goToBackForwardItem:[bfList itemAtIndex:m_howFar]];
+        RetainPtr bfList = [[mainFrame webView] backForwardList];
+        [[mainFrame webView] goToBackForwardItem:[bfList.get() itemAtIndex:m_howFar]];
     }
     return true;
 }

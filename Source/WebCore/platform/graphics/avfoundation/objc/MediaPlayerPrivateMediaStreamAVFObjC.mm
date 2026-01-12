@@ -1085,8 +1085,9 @@ void MediaPlayerPrivateMediaStreamAVFObjC::updateCurrentFrameImage()
     if (!m_imagePainter.pixelBufferConformer)
         return;
 
-    if (auto pixelBuffer = m_imagePainter.videoFrame->pixelBuffer())
-        m_imagePainter.cgImage = NativeImage::create(m_imagePainter.pixelBufferConformer->createImageFromPixelBuffer(pixelBuffer));
+    RetainPtr pixelBuffer = m_imagePainter.videoFrame->pixelBuffer();
+    if (pixelBuffer)
+        m_imagePainter.cgImage = NativeImage::create(m_imagePainter.pixelBufferConformer->createImageFromPixelBuffer(pixelBuffer.get()));
 }
 
 static inline CGAffineTransform videoTransformationMatrix(VideoFrame& videoFrame)

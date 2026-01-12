@@ -83,9 +83,9 @@
 
 static Class webAccessibilityObjectWrapperClassSingleton()
 {
-    static Class cls = objc_getClass("WebAccessibilityObjectWrapper");
-    ASSERT(cls);
-    return cls;
+    static NeverDestroyed<RetainPtr<Class>> cls = objc_getClass("WebAccessibilityObjectWrapper");
+    ASSERT(cls->get());
+    return cls->get();
 }
 
 - (void)startObserving

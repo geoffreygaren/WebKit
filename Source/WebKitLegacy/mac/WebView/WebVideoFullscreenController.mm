@@ -106,23 +106,23 @@ static void WebAVPlayerView_exitFullScreen(id aSelf, SEL, id sender)
 
 static WebAVPlayerView *allocWebAVPlayerViewInstance()
 {
-    static Class theClass = [] {
+    static NeverDestroyed<RetainPtr<Class>> theClass = [] {
         ASSERT(getAVPlayerViewClassSingleton());
-        Class aClass = objc_allocateClassPair(getAVPlayerViewClassSingleton(), "WebAVPlayerView", 0);
-        Class theClass = aClass;
-        class_addMethod(theClass, @selector(setWebDelegate:), (IMP)WebAVPlayerView_setWebDelegate, "v@:@");
-        class_addMethod(theClass, @selector(webDelegate), (IMP)WebAVPlayerView_webDelegate, "@@:");
-        class_addMethod(theClass, @selector(isFullScreen), (IMP)WebAVPlayerView_isFullScreen, "B@:");
-        class_addMethod(theClass, @selector(enterFullScreen:), (IMP)WebAVPlayerView_enterFullScreen, "v@:@");
-        class_addMethod(theClass, @selector(exitFullScreen:), (IMP)WebAVPlayerView_exitFullScreen, "v@:@");
+        RetainPtr aClass = objc_allocateClassPair(getAVPlayerViewClassSingleton(), "WebAVPlayerView", 0);
+        RetainPtr theClass = aClass;
+        class_addMethod(theClass.get(), @selector(setWebDelegate:), (IMP)WebAVPlayerView_setWebDelegate, "v@:@");
+        class_addMethod(theClass.get(), @selector(webDelegate), (IMP)WebAVPlayerView_webDelegate, "@@:");
+        class_addMethod(theClass.get(), @selector(isFullScreen), (IMP)WebAVPlayerView_isFullScreen, "B@:");
+        class_addMethod(theClass.get(), @selector(enterFullScreen:), (IMP)WebAVPlayerView_enterFullScreen, "v@:@");
+        class_addMethod(theClass.get(), @selector(exitFullScreen:), (IMP)WebAVPlayerView_exitFullScreen, "v@:@");
 
-        class_addIvar(theClass, "_webDelegate", sizeof(id), log2(sizeof(id)), "@");
-        class_addIvar(theClass, "_webIsFullScreen", sizeof(BOOL), log2(sizeof(BOOL)), "B");
+        class_addIvar(theClass.get(), "_webDelegate", sizeof(id), log2(sizeof(id)), "@");
+        class_addIvar(theClass.get(), "_webIsFullScreen", sizeof(BOOL), log2(sizeof(BOOL)), "B");
 
-        objc_registerClassPair(theClass);
+        objc_registerClassPair(theClass.get());
         return theClass;
     }();
-    return (WebAVPlayerView *)[theClass alloc];
+    return (WebAVPlayerView *)[theClass->get() alloc];
 }
 
 @interface WebVideoFullscreenController () <WebAVPlayerViewDelegate, NSWindowDelegate> {
@@ -178,17 +178,17 @@ static WebAVPlayerView *allocWebAVPlayerViewInstance()
 
 - (void)windowDidLoad
 {
-    auto window = [self fullscreenWindow];
+    RetainPtr window = [self fullscreenWindow];
 
-    [window setHasShadow:YES]; // This is nicer with a shadow.
-    [window setLevel:NSPopUpMenuWindowLevel-1];
+    [window.get() setHasShadow:YES]; // This is nicer with a shadow.
+    [window.get() setLevel:NSPopUpMenuWindowLevel-1];
 
-    _playerView = adoptNS([allocWebAVPlayerViewInstance() initWithFrame:window.contentLayoutRect]);
+    _playerView = adoptNS([allocWebAVPlayerViewInstance() initWithFrame:window.get().contentLayoutRect]);
     _playerView.get().controlsStyle = AVPlayerViewControlsStyleNone;
     _playerView.get().showsFullScreenToggleButton = YES;
     _playerView.get().showsAudioOnlyIndicatorView = NO;
     _playerView.get().webDelegate = self;
-    window.contentView = _playerView.get();
+    window.get().contentView = _playerView.get();
     [_contentOverlay setFrame:_playerView.get().contentOverlayView.bounds];
     [_playerView.get().contentOverlayView addSubview:_contentOverlay.get()];
 
@@ -240,13 +240,13 @@ static WebAVPlayerView *allocWebAVPlayerViewInstance()
 - (void)applicationDidResignActive:(NSNotification*)notification
 {
     UNUSED_PARAM(notification);
-    NSWindow* fullscreenWindow = [self fullscreenWindow];
+    RetainPtr fullscreenWindow = [self fullscreenWindow];
 
     // Replicate the QuickTime Player (X) behavior when losing active application status:
     // Is the fullscreen screen the main screen? (Note: this covers the case where only a
     // single screen is available.)  Is the fullscreen screen on the current space? IFF so,
     // then exit fullscreen mode.
-    if (fullscreenWindow.screen == [NSScreen screens][0] && fullscreenWindow.onActiveSpace)
+    if (fullscreenWindow.get().screen == [NSScreen screens][0] && fullscreenWindow.get().onActiveSpace)
         [self _requestExit];
 }
 

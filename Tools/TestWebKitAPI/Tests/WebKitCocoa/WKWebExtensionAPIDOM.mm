@@ -52,9 +52,9 @@ TEST(WKWebExtensionAPIDOM, OpenOrClosedShadowRoot)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"const hostOpen = document.createElement('div')",
         @"hostOpen.id = 'host-open'",
         @"document.body.appendChild(hostOpen)",
@@ -84,10 +84,10 @@ TEST(WKWebExtensionAPIDOM, OpenOrClosedShadowRoot)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(domManifest, @{ @"content.js": contentScript });
+    auto manager = Util::loadExtension(domManifest, @{ @"content.js": contentScript.get() });
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -98,9 +98,9 @@ TEST(WKWebExtensionAPIDOM, OpenOrClosedShadowRootViaElement)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"const hostOpen = document.createElement('div')",
         @"hostOpen.id = 'host-open'",
         @"document.body.appendChild(hostOpen)",
@@ -130,10 +130,10 @@ TEST(WKWebExtensionAPIDOM, OpenOrClosedShadowRootViaElement)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(domManifest, @{ @"content.js": contentScript });
+    auto manager = Util::loadExtension(domManifest, @{ @"content.js": contentScript.get() });
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }

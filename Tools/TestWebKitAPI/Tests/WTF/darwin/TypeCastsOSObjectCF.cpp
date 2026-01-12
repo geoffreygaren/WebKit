@@ -45,13 +45,13 @@ TEST(TypeCastsOSObjectCF, osObjectCast)
 
     // Same cast.
     OSObjectPtr<dispatch_group_t> group = adoptOSObject(dispatch_group_create());
-    CFTypeRef groupPtr = group.get();
-    EXPECT_EQ(group.get(), osObjectCast<dispatch_group_t>(groupPtr));
-    EXPECT_EQ(1L, CFGetRetainCount(groupPtr));
+    RetainPtr groupPtr = group.get();
+    EXPECT_EQ(group.get(), osObjectCast<dispatch_group_t>(groupPtr.get()));
+    EXPECT_EQ(1L, CFGetRetainCount(groupPtr.get()));
 
     // Up cast.
     EXPECT_EQ(group.get(), osObjectCast<dispatch_object_t>(group.get()));
-    EXPECT_EQ(1L, CFGetRetainCount(groupPtr));
+    EXPECT_EQ(1L, CFGetRetainCount(groupPtr.get()));
 
     // Down cast.
     auto object = adoptOSObject<dispatch_object_t>(dispatch_group_create());

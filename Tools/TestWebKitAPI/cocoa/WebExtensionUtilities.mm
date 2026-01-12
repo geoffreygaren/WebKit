@@ -1010,8 +1010,8 @@ NSData *makePNGData(CGSize size, SEL colorSelector)
 
     [image unlockFocus];
 
-    auto cgImageRef = [image CGImageForProposedRect:NULL context:nil hints:nil];
-    auto newImageRep = adoptNS([[NSBitmapImageRep alloc] initWithCGImage:cgImageRef]);
+    RetainPtr cgImageRef = [image CGImageForProposedRect:NULL context:nil hints:nil];
+    auto newImageRep = adoptNS([[NSBitmapImageRep alloc] initWithCGImage:cgImageRef.get()]);
     newImageRep.get().size = size;
 
     return [newImageRep representationUsingType:NSBitmapImageFileTypePNG properties:@{ }];

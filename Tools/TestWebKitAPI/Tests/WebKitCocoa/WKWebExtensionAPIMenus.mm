@@ -70,7 +70,7 @@ static auto *menusManifest = @{
 
 TEST(WKWebExtensionAPIMenus, Errors)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.menus.create({ id: { }, title: 'Test' }), /'id' is expected to be a string or a number, but an object was provided/i)",
         @"browser.test.assertThrows(() => browser.menus.create({ id: '', title: 'Test' }), /'id' value is invalid, because it must not be empty/i)",
         @"browser.test.assertThrows(() => browser.menus.create({ id: NaN, title: 'Test' }), /'id' is expected to be a string or a number, but NaN was provided/i)",
@@ -118,7 +118,7 @@ TEST(WKWebExtensionAPIMenus, Errors)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(menusManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 #if USE(APPKIT)
@@ -144,7 +144,7 @@ static inline void performMenuItemAction(auto *menuItem)
 
 TEST(WKWebExtensionAPIMenus, MenuCreateWithVariousIds)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let menuItemWithStringId = browser.menus.create({",
         @"  id: 'string-id',",
         @"  title: 'String ID',",
@@ -179,12 +179,12 @@ TEST(WKWebExtensionAPIMenus, MenuCreateWithVariousIds)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(menusManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIMenus, CreateMenuWithDeprecatedKeys)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr<NSString> backgroundScript = Util::constructScript(@[
         @"const createImageData = (size, color) => {",
         @"  const context = new OffscreenCanvas(size, size).getContext('2d')",
         @"  context.fillStyle = color",
@@ -224,7 +224,7 @@ TEST(WKWebExtensionAPIMenus, CreateMenuWithDeprecatedKeys)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
     };
 
     auto manager = Util::loadExtension(menusManifest, resources);
@@ -261,7 +261,7 @@ TEST(WKWebExtensionAPIMenus, ActionMenus)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'top-level-1',",
         @"  title: 'Top Level 1',",
@@ -304,7 +304,7 @@ TEST(WKWebExtensionAPIMenus, ActionMenus)
         @"browser.test.sendMessage('Menus Created')"
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     // Reset activeTab, WKWebExtensionAPIMenus.ActionMenusWithActiveTab tests that.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusUnknown forPermission:WKWebExtensionPermissionActiveTab];
@@ -332,7 +332,7 @@ TEST(WKWebExtensionAPIMenus, ActionMenus)
 
 TEST(WKWebExtensionAPIMenus, ActionMenusWithActiveTab)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'top-level-1',",
         @"  title: 'Top Level 1',",
@@ -376,7 +376,7 @@ TEST(WKWebExtensionAPIMenus, ActionMenusWithActiveTab)
         @"browser.test.sendMessage('Menus Created')"
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -409,7 +409,7 @@ TEST(WKWebExtensionAPIMenus, ActionMenusWithActiveTab)
 
 TEST(WKWebExtensionAPIMenus, ActionSubmenus)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'top-level-1',",
         @"  title: 'Top Level 1',",
@@ -449,7 +449,7 @@ TEST(WKWebExtensionAPIMenus, ActionSubmenus)
         @"browser.test.sendMessage('Menus Created')",
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -492,7 +492,7 @@ TEST(WKWebExtensionAPIMenus, ActionSubmenus)
 
 TEST(WKWebExtensionAPIMenus, ActionSubmenusUpdate)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'top-level-1',",
         @"  title: 'Top Level 1',",
@@ -551,7 +551,7 @@ TEST(WKWebExtensionAPIMenus, ActionSubmenusUpdate)
         @"browser.test.sendMessage('Menus Created')",
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -598,7 +598,7 @@ TEST(WKWebExtensionAPIMenus, TabMenus)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'tab-item-1',",
         @"  title: 'Tab Item 1',",
@@ -631,7 +631,7 @@ TEST(WKWebExtensionAPIMenus, TabMenus)
         @"browser.test.sendMessage('Menus Created')",
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -665,7 +665,7 @@ TEST(WKWebExtensionAPIMenus, TabMenus)
 
 TEST(WKWebExtensionAPIMenus, MenuItemProperties)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'menu-item-properties',",
         @"  title: 'Menu &Item with Ampersand && More',",
@@ -693,13 +693,13 @@ TEST(WKWebExtensionAPIMenus, MenuItemProperties)
         @"browser.test.sendMessage('Menus Created')",
     ]);
 
-    auto *smallIcon = Util::makePNGData(CGSizeMake(16, 16), @selector(greenColor));
-    auto *largerIcon = Util::makePNGData(CGSizeMake(20, 20), @selector(blueColor));
+    RetainPtr smallIcon = Util::makePNGData(CGSizeMake(16, 16), @selector(greenColor));
+    RetainPtr largerIcon = Util::makePNGData(CGSizeMake(20, 20), @selector(blueColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"icon-16.png": smallIcon,
-        @"icon-20.png": largerIcon,
+        @"background.js": backgroundScript.get(),
+        @"icon-16.png": smallIcon.get(),
+        @"icon-20.png": largerIcon.get(),
     };
 
     auto manager = Util::loadExtension(menusManifest, resources);
@@ -744,7 +744,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemProperties)
 
 TEST(WKWebExtensionAPIMenus, MenuItemPropertiesUpdate)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'menu-item-properties',",
         @"  title: 'Old Title',",
@@ -782,13 +782,13 @@ TEST(WKWebExtensionAPIMenus, MenuItemPropertiesUpdate)
         @"browser.test.sendMessage('Menus Created')",
     ]);
 
-    auto *smallIcon = Util::makePNGData(CGSizeMake(16, 16), @selector(greenColor));
-    auto *largerIcon = Util::makePNGData(CGSizeMake(20, 20), @selector(blueColor));
+    RetainPtr smallIcon = Util::makePNGData(CGSizeMake(16, 16), @selector(greenColor));
+    RetainPtr largerIcon = Util::makePNGData(CGSizeMake(20, 20), @selector(blueColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"icon-16.png": smallIcon,
-        @"icon-20.png": largerIcon,
+        @"background.js": backgroundScript.get(),
+        @"icon-16.png": smallIcon.get(),
+        @"icon-20.png": largerIcon.get(),
     };
 
     auto manager = Util::loadExtension(menusManifest, resources);
@@ -834,7 +834,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemPropertiesUpdate)
 #if ENABLE(WK_WEB_EXTENSIONS_ICON_VARIANTS)
 TEST(WKWebExtensionAPIMenus, MenuItemWithIconVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertSafe(() => browser.menus.create({",
         @"  id: 'menu-item-with-icon-variants',",
         @"  title: 'Menu Item with Icon Variants',",
@@ -848,13 +848,13 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithIconVariants)
         @"browser.test.sendMessage('Menus Created')",
     ]);
 
-    auto *darkIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(whiteColor));
-    auto *lightIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(blackColor));
+    RetainPtr darkIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(whiteColor));
+    RetainPtr lightIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(blackColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"icon-dark-16.png": darkIcon16,
-        @"icon-light-16.png": lightIcon16,
+        @"background.js": backgroundScript.get(),
+        @"icon-dark-16.png": darkIcon16.get(),
+        @"icon-light-16.png": lightIcon16.get(),
     };
 
     auto manager = Util::loadExtension(menusManifest, resources);
@@ -887,7 +887,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithIconVariants)
 
 TEST(WKWebExtensionAPIMenus, MenuItemWithImageDataVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const createImageData = (size, color) => {",
         @"  const context = new OffscreenCanvas(size, size).getContext('2d')",
         @"  context.fillStyle = color",
@@ -913,7 +913,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithImageDataVariants)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
     };
 
     auto manager = Util::loadExtension(menusManifest, resources);
@@ -946,7 +946,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithImageDataVariants)
 
 TEST(WKWebExtensionAPIMenus, MenuItemWithWithNoValidVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const createImageData = (size, color) => {",
         @"  const context = new OffscreenCanvas(size, size).getContext('2d')",
         @"  context.fillStyle = color",
@@ -981,7 +981,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithWithNoValidVariants)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
     };
 
     Util::loadAndRunExtension(menusManifest, resources);
@@ -989,7 +989,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithWithNoValidVariants)
 
 TEST(WKWebExtensionAPIMenus, MenuItemWithMixedValidAndInvalidIconVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const createImageData = (size, color) => {",
         @"  const context = new OffscreenCanvas(size, size).getContext('2d')",
         @"  context.fillStyle = color",
@@ -1015,7 +1015,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithMixedValidAndInvalidIconVariants)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
     };
 
     auto manager = Util::loadExtension(menusManifest, resources);
@@ -1049,7 +1049,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithMixedValidAndInvalidIconVariants)
 
 TEST(WKWebExtensionAPIMenus, MenuItemWithAnySizeVariantAndSVGDataURL)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const whiteSVGData = 'data:image/svg+xml;base64,' + btoa(`",
         @"  <svg width=\"100\" height=\"100\" xmlns=\"http://www.w3.org/2000/svg\">",
         @"    <rect width=\"100\" height=\"100\" fill=\"white\" />",
@@ -1074,7 +1074,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithAnySizeVariantAndSVGDataURL)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
     };
 
     auto manager = Util::loadExtension(menusManifest, resources);
@@ -1107,7 +1107,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithAnySizeVariantAndSVGDataURL)
 
 TEST(WKWebExtensionAPIMenus, UpdateMenuItemWithIconVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertSafe(() => browser.menus.create({",
         @"  id: 'menu-item-without-icon-variants',",
         @"  title: 'Menu Item without Icon Variants',",
@@ -1125,13 +1125,13 @@ TEST(WKWebExtensionAPIMenus, UpdateMenuItemWithIconVariants)
         @"browser.test.sendMessage('Menus Updated')",
     ]);
 
-    auto *darkIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(whiteColor));
-    auto *lightIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(blackColor));
+    RetainPtr darkIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(whiteColor));
+    RetainPtr lightIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(blackColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"icon-dark-16.png": darkIcon16,
-        @"icon-light-16.png": lightIcon16,
+        @"background.js": backgroundScript.get(),
+        @"icon-dark-16.png": darkIcon16.get(),
+        @"icon-light-16.png": lightIcon16.get(),
     };
 
     auto manager = Util::loadExtension(menusManifest, resources);
@@ -1164,7 +1164,7 @@ TEST(WKWebExtensionAPIMenus, UpdateMenuItemWithIconVariants)
 
 TEST(WKWebExtensionAPIMenus, ClearMenuItemIconVariantsWithNull)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertSafe(() => browser.menus.create({",
         @"  id: 'menu-item-with-icon-variants',",
         @"  title: 'Menu Item with Icon Variants',",
@@ -1183,13 +1183,13 @@ TEST(WKWebExtensionAPIMenus, ClearMenuItemIconVariantsWithNull)
         @"browser.test.sendMessage('Menus Updated')",
     ]);
 
-    auto *darkIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(whiteColor));
-    auto *lightIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(blackColor));
+    RetainPtr darkIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(whiteColor));
+    RetainPtr lightIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(blackColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"icon-dark-16.png": darkIcon16,
-        @"icon-light-16.png": lightIcon16,
+        @"background.js": backgroundScript.get(),
+        @"icon-dark-16.png": darkIcon16.get(),
+        @"icon-light-16.png": lightIcon16.get(),
     };
 
     auto manager = Util::loadExtension(menusManifest, resources);
@@ -1211,7 +1211,7 @@ TEST(WKWebExtensionAPIMenus, ClearMenuItemIconVariantsWithNull)
 
 TEST(WKWebExtensionAPIMenus, ClearMenuItemIconVariantsWithEmpty)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertSafe(() => browser.menus.create({",
         @"  id: 'menu-item-with-icon-variants',",
         @"  title: 'Menu Item with Icon Variants',",
@@ -1230,13 +1230,13 @@ TEST(WKWebExtensionAPIMenus, ClearMenuItemIconVariantsWithEmpty)
         @"browser.test.sendMessage('Menus Updated')",
     ]);
 
-    auto *darkIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(whiteColor));
-    auto *lightIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(blackColor));
+    RetainPtr darkIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(whiteColor));
+    RetainPtr lightIcon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(blackColor));
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"icon-dark-16.png": darkIcon16,
-        @"icon-light-16.png": lightIcon16,
+        @"background.js": backgroundScript.get(),
+        @"icon-dark-16.png": darkIcon16.get(),
+        @"icon-light-16.png": lightIcon16.get(),
     };
 
     auto manager = Util::loadExtension(menusManifest, resources);
@@ -1258,7 +1258,7 @@ TEST(WKWebExtensionAPIMenus, ClearMenuItemIconVariantsWithEmpty)
 
 TEST(WKWebExtensionAPIMenus, MenuItemWithSymbolImageIconVariants)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertSafe(() => browser.menus.create({",
         @"  id: 'menu-item-with-symbol-variants',",
         @"  title: 'Menu Item with Symbol Variants',",
@@ -1271,7 +1271,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithSymbolImageIconVariants)
         @"browser.test.sendMessage('Menus Created')",
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -1296,7 +1296,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithSymbolImageIconVariants)
 
 TEST(WKWebExtensionAPIMenus, MenuItemWithSymbolImageIcon)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertSafe(() => browser.menus.create({",
         @"  id: 'menu-item-with-symbol-icon',",
         @"  title: 'Menu Item with Symbol Icon',",
@@ -1309,7 +1309,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithSymbolImageIcon)
         @"browser.test.sendMessage('Menus Created')",
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -1333,7 +1333,7 @@ TEST(WKWebExtensionAPIMenus, MenuItemWithSymbolImageIcon)
 
 TEST(WKWebExtensionAPIMenus, ToggleCheckboxMenuItems)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'checkbox-1',",
         @"  title: 'Checkbox 1',",
@@ -1367,7 +1367,7 @@ TEST(WKWebExtensionAPIMenus, ToggleCheckboxMenuItems)
         @"browser.test.sendMessage('Menus Created')",
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -1417,7 +1417,7 @@ TEST(WKWebExtensionAPIMenus, ToggleCheckboxMenuItems)
 
 TEST(WKWebExtensionAPIMenus, RadioItemGrouping)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'radio-1-group-1',",
         @"  title: 'Radio 1 Group 1',",
@@ -1479,7 +1479,7 @@ TEST(WKWebExtensionAPIMenus, RadioItemGrouping)
         @"browser.test.sendMessage('Menus Created')",
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -1543,7 +1543,7 @@ TEST(WKWebExtensionAPIMenus, RadioItemGrouping)
 
 TEST(WKWebExtensionAPIMenus, OnClick)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'click-item',",
         @"  title: 'Click Item',",
@@ -1560,7 +1560,7 @@ TEST(WKWebExtensionAPIMenus, OnClick)
         @"}, () => browser.test.sendMessage('Menu Item Created'))"
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menu Item Created"];
 
@@ -1574,7 +1574,7 @@ TEST(WKWebExtensionAPIMenus, OnClick)
 
 TEST(WKWebExtensionAPIMenus, OnClickAfterUpdate)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'click-item',",
         @"  title: 'Click Item',",
@@ -1596,7 +1596,7 @@ TEST(WKWebExtensionAPIMenus, OnClickAfterUpdate)
         @"browser.test.sendMessage('Menu Item Created')"
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menu Item Created"];
 
@@ -1610,20 +1610,20 @@ TEST(WKWebExtensionAPIMenus, OnClickAfterUpdate)
 
 TEST(WKWebExtensionAPIMenus, ContextMenusNamespace)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(typeof browser.contextMenus, 'object')",
 
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(menusManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 #if PLATFORM(MAC)
 
 TEST(WKWebExtensionAPIMenus, MacContextMenuItems)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'context-menu-1',",
         @"  title: 'Context Menu 1'",
@@ -1685,7 +1685,7 @@ TEST(WKWebExtensionAPIMenus, MacContextMenuItems)
         completionHandler(nil);
     };
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -1695,8 +1695,8 @@ TEST(WKWebExtensionAPIMenus, MacContextMenuItems)
 
     EXPECT_FALSE([manager.get().context hasActiveUserGestureInTab:manager.get().defaultTab]);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -1706,7 +1706,7 @@ TEST(WKWebExtensionAPIMenus, MacContextMenuItems)
 
     manager.get().defaultTab.webView = webView.get();
 
-    [webView synchronouslyLoadRequest:urlRequest];
+    [webView synchronouslyLoadRequest:urlRequest.get()];
     [webView waitForNextPresentationUpdate];
 
     [webView.get().window makeFirstResponder:webView.get()];
@@ -1723,7 +1723,7 @@ TEST(WKWebExtensionAPIMenus, MacContextMenuItems)
 
 TEST(WKWebExtensionAPIMenus, MacActiveTabContextMenuItems)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'context-menu',",
         @"  title: 'Context Menu Item'",
@@ -1771,7 +1771,7 @@ TEST(WKWebExtensionAPIMenus, MacActiveTabContextMenuItems)
         completionHandler(nil);
     };
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -1806,7 +1806,7 @@ TEST(WKWebExtensionAPIMenus, MacActiveTabContextMenuItems)
 
 TEST(WKWebExtensionAPIMenus, MacURLPatternContextMenuItems)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'url-pattern-menu-item',",
         @"  title: 'URL Pattern Item',",
@@ -1852,8 +1852,8 @@ TEST(WKWebExtensionAPIMenus, MacURLPatternContextMenuItems)
     delegate.get().getContextMenuFromProposedMenu = ^(NSMenu *menu, _WKContextMenuElementInfo *elementInfo, id<NSSecureCoding>, void (^completionHandler)(NSMenu *)) {
         gotContextMenu = true;
 
-        NSMenuItem *urlPatternMenuItem = nil;
-        NSMenuItem *nonMatchingMenuItem = nil;
+        RetainPtr<NSMenuItem> urlPatternMenuItem = nil;
+        RetainPtr<NSMenuItem> nonMatchingMenuItem = nil;
         for (NSMenuItem *menuItem in menu.itemArray) {
             if ([menuItem.title isEqualToString:@"URL Pattern Item"])
                 urlPatternMenuItem = menuItem;
@@ -1861,15 +1861,15 @@ TEST(WKWebExtensionAPIMenus, MacURLPatternContextMenuItems)
                 nonMatchingMenuItem = menuItem;
         }
 
-        EXPECT_NOT_NULL(urlPatternMenuItem);
-        EXPECT_NULL(nonMatchingMenuItem);
+        EXPECT_NOT_NULL(urlPatternMenuItem.get());
+        EXPECT_NULL(nonMatchingMenuItem.get());
 
-        performMenuItemAction(urlPatternMenuItem);
+        performMenuItemAction(urlPatternMenuItem.get());
 
         completionHandler(nil);
     };
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -1877,8 +1877,8 @@ TEST(WKWebExtensionAPIMenus, MacURLPatternContextMenuItems)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<a href='http://example.com/test' style='font-size: 100px'>Large Example Link</p>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -1888,7 +1888,7 @@ TEST(WKWebExtensionAPIMenus, MacURLPatternContextMenuItems)
 
     manager.get().defaultTab.webView = webView.get();
 
-    [webView synchronouslyLoadRequest:urlRequest];
+    [webView synchronouslyLoadRequest:urlRequest.get()];
     [webView waitForNextPresentationUpdate];
 
     [webView.get().window makeFirstResponder:webView.get()];
@@ -1903,7 +1903,7 @@ TEST(WKWebExtensionAPIMenus, MacURLPatternContextMenuItems)
 
 TEST(WKWebExtensionAPIMenus, MacSelectionContextMenuItems)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'selection-menu-item',",
         @"  title: 'Selected: %s',",
@@ -1953,7 +1953,7 @@ TEST(WKWebExtensionAPIMenus, MacSelectionContextMenuItems)
         completionHandler(nil);
     };
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -1961,8 +1961,8 @@ TEST(WKWebExtensionAPIMenus, MacSelectionContextMenuItems)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<p style='font-size: 100px'>Selection Example Text</p>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -1972,7 +1972,7 @@ TEST(WKWebExtensionAPIMenus, MacSelectionContextMenuItems)
 
     manager.get().defaultTab.webView = webView.get();
 
-    [webView synchronouslyLoadRequest:urlRequest];
+    [webView synchronouslyLoadRequest:urlRequest.get()];
     [webView waitForNextPresentationUpdate];
 
     [webView.get().window makeFirstResponder:webView.get()];
@@ -1987,7 +1987,7 @@ TEST(WKWebExtensionAPIMenus, MacSelectionContextMenuItems)
 
 TEST(WKWebExtensionAPIMenus, MacLinkContextMenuItems)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'link-menu-item',",
         @"  title: 'Link Item',",
@@ -2038,7 +2038,7 @@ TEST(WKWebExtensionAPIMenus, MacLinkContextMenuItems)
         completionHandler(nil);
     };
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -2046,8 +2046,8 @@ TEST(WKWebExtensionAPIMenus, MacLinkContextMenuItems)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<a href='http://example.com/test' style='font-size: 100px'>Large Example Link</p>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -2057,7 +2057,7 @@ TEST(WKWebExtensionAPIMenus, MacLinkContextMenuItems)
 
     manager.get().defaultTab.webView = webView.get();
 
-    [webView synchronouslyLoadRequest:urlRequest];
+    [webView synchronouslyLoadRequest:urlRequest.get()];
     [webView waitForNextPresentationUpdate];
 
     [webView.get().window makeFirstResponder:webView.get()];
@@ -2072,7 +2072,7 @@ TEST(WKWebExtensionAPIMenus, MacLinkContextMenuItems)
 
 TEST(WKWebExtensionAPIMenus, MacImageContextMenuItems)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'image-menu-item',",
         @"  title: 'Image Item',",
@@ -2122,7 +2122,7 @@ TEST(WKWebExtensionAPIMenus, MacImageContextMenuItems)
         completionHandler(nil);
     };
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -2131,8 +2131,8 @@ TEST(WKWebExtensionAPIMenus, MacImageContextMenuItems)
         { "/test.png"_s, [NSData dataWithContentsOfURL:[NSBundle.test_resourcesBundle URLForResource:@"400x400-green" withExtension:@"png"]] },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -2142,7 +2142,7 @@ TEST(WKWebExtensionAPIMenus, MacImageContextMenuItems)
 
     manager.get().defaultTab.webView = webView.get();
 
-    [webView synchronouslyLoadRequest:urlRequest];
+    [webView synchronouslyLoadRequest:urlRequest.get()];
     [webView waitForNextPresentationUpdate];
 
     [webView.get().window makeFirstResponder:webView.get()];
@@ -2157,7 +2157,7 @@ TEST(WKWebExtensionAPIMenus, MacImageContextMenuItems)
 
 TEST(WKWebExtensionAPIMenus, MacVideoContextMenuItems)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'video-menu-item',",
         @"  title: 'Video Item',",
@@ -2207,7 +2207,7 @@ TEST(WKWebExtensionAPIMenus, MacVideoContextMenuItems)
         completionHandler(nil);
     };
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -2216,8 +2216,8 @@ TEST(WKWebExtensionAPIMenus, MacVideoContextMenuItems)
         { "/test.mp4"_s, [NSData dataWithContentsOfURL:[NSBundle.test_resourcesBundle URLForResource:@"test" withExtension:@"mp4"]] },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -2227,7 +2227,7 @@ TEST(WKWebExtensionAPIMenus, MacVideoContextMenuItems)
 
     manager.get().defaultTab.webView = webView.get();
 
-    [webView synchronouslyLoadRequest:urlRequest];
+    [webView synchronouslyLoadRequest:urlRequest.get()];
     [webView waitForNextPresentationUpdate];
 
     [webView.get().window makeFirstResponder:webView.get()];
@@ -2242,7 +2242,7 @@ TEST(WKWebExtensionAPIMenus, MacVideoContextMenuItems)
 
 TEST(WKWebExtensionAPIMenus, MacAudioContextMenuItems)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'audio-menu-item',",
         @"  title: 'Audio Item',",
@@ -2292,7 +2292,7 @@ TEST(WKWebExtensionAPIMenus, MacAudioContextMenuItems)
         completionHandler(nil);
     };
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -2301,8 +2301,8 @@ TEST(WKWebExtensionAPIMenus, MacAudioContextMenuItems)
         { "/test.m4a"_s, [NSData dataWithContentsOfURL:[NSBundle.test_resourcesBundle URLForResource:@"silence-long" withExtension:@"m4a"]] },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -2312,7 +2312,7 @@ TEST(WKWebExtensionAPIMenus, MacAudioContextMenuItems)
 
     manager.get().defaultTab.webView = webView.get();
 
-    [webView synchronouslyLoadRequest:urlRequest];
+    [webView synchronouslyLoadRequest:urlRequest.get()];
     [webView waitForNextPresentationUpdate];
 
     [webView.get().window makeFirstResponder:webView.get()];
@@ -2327,7 +2327,7 @@ TEST(WKWebExtensionAPIMenus, MacAudioContextMenuItems)
 
 TEST(WKWebExtensionAPIMenus, MacEditableContextMenuItems)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'editable-menu-item',",
         @"  title: 'Editable Item',",
@@ -2373,7 +2373,7 @@ TEST(WKWebExtensionAPIMenus, MacEditableContextMenuItems)
         completionHandler(nil);
     };
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -2381,8 +2381,8 @@ TEST(WKWebExtensionAPIMenus, MacEditableContextMenuItems)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, "<textarea style='font-size: 50px; width: 400px; height: 400px; white-space: nowrap;'>Editable Text Area</textarea>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -2392,7 +2392,7 @@ TEST(WKWebExtensionAPIMenus, MacEditableContextMenuItems)
 
     manager.get().defaultTab.webView = webView.get();
 
-    [webView synchronouslyLoadRequest:urlRequest];
+    [webView synchronouslyLoadRequest:urlRequest.get()];
     [webView waitForNextPresentationUpdate];
 
     [webView.get().window makeFirstResponder:webView.get()];
@@ -2407,7 +2407,7 @@ TEST(WKWebExtensionAPIMenus, MacEditableContextMenuItems)
 
 TEST(WKWebExtensionAPIMenus, MacFrameContextMenuItems)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'frame-menu-item',",
         @"  title: 'Frame Item',",
@@ -2455,7 +2455,7 @@ TEST(WKWebExtensionAPIMenus, MacFrameContextMenuItems)
         completionHandler(nil);
     };
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Menus Created"];
 
@@ -2464,8 +2464,8 @@ TEST(WKWebExtensionAPIMenus, MacFrameContextMenuItems)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:server.requestWithLocalhost("/frame.html"_s).URL];
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
@@ -2476,7 +2476,7 @@ TEST(WKWebExtensionAPIMenus, MacFrameContextMenuItems)
 
     manager.get().defaultTab.webView = webView.get();
 
-    [webView synchronouslyLoadRequest:urlRequest];
+    [webView synchronouslyLoadRequest:urlRequest.get()];
     [webView waitForNextPresentationUpdate];
 
     [webView.get().window makeFirstResponder:webView.get()];
@@ -2491,7 +2491,7 @@ TEST(WKWebExtensionAPIMenus, MacFrameContextMenuItems)
 
 TEST(WKWebExtensionAPIMenus, ClickedMenuItemAndPermissionsRequest)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.menus.create({",
         @"  id: 'click-item',",
         @"  title: 'Click Item',",
@@ -2510,7 +2510,7 @@ TEST(WKWebExtensionAPIMenus, ClickedMenuItemAndPermissionsRequest)
         @"}, () => browser.test.sendMessage('Menu Item Created'))"
     ]);
 
-    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(menusManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().internalDelegate.promptForPermissions = ^(id<WKWebExtensionTab> tab, NSSet<NSString *> *requestedPermissions, void (^callback)(NSSet<NSString *> *, NSDate *)) {
         EXPECT_EQ(requestedPermissions.count, 1lu);

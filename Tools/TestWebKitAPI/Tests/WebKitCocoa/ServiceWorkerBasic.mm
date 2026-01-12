@@ -2622,8 +2622,8 @@ static bool isTestServerTrust(SecTrustRef trust)
         return false;
 
     auto chain = adoptCF(SecTrustCopyCertificateChain(trust));
-    auto certificate = checked_cf_cast<SecCertificateRef>(CFArrayGetValueAtIndex(chain.get(), 0));
-    if (![bridge_cast(adoptCF(SecCertificateCopySubjectSummary(certificate)).get()) isEqualToString:@"Me"])
+    RetainPtr certificate = checked_cf_cast<SecCertificateRef>(CFArrayGetValueAtIndex(chain.get(), 0));
+    if (![bridge_cast(adoptCF(SecCertificateCopySubjectSummary(certificate.get())).get()) isEqualToString:@"Me"])
         return false;
 
     return true;

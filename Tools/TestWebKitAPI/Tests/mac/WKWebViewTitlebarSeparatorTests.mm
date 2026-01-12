@@ -182,8 +182,8 @@ TEST(WKWebViewTitlebarSeparatorTests, ParentWhileScrolled)
     [[window contentView] addSubview:webView.get()];
     [window makeKeyAndOrderFront:nil];
 
-    auto separatorTrackingAdapter = (id<NSScrollViewSeparatorTrackingAdapter>)webView.get();
-    EXPECT_TRUE([separatorTrackingAdapter hasScrolledContentsUnderTitlebar]);
+    RetainPtr separatorTrackingAdapter = (id<NSScrollViewSeparatorTrackingAdapter>)webView.get();
+    EXPECT_TRUE([separatorTrackingAdapter.get() hasScrolledContentsUnderTitlebar]);
 }
 
 #endif // PLATFORM(MAC)

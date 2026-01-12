@@ -299,16 +299,16 @@ void ResourceHandle::platformSetDefersLoading(bool defers)
 
 void ResourceHandle::schedule(SchedulePair& pair)
 {
-    NSRunLoop *runLoop = pair.nsRunLoop();
+    RetainPtr runLoop = pair.nsRunLoop();
     if (!runLoop)
         return;
-    [d->m_connection.get() scheduleInRunLoop:runLoop forMode:(__bridge NSString *)pair.mode()];
+    [d->m_connection.get() scheduleInRunLoop:runLoop.get() forMode:(__bridge NSString *)pair.mode()];
 }
 
 void ResourceHandle::unschedule(SchedulePair& pair)
 {
-    if (NSRunLoop *runLoop = pair.nsRunLoop())
-        [d->m_connection.get() unscheduleFromRunLoop:runLoop forMode:(__bridge NSString *)pair.mode()];
+    if (RetainPtr runLoop = pair.nsRunLoop())
+        [d->m_connection.get() unscheduleFromRunLoop:runLoop.get() forMode:(__bridge NSString *)pair.mode()];
 }
 
 id ResourceHandle::makeDelegate(bool shouldUseCredentialStorage, RefPtr<SynchronousLoaderMessageQueue>&& queue)

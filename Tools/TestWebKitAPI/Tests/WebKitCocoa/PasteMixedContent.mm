@@ -56,13 +56,13 @@ void writeTypesAndDataToPasteboard(id type, ...)
         [types addObject:type];
         va_start(argumentList, type);
         NSUInteger index = 1;
-        id object = va_arg(argumentList, id);
+        RetainPtr object = va_arg(argumentList, id);
         while (object) {
             if (index % 2)
-                [data addObject:object];
+                [data addObject:object.get()];
             else {
-                ASSERT([object isKindOfClass:[NSString class]]);
-                [types addObject:object];
+                ASSERT([object.get() isKindOfClass:[NSString class]]);
+                [types addObject:object.get()];
             }
             ++index;
             object = va_arg(argumentList, id);

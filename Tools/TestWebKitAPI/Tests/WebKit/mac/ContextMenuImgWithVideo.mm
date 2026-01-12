@@ -60,7 +60,7 @@ TEST(WebKit, ContextMenuImgWithVideo)
     [webView synchronouslyLoadTestPageNamed:@"ContextMenuImgWithVideo"];
 
     NSWindow* window = [webView window];
-    NSEvent* event = [NSEvent mouseEventWithType:NSEventTypeRightMouseDown
+    RetainPtr event = [NSEvent mouseEventWithType:NSEventTypeRightMouseDown
         location:NSMakePoint(100, window.frame.size.height - 100)
         modifierFlags:0
         timestamp:GetCurrentEventTime()
@@ -70,12 +70,12 @@ TEST(WebKit, ContextMenuImgWithVideo)
         clickCount:0
         pressure:0.0];
 
-    NSView* subView = [webView hitTest:[event locationInWindow]];
+    NSView* subView = [webView hitTest:[event.get() locationInWindow]];
     if (!subView)
         return;
 
     contextMenuShown = false;
-    [subView mouseDown:event];
+    [subView mouseDown:event.get()];
     Util::run(&contextMenuShown);
 }
 

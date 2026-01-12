@@ -315,9 +315,9 @@ WebView *getWebView(WebFrame *webFrame)
 
 + (Ref<WebCore::LocalFrame>)_createFrameWithPage:(WebCore::Page&)page frameName:(const AtomString&)name frameView:(WebFrameView *)frameView ownerElement:(WebCore::HTMLFrameOwnerElement&)ownerElement
 {
-    WebView *webView = kit(&page);
+    RetainPtr webView = kit(&page);
 
-    RetainPtr<WebFrame> frame = adoptNS([[self alloc] _initWithWebFrameView:frameView webView:webView]);
+    RetainPtr<WebFrame> frame = adoptNS([[self alloc] _initWithWebFrameView:frameView webView:webView.get()]);
 
     auto effectiveSandboxFlags = ownerElement.sandboxFlags();
     if (RefPtr parentLocalFrame = ownerElement.document().frame())
@@ -347,9 +347,9 @@ WebView *getWebView(WebFrame *webFrame)
 
 + (void)_createMainFrameWithPage:(WebCore::Page*)page frameName:(const AtomString&)name frameView:(WebFrameView *)frameView
 {
-    WebView *webView = kit(page);
+    RetainPtr webView = kit(page);
 
-    RetainPtr<WebFrame> frame = adoptNS([[self alloc] _initWithWebFrameView:frameView webView:webView]);
+    RetainPtr<WebFrame> frame = adoptNS([[self alloc] _initWithWebFrameView:frameView webView:webView.get()]);
     auto* localMainFrame = dynamicDowncast<WebCore::LocalFrame>(page->mainFrame());
     if (!localMainFrame)
         return;
@@ -454,18 +454,18 @@ static NSURL *createUniqueWebDataURL();
 
 - (WebHTMLView *)_webHTMLDocumentView
 {
-    id documentView = [_private->webFrameView documentView];    
-    return [documentView isKindOfClass:[WebHTMLView class]] ? (WebHTMLView *)documentView : nil;
+    RetainPtr documentView = [_private->webFrameView documentView];
+    return [documentView.get() isKindOfClass:[WebHTMLView class]] ? (WebHTMLView *)documentView.autorelease() : nil;
 }
 
 - (void)_updateBackgroundAndUpdatesWhileOffscreen
 {
-    WebView *webView = getWebView(self);
-    BOOL drawsBackground = [webView drawsBackground];
+    RetainPtr webView = getWebView(self);
+    BOOL drawsBackground = [webView.get() drawsBackground];
 #if !PLATFORM(IOS_FAMILY)
-    NSColor *backgroundColor = [webView backgroundColor];
+    RetainPtr backgroundColor = [webView.get() backgroundColor];
 #else
-    CGColorRef backgroundColor = [webView backgroundColor];
+    CGColorRef backgroundColor = [webView.get() backgroundColor];
 #endif
 
     auto coreFrame = _private->coreFrame;
@@ -475,17 +475,17 @@ static NSURL *createUniqueWebDataURL();
             continue;
         // Don't call setDrawsBackground:YES here because it may be NO because of a load
         // in progress; WebFrameLoaderClient keeps it set to NO during the load process.
-        WebFrame *webFrame = kit(frame);
+        RetainPtr webFrame = kit(frame);
         if (!drawsBackground)
-            [[[webFrame frameView] _scrollView] setDrawsBackground:NO];
+            [[[webFrame.get() frameView] _scrollView] setDrawsBackground:NO];
 #if !PLATFORM(IOS_FAMILY)
-        [[[webFrame frameView] _scrollView] setBackgroundColor:backgroundColor];
+        [[[webFrame.get() frameView] _scrollView] setBackgroundColor:backgroundColor.get()];
 #endif
 
         if (auto* view = frame->view()) {
             view->setTransparent(!drawsBackground);
 #if !PLATFORM(IOS_FAMILY)
-            auto color = WebCore::colorFromCocoaColor([backgroundColor colorUsingColorSpace:NSColorSpace.deviceRGBColorSpace]);
+            auto color = WebCore::colorFromCocoaColor([backgroundColor.get() colorUsingColorSpace:NSColorSpace.deviceRGBColorSpace]);
 #else
             WebCore::Color color(WebCore::roundAndClampToSRGBALossy(backgroundColor));
 #endif
@@ -533,24 +533,24 @@ static NSURL *createUniqueWebDataURL();
 
 - (BOOL)_hasSelection
 {
-    id documentView = [_private->webFrameView documentView];    
+    RetainPtr<id> documentView = [_private->webFrameView documentView];
 
     // optimization for common case to avoid creating potentially large selection string
-    if ([documentView isKindOfClass:[WebHTMLView class]])
+    if ([documentView.get() isKindOfClass:[WebHTMLView class]])
         if (auto coreFrame = _private->coreFrame)
             return coreFrame->selection().isRange();
 
-    if ([documentView conformsToProtocol:@protocol(WebDocumentText)])
-        return [[documentView selectedString] length] > 0;
-    
+    if ([documentView.get() conformsToProtocol:@protocol(WebDocumentText)])
+        return [[documentView.get() selectedString] length] > 0;
+
     return NO;
 }
 
 - (void)_clearSelection
 {
-    id documentView = [_private->webFrameView documentView];    
-    if ([documentView conformsToProtocol:@protocol(WebDocumentText)])
-        [documentView deselectAll];
+    RetainPtr<id> documentView = [_private->webFrameView documentView];
+    if ([documentView.get() conformsToProtocol:@protocol(WebDocumentText)])
+        [documentView.get() deselectAll];
 }
 
 #if ASSERT_ENABLED
@@ -580,21 +580,21 @@ static NSURL *createUniqueWebDataURL();
         auto* frame = dynamicDowncast<WebCore::LocalFrame>(abstractFrame);
         if (!frame)
             continue;
-        WebFrame *webFrame = kit(frame);
-        if ([webFrame _hasSelection])
-            return webFrame;
+        RetainPtr webFrame = kit(frame);
+        if ([webFrame.get() _hasSelection])
+            return webFrame.autorelease();
     }
     return nil;
 }
 
 - (void)_clearSelectionInOtherFrames
 {
-    // We rely on WebDocumentSelection protocol implementors to call this method when they become first 
-    // responder. It would be nicer to just notice first responder changes here instead, but there's no 
+    // We rely on WebDocumentSelection protocol implementors to call this method when they become first
+    // responder. It would be nicer to just notice first responder changes here instead, but there's no
     // notification sent when the first responder changes in general (Radar 2573089).
-    WebFrame *frameWithSelection = [[getWebView(self) mainFrame] _findFrameWithSelection];
-    if (frameWithSelection != self)
-        [frameWithSelection _clearSelection];
+    RetainPtr frameWithSelection = [[getWebView(self) mainFrame] _findFrameWithSelection];
+    if (frameWithSelection.get() != self)
+        [frameWithSelection.get() _clearSelection];
 
     // While we're in the general area of selection and frames, check that there is only one now.
     ASSERT([[getWebView(self) mainFrame] _atMostOneFrameHasSelection]);
@@ -665,11 +665,11 @@ static NSURL *createUniqueWebDataURL();
 #if !PLATFORM(IOS_FAMILY)
     ASSERT([[NSGraphicsContext currentContext] isFlipped]);
 
-    CGContextRef ctx = [[NSGraphicsContext currentContext] CGContext];
+    RetainPtr ctx = [[NSGraphicsContext currentContext] CGContext];
 #else
-    CGContextRef ctx = WKGetCurrentGraphicsContext();
+    RetainPtr ctx = WKGetCurrentGraphicsContext();
 #endif
-    WebCore::GraphicsContextCG context(ctx);
+    WebCore::GraphicsContextCG context(ctx.get());
     auto* view = _private->coreFrame->view();
     
     OptionSet<WebCore::PaintBehavior> oldBehavior = view->paintBehavior();
@@ -682,7 +682,7 @@ static NSURL *createUniqueWebDataURL();
             paintBehavior.add(parentView->paintBehavior() & flagsToCopy);
         }
     } else
-        paintBehavior.add([self _paintBehaviorForDestinationContext:ctx]);
+        paintBehavior.add([self _paintBehaviorForDestinationContext:ctx.get()]);
         
     view->setPaintBehavior(paintBehavior);
 
@@ -911,11 +911,11 @@ static NSURL *createUniqueWebDataURL();
     if (!document)
         return nil;
 
-    NSEnumerator *nodeEnum = [nodes objectEnumerator];
+    RetainPtr nodeEnum = [nodes objectEnumerator];
     Vector<WebCore::Node*> nodesVector;
-    DOMNode *node;
-    while ((node = [nodeEnum nextObject]))
-        nodesVector.append(core(node));
+    RetainPtr<DOMNode> node;
+    while ((node = [nodeEnum.get() nextObject]))
+        nodesVector.append(core(node.get()));
 
     auto fragment = document->createDocumentFragment();
 
@@ -930,9 +930,9 @@ static NSURL *createUniqueWebDataURL();
 
 - (void)_replaceSelectionWithNode:(DOMNode *)node selectReplacement:(BOOL)selectReplacement smartReplace:(BOOL)smartReplace matchStyle:(BOOL)matchStyle
 {
-    DOMDocumentFragment *fragment = kit(_private->coreFrame->document()->createDocumentFragment().ptr());
-    [fragment appendChild:node];
-    [self _replaceSelectionWithFragment:fragment selectReplacement:selectReplacement smartReplace:smartReplace matchStyle:matchStyle];
+    RetainPtr fragment = kit(_private->coreFrame->document()->createDocumentFragment().ptr());
+    [fragment.get() appendChild:node];
+    [self _replaceSelectionWithFragment:fragment.get() selectReplacement:selectReplacement smartReplace:smartReplace matchStyle:matchStyle];
 }
 
 - (void)_insertParagraphSeparatorInQuotedContent
@@ -1732,8 +1732,8 @@ static WebFrameLoadType toWebFrameLoadType(WebCore::FrameLoadType frameLoadType)
     ASSERT(!(*outMetadatas));
     *outMetadatas = nil;
 
-    NSMutableArray *ranges = [NSMutableArray array];
-    NSMutableArray *metadatas = [NSMutableArray array];
+    RetainPtr ranges = [NSMutableArray array];
+    RetainPtr metadatas = [NSMutableArray array];
 
     auto* frame = core(self);
     auto* document = frame->document();
@@ -1747,35 +1747,35 @@ static WebFrameLoadType toWebFrameLoadType(WebCore::FrameLoadType frameLoadType)
     for (WebCore::Node* node = root; node; node = WebCore::NodeTraversal::next(*node)) {
         auto markers = document->markers().markersFor(*node, WebCore::DocumentMarkerType::DictationResult);
         for (auto& marker : markers) {
-            id metadata = std::get<RetainPtr<id>>(marker->data()).get();
+            RetainPtr metadata = std::get<RetainPtr<id>>(marker->data()).get();
 
             // All result markers should have metadata.
             ASSERT(metadata);
             if (!metadata)
                 continue;
 
-            DOMRange *domRange = kit(makeSimpleRange(*node, *marker));
+            RetainPtr domRange = kit(makeSimpleRange(*node, *marker));
 
             if (metadata != previousMetadata) {
-                [metadatas addObject:metadata];
-                [ranges addObject:domRange];
-                previousMetadata = metadata;
+                [metadatas.get() addObject:metadata.get()];
+                [ranges.get() addObject:domRange.get()];
+                previousMetadata = metadata.get();
                 previousDOMRange = domRange;
             } else {
                 // It is possible for a DocumentMarker to be split by editing. Adjacent markers with the
                 // the same metadata are for the same result. So combine their ranges.
-                ASSERT(previousDOMRange == [ranges lastObject]);
-                [ranges removeLastObject];
-                DOMNode *startContainer = [domRange startContainer];
-                int startOffset = [domRange startOffset];
-                [previousDOMRange setEnd:startContainer offset:startOffset];
-                [ranges addObject:previousDOMRange.get()];
+                ASSERT(previousDOMRange == [ranges.get() lastObject]);
+                [ranges.get() removeLastObject];
+                RetainPtr startContainer = [domRange.get() startContainer];
+                int startOffset = [domRange.get() startOffset];
+                [previousDOMRange setEnd:startContainer.get() offset:startOffset];
+                [ranges.get() addObject:previousDOMRange.get()];
             }
         }
     }
-    
-    *outRanges = ranges;
-    *outMetadatas = metadatas;
+
+    *outRanges = ranges.get();
+    *outMetadatas = metadatas.get();
     
     return;
 }
@@ -1889,20 +1889,20 @@ static WebFrameLoadType toWebFrameLoadType(WebCore::FrameLoadType frameLoadType)
 - (void)_replaceSelectionWithText:(NSString *)text selectReplacement:(BOOL)selectReplacement smartReplace:(BOOL)smartReplace matchStyle:(BOOL)matchStyle
 {
     auto range = _private->coreFrame->selection().selection().toNormalizedRange();
-    DOMDocumentFragment* fragment = range ? kit(createFragmentFromText(*range, text).ptr()) : nil;
-    [self _replaceSelectionWithFragment:fragment selectReplacement:selectReplacement smartReplace:smartReplace matchStyle:matchStyle];
+    RetainPtr fragment = range ? kit(createFragmentFromText(*range, text).ptr()) : nil;
+    [self _replaceSelectionWithFragment:fragment.get() selectReplacement:selectReplacement smartReplace:smartReplace matchStyle:matchStyle];
 }
 
 - (void)_replaceSelectionWithWebArchive:(WebArchive *)webArchive selectReplacement:(BOOL)selectReplacement smartReplace:(BOOL)smartReplace
 {
-    NSArray* subresources = [webArchive subresources];
-    for (WebResource* subresource in subresources) {
+    RetainPtr subresources = [webArchive subresources];
+    for (WebResource* subresource in subresources.get()) {
         if (![[self dataSource] subresourceForURL:[subresource URL]])
             [[self dataSource] addSubresource:subresource];
     }
 
-    DOMDocumentFragment* fragment = [[self dataSource] _documentFragmentWithArchive:webArchive];
-    [self _replaceSelectionWithFragment:fragment selectReplacement:selectReplacement smartReplace:smartReplace matchStyle:NO];
+    RetainPtr fragment = [[self dataSource] _documentFragmentWithArchive:webArchive];
+    [self _replaceSelectionWithFragment:fragment.get() selectReplacement:selectReplacement smartReplace:smartReplace matchStyle:NO];
 }
 
 #endif // PLATFORM(IOS_FAMILY)
@@ -1994,14 +1994,14 @@ static WebFrameLoadType toWebFrameLoadType(WebCore::FrameLoadType frameLoadType)
 - (void)_replaceSelectionWithText:(NSString *)text selectReplacement:(BOOL)selectReplacement smartReplace:(BOOL)smartReplace
 {
     auto range = _private->coreFrame->selection().selection().toNormalizedRange();
-    DOMDocumentFragment* fragment = range ? kit(createFragmentFromText(*range, text).ptr()) : nil;
-    [self _replaceSelectionWithFragment:fragment selectReplacement:selectReplacement smartReplace:smartReplace matchStyle:YES];
+    RetainPtr fragment = range ? kit(createFragmentFromText(*range, text).ptr()) : nil;
+    [self _replaceSelectionWithFragment:fragment.get() selectReplacement:selectReplacement smartReplace:smartReplace matchStyle:YES];
 }
 
 - (void)_replaceSelectionWithMarkupString:(NSString *)markupString baseURLString:(NSString *)baseURLString selectReplacement:(BOOL)selectReplacement smartReplace:(BOOL)smartReplace
 {
-    DOMDocumentFragment *fragment = [self _documentFragmentWithMarkupString:markupString baseURLString:baseURLString];
-    [self _replaceSelectionWithFragment:fragment selectReplacement:selectReplacement smartReplace:smartReplace matchStyle:NO];
+    RetainPtr fragment = [self _documentFragmentWithMarkupString:markupString baseURLString:baseURLString];
+    [self _replaceSelectionWithFragment:fragment.get() selectReplacement:selectReplacement smartReplace:smartReplace matchStyle:NO];
 }
 
 #if PLATFORM(MAC)
@@ -2042,12 +2042,12 @@ static WebFrameLoadType toWebFrameLoadType(WebCore::FrameLoadType frameLoadType)
     bool hasWhitespaceAtEnd = false;
     unsigned pasteLength = [pasteString length];
     if (pasteLength > 0) {
-        NSCharacterSet *whiteSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-        
-        if ([whiteSet characterIsMember:[pasteString characterAtIndex:0]]) {
+        RetainPtr whiteSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+
+        if ([whiteSet.get() characterIsMember:[pasteString characterAtIndex:0]]) {
             hasWhitespaceAtStart = YES;
         }
-        if ([whiteSet characterIsMember:[pasteString characterAtIndex:(pasteLength - 1)]]) {
+        if ([whiteSet.get() characterIsMember:[pasteString characterAtIndex:(pasteLength - 1)]]) {
             hasWhitespaceAtEnd = YES;
         }
     }
@@ -2063,27 +2063,27 @@ static WebFrameLoadType toWebFrameLoadType(WebCore::FrameLoadType frameLoadType)
 
 - (NSMutableDictionary *)_cacheabilityDictionary
 {
-    NSMutableDictionary *result = [NSMutableDictionary dictionary];
-    
+    RetainPtr result = [NSMutableDictionary dictionary];
+
     auto& frameLoader = _private->coreFrame->loader();
     auto* documentLoader = frameLoader.documentLoader();
     if (documentLoader && !documentLoader->mainDocumentError().isNull())
-        [result setObject:(NSError *)documentLoader->mainDocumentError() forKey:WebFrameMainDocumentError];
-        
+        [result.get() setObject:(NSError *)documentLoader->mainDocumentError() forKey:WebFrameMainDocumentError];
+
     if (frameLoader.subframeLoader().containsPlugins())
-        [result setObject:@YES forKey:WebFrameHasPlugins];
-    
+        [result.get() setObject:@YES forKey:WebFrameHasPlugins];
+
     if (auto* window = _private->coreFrame->document()->window()) {
         if (window->hasEventListeners(WebCore::eventNames().unloadEvent))
-            [result setObject:@YES forKey:WebFrameHasUnloadListener];
+            [result.get() setObject:@YES forKey:WebFrameHasUnloadListener];
     }
-    
+
     if (auto* document = _private->coreFrame->document()) {
         if (WebCore::DatabaseManager::singleton().hasOpenDatabases(*document))
-            [result setObject:@YES forKey:WebFrameUsesDatabases];
+            [result.get() setObject:@YES forKey:WebFrameUsesDatabases];
     }
-    
-    return result;
+
+    return result.autorelease();
 }
 
 - (BOOL)_allowsFollowingLink:(NSURL *)URL
@@ -2531,8 +2531,8 @@ static NSURL *createUniqueWebDataURL()
 
 - (void)_loadHTMLString:(NSString *)string baseURL:(NSURL *)baseURL unreachableURL:(NSURL *)unreachableURL
 {
-    NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
-    [self _loadData:data MIMEType:@"text/html" textEncodingName:@"UTF-8" baseURL:baseURL unreachableURL:unreachableURL];
+    RetainPtr data = [string dataUsingEncoding:NSUTF8StringEncoding];
+    [self _loadData:data.get() MIMEType:@"text/html" textEncodingName:@"UTF-8" baseURL:baseURL unreachableURL:unreachableURL];
 }
 
 - (void)loadHTMLString:(NSString *)string baseURL:(NSURL *)baseURL
@@ -2593,10 +2593,10 @@ static NSURL *createUniqueWebDataURL()
     auto coreFrame = _private->coreFrame;
     if (!coreFrame)
         return @[];
-    NSMutableArray *children = [NSMutableArray arrayWithCapacity:coreFrame->tree().childCount()];
+    RetainPtr children = [NSMutableArray arrayWithCapacity:coreFrame->tree().childCount()];
     for (auto* child = coreFrame->tree().firstChild(); child; child = child->tree().nextSibling())
-        [children addObject:kit(dynamicDowncast<WebCore::LocalFrame>(child))];
-    return children;
+        [children.get() addObject:kit(dynamicDowncast<WebCore::LocalFrame>(child))];
+    return children.autorelease();
 }
 
 - (WebScriptObject *)windowObject

@@ -178,14 +178,14 @@ RemoteCommandListenerCocoa::RemoteCommandListenerCocoa(RemoteCommandListenerClie
                 break;
             }
 
-            CFNumberRef positionRef = static_cast<CFNumberRef>(CFDictionaryGetValue(options, kMRMediaRemoteOptionPlaybackPosition));
+            RetainPtr positionRef = static_cast<CFNumberRef>(CFDictionaryGetValue(options, kMRMediaRemoteOptionPlaybackPosition));
             if (!positionRef) {
                 status = MRMediaRemoteCommandHandlerStatusCommandFailed;
                 break;
             }
 
             double position = 0;
-            CFNumberGetValue(positionRef, kCFNumberDoubleType, &position);
+            CFNumberGetValue(positionRef.get(), kCFNumberDoubleType, &position);
             argument.time = position;
             platformCommand = PlatformMediaSession::RemoteControlCommandType::SeekToPlaybackPositionCommand;
             break;
@@ -197,9 +197,9 @@ RemoteCommandListenerCocoa::RemoteCommandListenerCocoa(RemoteCommandListenerClie
                 break;
             }
 
-            if (auto positionRef = static_cast<CFNumberRef>(CFDictionaryGetValue(options, kMRMediaRemoteOptionSkipInterval))) {
+            if (RetainPtr positionRef = static_cast<CFNumberRef>(CFDictionaryGetValue(options, kMRMediaRemoteOptionSkipInterval))) {
                 double position = 0;
-                CFNumberGetValue(positionRef, kCFNumberDoubleType, &position);
+                CFNumberGetValue(positionRef.get(), kCFNumberDoubleType, &position);
                 argument.time = position;
             }
 

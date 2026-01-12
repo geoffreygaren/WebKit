@@ -370,13 +370,13 @@ TEST(RETAIN_PTR_TEST_NAME, LeakRef)
 
 TEST(RETAIN_PTR_TEST_NAME, BridgingAutorelease)
 {
-    NSString *nsString;
+    RetainPtr<NSString> nsString;
     uintptr_t nsStringPtr;
 
     AUTORELEASEPOOL_FOR_ARC_DEBUG {
         RetainPtr<CFStringRef> string = adoptCF(CFStringCreateWithCString(nullptr, "hello world", kCFStringEncodingASCII));
         nsString = string.bridgingAutorelease();
-        nsStringPtr = reinterpret_cast<uintptr_t>(nsString);
+        nsStringPtr = reinterpret_cast<uintptr_t>(nsString.get());
     }
 
     EXPECT_EQ(1, CFGetRetainCount((CFTypeRef)nsStringPtr));

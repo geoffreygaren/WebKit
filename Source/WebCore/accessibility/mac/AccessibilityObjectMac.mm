@@ -103,10 +103,10 @@ FloatRect AccessibilityObject::convertRectToPlatformSpace(const FloatRect& rect,
         CGRect cgRect = CGRectMake(point.x, point.y, size.width, size.height);
 
         NSRect nsRect = NSRectFromCGRect(cgRect);
-        NSView *view = frameView->documentView();
+        RetainPtr<id> view = frameView->documentView();
 
         ALLOW_DEPRECATED_DECLARATIONS_BEGIN
-        nsRect = [[view window] convertRectToScreen:[view convertRect:nsRect toView:nil]];
+        nsRect = [[view.get() window] convertRectToScreen:[view.get() convertRect:nsRect toView:nil]];
         ALLOW_DEPRECATED_DECLARATIONS_END
 
         return NSRectToCGRect(nsRect);
@@ -124,9 +124,9 @@ bool AccessibilityObject::accessibilityIgnoreAttachment() const
         return true;
 
 ALLOW_DEPRECATED_DECLARATIONS_BEGIN
-    id attachmentView = widget ? NSAccessibilityUnignoredDescendant(widget->platformWidget()) : nil;
+    RetainPtr<id> attachmentView = widget ? NSAccessibilityUnignoredDescendant(widget->platformWidget()) : nil;
     if (attachmentView)
-        return [attachmentView accessibilityIsIgnored];
+        return [attachmentView.get() accessibilityIsIgnored];
 ALLOW_DEPRECATED_DECLARATIONS_END
 
     // Attachments are ignored by default (unless we determine that we should expose them).

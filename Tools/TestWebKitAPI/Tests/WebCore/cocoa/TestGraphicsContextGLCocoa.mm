@@ -529,12 +529,12 @@ TEST_P(AnyContextAttributeTest, DisplayBuffersAreNotRecycledWhedInUse)
         context->prepareForDisplay();
         WebCore::IOSurface* surface = context->displayBufferSurface();
         ASSERT_NE(surface, nullptr);
-        IOSurfaceRef surfaceRef = surface->surface();
-        EXPECT_NE(surfaceRef, nullptr);
-        EXPECT_FALSE(seenSurfaceRefs.contains(surfaceRef));
-        seenSurfaceRefs.add(surfaceRef);
+        RetainPtr surfaceRef = surface->surface();
+        EXPECT_NE(surfaceRef.get(), nullptr);
+        EXPECT_FALSE(seenSurfaceRefs.contains(surfaceRef.get()));
+        seenSurfaceRefs.add(surfaceRef.get());
 
-        IOSurfaceIncrementUseCount(surfaceRef);
+        IOSurfaceIncrementUseCount(surfaceRef.get());
     }
     ASSERT_EQ(seenSurfaceRefs.size(), 50u);
 }

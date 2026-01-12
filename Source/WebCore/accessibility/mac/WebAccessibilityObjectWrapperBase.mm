@@ -433,10 +433,10 @@ NSArray *makeNSArray(const WebCore::AXCoreObject::AccessibilityChildrenVector& c
     if (extendedDescription.length()) {
         accessibilityCustomContent = adoptNS([[NSMutableArray alloc] init]);
         Class customContentClass = PAL::getAXCustomContentClassSingleton();
-        AXCustomContent *contentItem = [customContentClass customContentWithLabel:WEB_UI_STRING("description", "description detail").createNSString().get() value:extendedDescription.createNSString().get()];
+        RetainPtr contentItem = [customContentClass customContentWithLabel:WEB_UI_STRING("description", "description detail").createNSString().get() value:extendedDescription.createNSString().get()];
         // Set this to high, so that it's always spoken.
-        [contentItem setImportance:AXCustomContentImportanceHigh];
-        [accessibilityCustomContent addObject:contentItem];
+        [contentItem.get() setImportance:AXCustomContentImportanceHigh];
+        [accessibilityCustomContent addObject:contentItem.get()];
     }
 
     return accessibilityCustomContent.autorelease();
@@ -833,12 +833,12 @@ static NSDictionary *dictionaryRemovingNonSupportedTypes(NSDictionary *dictionar
     return mutableDictionary.autorelease();
 }
 
-- (void)accessibilityPostedNotification:(NSString *)notificationName userInfo:(NSDictionary *)userInfo
+- (void)accessibilityPostedNotification:(NSString *)notificationName userInfo:(NSDictionary *)userInfoArg
 {
     if (accessibilityShouldRepostNotifications) {
         ASSERT(notificationName);
-        userInfo = dictionaryRemovingNonSupportedTypes(userInfo);
-        NSDictionary *info = [NSDictionary dictionaryWithObjectsAndKeys:notificationName, @"notificationName", userInfo, @"userInfo", nil];
+        RetainPtr userInfo = dictionaryRemovingNonSupportedTypes(userInfoArg);
+        NSDictionary *info = [NSDictionary dictionaryWithObjectsAndKeys:notificationName, @"notificationName", userInfo.get(), @"userInfo", nil];
         [[NSNotificationCenter defaultCenter] postNotificationName:NSAccessibilityDRTNotificationNotification object:self userInfo:info];
     }
 }

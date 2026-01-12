@@ -192,7 +192,7 @@ LinkImageLayout::LinkImageLayout(URL& url, const String& titleString)
     RetainPtr nsURL = url.createNSURL();
     NSString *absoluteURLString = [nsURL absoluteString];
 
-    NSString *domain = absoluteURLString;
+    RetainPtr domain = absoluteURLString;
 #if HAVE(URL_FORMATTING)
     domain = [nsURL _lp_simplifiedDisplayString];
 #else
@@ -239,8 +239,8 @@ LinkImageLayout::LinkImageLayout(URL& url, const String& titleString)
         RetainPtr<CGPathRef> textPath = adoptCF(CGPathCreateWithRect(CGRectMake(0, 0, textSize.width, textSize.height), nullptr));
         RetainPtr<CTFrameRef> textFrame = adoptCF(CTFramesetterCreateFrame(textFramesetter.get(), fitRange, textPath.get(), (CFDictionaryRef)frameAttributes));
 
-        CFArrayRef ctLines = CTFrameGetLines(textFrame.get());
-        CFIndex lineCount = CFArrayGetCount(ctLines);
+        RetainPtr ctLines = CTFrameGetLines(textFrame.get());
+        CFIndex lineCount = CFArrayGetCount(ctLines.get());
         if (!lineCount)
             return;
 
@@ -249,10 +249,10 @@ LinkImageLayout::LinkImageLayout(URL& url, const String& titleString)
         CGFloat height = 0;
         CTFrameGetLineOrigins(textFrame.get(), CFRangeMake(0, 0), origins.mutableSpan().data());
         for (CFIndex lineIndex = 0; lineIndex < lineCount; ++lineIndex) {
-            CTLineRef line = (CTLineRef)CFArrayGetValueAtIndex(ctLines, lineIndex);
+            RetainPtr line = (CTLineRef)CFArrayGetValueAtIndex(ctLines.get(), lineIndex);
 
-            lineBounds = CTLineGetBoundsWithOptions(line, 0);
-            CGFloat trailingWhitespaceWidth = CTLineGetTrailingWhitespaceWidth(line);
+            lineBounds = CTLineGetBoundsWithOptions(line.get(), 0);
+            CGFloat trailingWhitespaceWidth = CTLineGetTrailingWhitespaceWidth(line.get());
             CGFloat lineWidthIgnoringTrailingWhitespace = lineBounds.size.width - trailingWhitespaceWidth;
             maximumUsedTextWidth = std::max(maximumUsedTextWidth, lineWidthIgnoringTrailingWhitespace);
 
@@ -275,7 +275,7 @@ LinkImageLayout::LinkImageLayout(URL& url, const String& titleString)
         currentY += linkImageDomainBaselineToTitleBaseline - (domainFont.ascender - domainFont.descender);
 
     if (domain)
-        buildLines(domain, domainColor, domainFont, 1, kCTLineBreakByTruncatingMiddle);
+        buildLines(domain.get(), domainColor, domainFont, 1, kCTLineBreakByTruncatingMiddle);
 
     currentY += linkImagePadding;
 

@@ -45,6 +45,7 @@
 #import <pal/spi/cocoa/QuartzCoreSPI.h>
 #import <wtf/Assertions.h>
 #import <wtf/RefPtr.h>
+#import <wtf/RetainPtr.h>
 
 @interface WebView ()
 - (BOOL)_flushCompositingChanges;
@@ -105,13 +106,13 @@ RefPtr<BitmapContext> createBitmapContextFromWebView(bool onscreen, bool increme
 
     bitmapContext->setScaleFactor(deviceScaleFactor);
 
-    CGContextRef context = bitmapContext->cgContext();
+    RetainPtr context = bitmapContext->cgContext();
     // The final scaling gets doubled on the screen capture surface when we use the hidpi backingScaleFactor value for CTM.
     // This is a workaround to push the scaling back.
     float scaleForCTM = onscreen ? 1 : [view _backingScaleFactor];
-    CGContextScaleCTM(context, scaleForCTM, scaleForCTM);
+    CGContextScaleCTM(context.get(), scaleForCTM, scaleForCTM);
 
-    NSGraphicsContext *nsContext = [NSGraphicsContext graphicsContextWithGraphicsPort:context flipped:NO];
+    NSGraphicsContext *nsContext = [NSGraphicsContext graphicsContextWithGraphicsPort:context.get() flipped:NO];
     ASSERT(nsContext);
     
     if (incrementalRepaint) {
@@ -146,16 +147,16 @@ RefPtr<BitmapContext> createBitmapContextFromWebView(bool onscreen, bool increme
             if (!image)
                 return nullptr;
 
-            CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image.get()), CGImageGetHeight(image.get())), image.get());
+            CGContextDrawImage(context.get(), CGRectMake(0, 0, CGImageGetWidth(image.get()), CGImageGetHeight(image.get())), image.get());
 
             if ([view isTrackingRepaints])
-                paintRepaintRectOverlay(view, context);
+                paintRepaintRectOverlay(view, context.get());
         } else {
             // Call displayRectIgnoringOpacity for HiDPI tests since it ensures we paint directly into the context
             // that we have appropriately sized and scaled.
             [view displayRectIgnoringOpacity:[view bounds] inContext:nsContext];
             if ([view isTrackingRepaints])
-                paintRepaintRectOverlay(view, context);
+                paintRepaintRectOverlay(view, context.get());
         }
     }
 
@@ -163,11 +164,11 @@ RefPtr<BitmapContext> createBitmapContextFromWebView(bool onscreen, bool increme
         NSView *documentView = [[mainFrame frameView] documentView];
         ASSERT([documentView conformsToProtocol:@protocol(WebDocumentSelection)]);
         NSRect rect = [documentView convertRect:[(id <WebDocumentSelection>)documentView selectionRect] fromView:nil];
-        CGContextSaveGState(context);
-        CGContextSetLineWidth(context, 1.0);
-        CGContextSetRGBStrokeColor(context, 1.0, 0.0, 0.0, 1.0);
-        CGContextStrokeRect(context, CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
-        CGContextRestoreGState(context);
+        CGContextSaveGState(context.get());
+        CGContextSetLineWidth(context.get(), 1.0);
+        CGContextSetRGBStrokeColor(context.get(), 1.0, 0.0, 0.0, 1.0);
+        CGContextStrokeRect(context.get(), CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height));
+        CGContextRestoreGState(context.get());
     }
     
     return bitmapContext;
@@ -183,9 +184,9 @@ RefPtr<BitmapContext> createPagedBitmapContext()
     int totalHeight = numberOfPages * (pageHeightInPixels + 1) - 1;
 
     auto bitmapContext = createBitmapContext(pageWidthInPixels, totalHeight, rowBytes);
-    CGContextRef context = bitmapContext->cgContext();
-    CGContextTranslateCTM(context, 0, totalHeight);
-    CGContextScaleCTM(context, 1, -1);
-    [mainFrame printToCGContext:context pageWidth:pageWidthInPixels pageHeight:pageHeightInPixels];
+    RetainPtr context = bitmapContext->cgContext();
+    CGContextTranslateCTM(context.get(), 0, totalHeight);
+    CGContextScaleCTM(context.get(), 1, -1);
+    [mainFrame printToCGContext:context.get() pageWidth:pageWidthInPixels pageHeight:pageHeightInPixels];
     return bitmapContext;
 }

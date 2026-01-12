@@ -457,11 +457,11 @@ static BOOL getFilePathsAndTypeIdentifiers(NSArray<NSURL *> *fileURLs, NSArray<N
 
         int suffix = 1;
         NSString *baseFileName = [provider.delegate filePromiseProvider:provider fileNameForType:provider.fileType];
-        NSString *uniqueFileName = baseFileName;
-        while ([[NSFileManager defaultManager] fileExistsAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:uniqueFileName]])
+        RetainPtr uniqueFileName = baseFileName;
+        while ([[NSFileManager defaultManager] fileExistsAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:uniqueFileName.get()]])
             uniqueFileName = [NSString stringWithFormat:@"%@ %d", baseFileName, ++suffix];
 
-        NSURL *destinationURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:uniqueFileName]];
+        NSURL *destinationURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:uniqueFileName.get()]];
         __block bool done = false;
         [provider.delegate filePromiseProvider:provider writePromiseToURL:destinationURL completionHandler:^(NSError *) {
             done = true;

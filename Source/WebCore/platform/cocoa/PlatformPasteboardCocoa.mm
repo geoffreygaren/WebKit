@@ -83,19 +83,21 @@ String PlatformPasteboard::urlStringSuitableForLoading(String& title)
 #endif
 
     if (types.contains(urlPasteboardType)) {
-        NSURL *URLFromPasteboard = [NSURL URLWithString:stringForType(urlPasteboardType).createNSString().get()];
+        RetainPtr urlString = stringForType(urlPasteboardType).createNSString();
+        RetainPtr URLFromPasteboard = [NSURL URLWithString:urlString.get()];
         // Cannot drop other schemes unless <rdar://problem/10562662> and <rdar://problem/11187315> are fixed.
-        if (URL { URLFromPasteboard }.protocolIsInHTTPFamily())
-            return [URLByCanonicalizingURL(URLFromPasteboard) absoluteString];
+        if (URL { URLFromPasteboard.get() }.protocolIsInHTTPFamily())
+            return [URLByCanonicalizingURL(URLFromPasteboard.get()) absoluteString];
     }
 
     if (types.contains(stringPasteboardType)) {
-        NSURL *URLFromPasteboard = [NSURL URLWithString:stringForType(stringPasteboardType).createNSString().get()];
+        RetainPtr stringValue = stringForType(stringPasteboardType).createNSString();
+        RetainPtr URLFromPasteboard = [NSURL URLWithString:stringValue.get()];
         // Pasteboard content is not trusted, because JavaScript code can modify it. We can sanitize it for URLs and other typed content, but not for strings.
         // The result of this function is used to initiate navigation, so we shouldn't allow arbitrary file URLs.
         // FIXME: Should we allow only http family schemes, or anything non-local?
-        if (URL { URLFromPasteboard }.protocolIsInHTTPFamily())
-            return [URLByCanonicalizingURL(URLFromPasteboard) absoluteString];
+        if (URL { URLFromPasteboard.get() }.protocolIsInHTTPFamily())
+            return [URLByCanonicalizingURL(URLFromPasteboard.get()) absoluteString];
     }
 
 #if PLATFORM(MAC)

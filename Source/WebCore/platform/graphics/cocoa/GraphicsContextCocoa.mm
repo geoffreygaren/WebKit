@@ -124,15 +124,15 @@ void GraphicsContextCG::drawFocusRing(const Path& path, float, const Color& colo
     focusRingStyle.accumulate = -1;
     auto style = adoptCF(CGStyleCreateFocusRingWithColor(&focusRingStyle, cachedCGColor(color).get()));
 
-    CGContextRef platformContext = this->platformContext();
+    RetainPtr platformContext = this->platformContext();
 
-    CGContextStateSaver stateSaver(platformContext);
+    CGContextStateSaver stateSaver(platformContext.get());
 
-    CGContextSetStyle(platformContext, style.get());
-    CGContextBeginPath(platformContext);
-    CGContextAddPath(platformContext, path.platformPath());
+    CGContextSetStyle(platformContext.get(), style.get());
+    CGContextBeginPath(platformContext.get());
+    CGContextAddPath(platformContext.get(), path.platformPath());
 
-    CGContextFillPath(platformContext);
+    CGContextFillPath(platformContext.get());
 }
 
 void GraphicsContextCG::drawFocusRing(const Vector<FloatRect>& rects, float outlineOffset, float outlineWidth, const Color& color)

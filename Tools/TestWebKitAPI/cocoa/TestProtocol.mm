@@ -124,7 +124,7 @@ static NSString *contentTypeForFileExtension(NSString *fileExtension)
         return;
     }
 
-    NSString *contentType;
+    RetainPtr<NSString> contentType;
     NSData *data;
     if ([requestURL.host isEqualToString:@"bundle-file"]) {
         NSString *fileName = requestURL.lastPathComponent;
@@ -137,7 +137,7 @@ static NSString *contentTypeForFileExtension(NSString *fileExtension)
     }
 
     NSMutableDictionary *responseHeaders = [NSMutableDictionary dictionaryWithCapacity:2];
-    responseHeaders[@"Content-Type"] = contentType;
+    responseHeaders[@"Content-Type"] = contentType.get();
     responseHeaders[@"Content-Length"] = [NSString stringWithFormat:@"%tu", data.length];
     if (auto& headers = additionalResponseHeaders())
         [responseHeaders addEntriesFromDictionary:headers.get()];

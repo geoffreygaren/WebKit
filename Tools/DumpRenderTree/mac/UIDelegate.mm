@@ -84,8 +84,8 @@ static NSString *stripTrailingSpaces(NSString *string)
 
 static NSString *addLeadingSpaceStripTrailingSpaces(NSString *string)
 {
-    auto result = stripTrailingSpaces(string);
-    return (result.length && ![result hasPrefix:@"\n"]) ? [@" " stringByAppendingString:result] : result;
+    RetainPtr result = stripTrailingSpaces(string);
+    return (result.get().length && ![result.get() hasPrefix:@"\n"]) ? [@" " stringByAppendingString:result.get()] : result.autorelease();
 }
 
 - (void)webView:(WebView *)sender addMessageToConsole:(NSDictionary *)dictionary withSource:(NSString *)source

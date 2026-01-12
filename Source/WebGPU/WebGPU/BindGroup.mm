@@ -456,8 +456,8 @@ Device::ExternalTextureData Device::createExternalTextureFromPixelBuffer(CVPixel
 
     CVMetalTextureCacheFlush(m_coreVideoTextureCache.get(), 0);
     const bool supportsExtendedFormats = [m_device supportsFamily:MTLGPUFamilyApple4];
-    IOSurfaceRef ioSurface = CVPixelBufferGetIOSurface(pixelBuffer);
-    if (!ioSurface || isIntel()) {
+    RetainPtr ioSurface = adoptCF(CVPixelBufferGetIOSurface(pixelBuffer));
+    if (!ioSurface.get() || isIntel()) {
         auto planeCount = std::max<size_t>(CVPixelBufferGetPlaneCount(pixelBuffer), 1);
         if (planeCount > 2) {
             ASSERT_NOT_REACHED("non-IOSurface CVPixelBuffer instances with more than two planes are not supported");
@@ -516,7 +516,7 @@ Device::ExternalTextureData Device::createExternalTextureFromPixelBuffer(CVPixel
 
     if (auto optionalWebProcessID = webProcessID()) {
         if (auto webProcessID = optionalWebProcessID->sendRight())
-            IOSurfaceSetOwnershipIdentity(ioSurface, webProcessID, kIOSurfaceMemoryLedgerTagGraphics, 0);
+            IOSurfaceSetOwnershipIdentity(ioSurface.get(), webProcessID, kIOSurfaceMemoryLedgerTagGraphics, 0);
     }
 
     id<MTLTexture> baseTexture = nil;

@@ -109,7 +109,7 @@ TEST(WebKit, WKThumbnailViewKeepSnapshotWhenRemovedFromSuperview)
 {
     WKRetainPtr<WKContextRef> context = adoptWK(WKContextCreateWithConfiguration(nullptr));
     PlatformWebView webView(context.get());
-    WKWebView *wkView = webView.platformView();
+    RetainPtr wkView = webView.platformView();
     setPageLoaderClient(webView.page());
     WKPageSetCustomBackingScaleFactor(webView.page(), 1);
 
@@ -118,13 +118,13 @@ TEST(WebKit, WKThumbnailViewKeepSnapshotWhenRemovedFromSuperview)
     Util::run(&didFinishLoad);
     didFinishLoad = false;
 
-    RetainPtr<_WKThumbnailView> thumbnailView = adoptNS([[_WKThumbnailView alloc] initWithFrame:NSMakeRect(0, 0, 100, 100) fromWKWebView:wkView]);
+    RetainPtr<_WKThumbnailView> thumbnailView = adoptNS([[_WKThumbnailView alloc] initWithFrame:NSMakeRect(0, 0, 100, 100) fromWKWebView:wkView.get()]);
 
     RetainPtr<SnapshotSizeObserver> observer = adoptNS([[SnapshotSizeObserver alloc] init]);
 
     [thumbnailView addObserver:observer.get() forKeyPath:@"snapshotSize" options:NSKeyValueObservingOptionNew context:snapshotSizeChangeKVOContext];
 
-    [wkView.window.contentView addSubview:thumbnailView.get()];
+    [wkView.get().window.contentView addSubview:thumbnailView.get()];
     Util::run(&didTakeSnapshot);
     didTakeSnapshot = false;
 
@@ -135,7 +135,7 @@ TEST(WebKit, WKThumbnailViewKeepSnapshotWhenRemovedFromSuperview)
     // The snapshot should be removed when unparented.
     EXPECT_TRUE([thumbnailView layer].contents == nil);
 
-    [wkView.window.contentView addSubview:thumbnailView.get()];
+    [wkView.get().window.contentView addSubview:thumbnailView.get()];
     Util::run(&didTakeSnapshot);
     didTakeSnapshot = false;
 
@@ -155,7 +155,7 @@ TEST(WebKit, WKThumbnailViewMaximumSnapshotSize)
 {
     WKRetainPtr<WKContextRef> context = adoptWK(WKContextCreateWithConfiguration(nullptr));
     PlatformWebView webView(context.get());
-    WKWebView *wkView = webView.platformView();
+    RetainPtr wkView = webView.platformView();
     setPageLoaderClient(webView.page());
     WKPageSetCustomBackingScaleFactor(webView.page(), 1);
 
@@ -164,13 +164,13 @@ TEST(WebKit, WKThumbnailViewMaximumSnapshotSize)
     Util::run(&didFinishLoad);
     didFinishLoad = false;
 
-    RetainPtr<_WKThumbnailView> thumbnailView = adoptNS([[_WKThumbnailView alloc] initWithFrame:NSMakeRect(0, 0, 100, 100) fromWKWebView:wkView]);
+    RetainPtr<_WKThumbnailView> thumbnailView = adoptNS([[_WKThumbnailView alloc] initWithFrame:NSMakeRect(0, 0, 100, 100) fromWKWebView:wkView.get()]);
 
     RetainPtr<SnapshotSizeObserver> observer = adoptNS([[SnapshotSizeObserver alloc] init]);
 
     [thumbnailView addObserver:observer.get() forKeyPath:@"snapshotSize" options:NSKeyValueObservingOptionNew context:snapshotSizeChangeKVOContext];
 
-    [wkView.window.contentView addSubview:thumbnailView.get()];
+    [wkView.get().window.contentView addSubview:thumbnailView.get()];
     Util::run(&didTakeSnapshot);
     didTakeSnapshot = false;
 

@@ -72,8 +72,8 @@ TEST(EnhancedSecurity, EnhancedSecurityEnablesTrue)
     auto webViewConfiguration = adoptNS([WKWebViewConfiguration new]);
     webViewConfiguration.get().defaultWebpagePreferences.securityRestrictionMode = WKSecurityRestrictionModeMaximizeCompatibility;
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:webViewConfiguration.get()]);
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url.get()]];
     [webView _test_waitForDidFinishNavigation];
     EXPECT_EQ(true, isEnhancedSecurityEnabled(webView.get()));
     NSString *processVariant = [webView _webContentProcessVariantForFrame:nil];
@@ -85,8 +85,8 @@ TEST(EnhancedSecurity, EnhancedSecurityEnableFalse)
     auto webViewConfiguration = adoptNS([WKWebViewConfiguration new]);
     webViewConfiguration.get().defaultWebpagePreferences.securityRestrictionMode = WKSecurityRestrictionModeNone;
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:webViewConfiguration.get()]);
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url.get()]];
     [webView _test_waitForDidFinishNavigation];
     EXPECT_EQ(false, isEnhancedSecurityEnabled(webView.get()));
     NSString *processVariant = [webView _webContentProcessVariantForFrame:nil];
@@ -98,8 +98,8 @@ TEST(EnhancedSecurity, EnhancedSecurityDisablesJIT)
     auto webViewConfiguration = adoptNS([WKWebViewConfiguration new]);
     webViewConfiguration.get().defaultWebpagePreferences.securityRestrictionMode = WKSecurityRestrictionModeMaximizeCompatibility;
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:webViewConfiguration.get()]);
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url.get()]];
     [webView _test_waitForDidFinishNavigation];
     EXPECT_EQ(false, isJITEnabled(webView.get()));
 }
@@ -117,14 +117,14 @@ TEST(EnhancedSecurity, EnhancedSecurityNavigationStaysEnabledAfterNavigation)
         finishedNavigation = true;
     };
 
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
     EXPECT_EQ(true, isEnhancedSecurityEnabled(webView.get()));
 
     finishedNavigation = false;
-    NSURL *url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple2" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url2]];
+    RetainPtr url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple2" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url2.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
 
     EXPECT_EQ(true, isEnhancedSecurityEnabled(webView.get()));
@@ -143,8 +143,8 @@ TEST(EnhancedSecurity, PSONToEnhancedSecurity)
         finishedNavigation = true;
     };
 
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
     EXPECT_EQ(false, isEnhancedSecurityEnabled(webView.get()));
     EXPECT_STREQ("standard", [webView _webContentProcessVariantForFrame:nil].UTF8String);
@@ -159,8 +159,8 @@ TEST(EnhancedSecurity, PSONToEnhancedSecurity)
         completionHandler(WKNavigationActionPolicyAllow, preferences);
     };
 
-    NSURL *url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple2" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url2]];
+    RetainPtr url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple2" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url2.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
 
     EXPECT_EQ(true, isEnhancedSecurityEnabled(webView.get()));
@@ -181,8 +181,8 @@ TEST(EnhancedSecurity, PSONToEnhancedSecuritySamePage)
         finishedNavigation = true;
     };
 
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
     EXPECT_EQ(false, isEnhancedSecurityEnabled(webView.get()));
     EXPECT_STREQ("standard", [webView _webContentProcessVariantForFrame:nil].UTF8String);
@@ -197,8 +197,8 @@ TEST(EnhancedSecurity, PSONToEnhancedSecuritySamePage)
         completionHandler(WKNavigationActionPolicyAllow, preferences);
     };
 
-    NSURL *url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url2]];
+    RetainPtr url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url2.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
 
     EXPECT_EQ(true, isEnhancedSecurityEnabled(webView.get()));
@@ -235,8 +235,8 @@ TEST(EnhancedSecurity, PSONToEnhancedSecuritySharedProcessPool)
         finishedNavigation = true;
     };
 
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
     EXPECT_EQ(false, isEnhancedSecurityEnabled(webView.get()));
     EXPECT_STREQ("standard", [webView _webContentProcessVariantForFrame:nil].UTF8String);
@@ -253,8 +253,8 @@ TEST(EnhancedSecurity, PSONToEnhancedSecuritySharedProcessPool)
         completionHandler(WKNavigationActionPolicyAllow, preferences);
     };
 
-    NSURL *url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView2 loadRequest:[NSURLRequest requestWithURL:url2]];
+    RetainPtr url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView2 loadRequest:[NSURLRequest requestWithURL:url2.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
 
     EXPECT_EQ(true, isEnhancedSecurityEnabled(webView2.get()));
@@ -281,8 +281,8 @@ TEST(EnhancedSecurity, PSONToEnhancedSecuritySharedProcessPoolReverse)
         finishedNavigation = true;
     };
 
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
     EXPECT_EQ(true, isEnhancedSecurityEnabled(webView.get()));
     EXPECT_STREQ("security", [webView _webContentProcessVariantForFrame:nil].UTF8String);
@@ -299,8 +299,8 @@ TEST(EnhancedSecurity, PSONToEnhancedSecuritySharedProcessPoolReverse)
         completionHandler(WKNavigationActionPolicyAllow, preferences);
     };
 
-    NSURL *url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView2 loadRequest:[NSURLRequest requestWithURL:url2]];
+    RetainPtr url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView2 loadRequest:[NSURLRequest requestWithURL:url2.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
 
     EXPECT_EQ(false, isEnhancedSecurityEnabled(webView2.get()));
@@ -318,14 +318,14 @@ TEST(EnhancedSecurity, ProcessVariantMatchesConfiguration)
     webViewConfiguration2.get().defaultWebpagePreferences.securityRestrictionMode = WKSecurityRestrictionModeNone;
     auto webView2 = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:webViewConfiguration2.get()]);
 
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
 
-    [webView1 loadRequest:[NSURLRequest requestWithURL:url]];
+    [webView1 loadRequest:[NSURLRequest requestWithURL:url.get()]];
     [webView1 _test_waitForDidFinishNavigation];
     EXPECT_EQ(true, isEnhancedSecurityEnabled(webView1.get()));
     EXPECT_STREQ("security", [webView1 _webContentProcessVariantForFrame:nil].UTF8String);
 
-    [webView2 loadRequest:[NSURLRequest requestWithURL:url]];
+    [webView2 loadRequest:[NSURLRequest requestWithURL:url.get()]];
     [webView2 _test_waitForDidFinishNavigation];
     EXPECT_EQ(false, isEnhancedSecurityEnabled(webView2.get()));
     EXPECT_STREQ("standard", [webView2 _webContentProcessVariantForFrame:nil].UTF8String);
@@ -350,8 +350,8 @@ TEST(EnhancedSecurity, ProcessCanLaunch)
     [webView setNavigationDelegate:delegate.get()];
 
     // Wait up to 10 seconds for navigation to complete
-    NSDate *timeout = [NSDate dateWithTimeIntervalSinceNow:10.0];
-    while (!navigationFinished && [timeout timeIntervalSinceNow] > 0)
+    RetainPtr timeout = [NSDate dateWithTimeIntervalSinceNow:10.0];
+    while (!navigationFinished && [timeout.get() timeIntervalSinceNow] > 0)
         [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 
     if (navigationFinished)
@@ -386,8 +386,8 @@ TEST(EnhancedSecurity, CaptivePortalProcessCanLaunch)
     [webView setNavigationDelegate:delegate.get()];
 
     // Wait up to 10 seconds for navigation to complete
-    NSDate *timeout = [NSDate dateWithTimeIntervalSinceNow:10.0];
-    while (!navigationFinished && [timeout timeIntervalSinceNow] > 0)
+    RetainPtr timeout = [NSDate dateWithTimeIntervalSinceNow:10.0];
+    while (!navigationFinished && [timeout.get() timeIntervalSinceNow] > 0)
         [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 
     if (navigationFinished)
@@ -858,8 +858,8 @@ TEST(EnhancedSecurity, LockdownModeTakesPrecedenceOverEnhancedSecurity)
     webViewConfiguration.get().defaultWebpagePreferences.lockdownModeEnabled = YES;
 
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 1, 1) configuration:webViewConfiguration.get()]);
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url.get()]];
     [webView _test_waitForDidFinishNavigation];
 
     EXPECT_EQ(false, isJITEnabled(webView.get()));
@@ -881,8 +881,8 @@ TEST(EnhancedSecurity, EnhancedSecurityRequestedWhenLockdownModeActive)
         finishedNavigation = true;
     };
 
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
 
     EXPECT_EQ(false, isJITEnabled(webView.get()));
@@ -894,8 +894,8 @@ TEST(EnhancedSecurity, EnhancedSecurityRequestedWhenLockdownModeActive)
         completionHandler(WKNavigationActionPolicyAllow, preferences);
     };
 
-    NSURL *url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple2" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url2]];
+    RetainPtr url2 = [NSBundle.test_resourcesBundle URLForResource:@"simple2" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url2.get()]];
     TestWebKitAPI::Util::run(&finishedNavigation);
 
     EXPECT_EQ(false, isJITEnabled(webView.get()));
@@ -914,8 +914,8 @@ TEST(EnhancedSecurity, SystemLockdownModeEnablesEnhancedSecurityWhenAPIOptsOut)
     webViewConfiguration.get().defaultWebpagePreferences.lockdownModeEnabled = NO;
 
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:webViewConfiguration.get()]);
-    NSURL *url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    RetainPtr url = [NSBundle.test_resourcesBundle URLForResource:@"simple" withExtension:@"html"];
+    [webView loadRequest:[NSURLRequest requestWithURL:url.get()]];
     [webView _test_waitForDidFinishNavigation];
 
     EXPECT_EQ(false, isJITEnabled(webView.get()));

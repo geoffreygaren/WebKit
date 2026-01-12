@@ -2217,17 +2217,17 @@ static void runClientSideRedirectTest(ShouldEnablePSON shouldEnablePSON)
     clientRedirectDestinationURL = nullptr;
 
     // Validate Back/Forward list.
-    auto* backForwardList = [webView backForwardList];
-    auto* currentItem = backForwardList.currentItem;
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [currentItem.URL absoluteString]);
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [currentItem.initialURL absoluteString]);
-    EXPECT_TRUE(!backForwardList.forwardItem);
+    RetainPtr backForwardList = [webView backForwardList];
+    RetainPtr currentItem = [backForwardList.get() currentItem];
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [currentItem.get().URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [currentItem.get().initialURL absoluteString]);
+    EXPECT_TRUE(![backForwardList.get() forwardItem]);
 
-    EXPECT_EQ(1U, backForwardList.backList.count);
+    EXPECT_EQ(1U, [backForwardList.get() backList].count);
 
-    auto* backItem = backForwardList.backItem;
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backItem.URL absoluteString]);
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backItem.initialURL absoluteString]);
+    RetainPtr backItem = [backForwardList.get() backItem];
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backItem.get().URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backItem.get().initialURL absoluteString]);
 
     // Navigate back.
     [webView goBack];
@@ -2243,16 +2243,16 @@ static void runClientSideRedirectTest(ShouldEnablePSON shouldEnablePSON)
         EXPECT_EQ(webkitPID, pidAfterBackNavigation);
 
     // Validate Back/Forward list.
-    currentItem = backForwardList.currentItem;
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [currentItem.URL absoluteString]);
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [currentItem.initialURL absoluteString]);
+    currentItem = [backForwardList.get() currentItem];
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [currentItem.get().URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [currentItem.get().initialURL absoluteString]);
 
-    EXPECT_TRUE(!backForwardList.backItem);
-    EXPECT_EQ(1U, backForwardList.forwardList.count);
+    EXPECT_TRUE(![backForwardList.get() backItem]);
+    EXPECT_EQ(1U, [backForwardList.get() forwardList].count);
 
-    auto* forwardItem = backForwardList.forwardItem;
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [forwardItem.URL absoluteString]);
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [forwardItem.initialURL absoluteString]);
+    RetainPtr forwardItem = [backForwardList.get() forwardItem];
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [forwardItem.get().URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [forwardItem.get().initialURL absoluteString]);
 
     // Navigate forward.
     [webView goForward];
@@ -2267,16 +2267,16 @@ static void runClientSideRedirectTest(ShouldEnablePSON shouldEnablePSON)
     EXPECT_EQ(applePID, pidAfterForwardNavigation);
 
     // Validate Back/Forward list.
-    currentItem = backForwardList.currentItem;
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [currentItem.URL absoluteString]);
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [currentItem.initialURL absoluteString]);
-    EXPECT_TRUE(!backForwardList.forwardItem);
+    currentItem = [backForwardList.get() currentItem];
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [currentItem.get().URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [currentItem.get().initialURL absoluteString]);
+    EXPECT_TRUE(![backForwardList.get() forwardItem]);
 
-    EXPECT_EQ(1U, backForwardList.backList.count);
+    EXPECT_EQ(1U, [backForwardList.get() backList].count);
 
-    backItem = backForwardList.backItem;
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backItem.URL absoluteString]);
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backItem.initialURL absoluteString]);
+    backItem = [backForwardList.get() backItem];
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backItem.get().URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backItem.get().initialURL absoluteString]);
 }
 
 TEST(ProcessSwap, CrossSiteClientSideRedirectWithoutPSON)
@@ -2437,11 +2437,11 @@ static void runNavigationWithLockedHistoryTest(ShouldEnablePSON shouldEnablePSON
     else
         EXPECT_EQ(webkitPID, applePID);
 
-    auto* backForwardList = [webView backForwardList];
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [backForwardList.currentItem.URL absoluteString]);
-    EXPECT_TRUE(!backForwardList.forwardItem);
-    EXPECT_EQ(1U, backForwardList.backList.count);
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backForwardList.backItem.URL absoluteString]);
+    RetainPtr backForwardList = [webView backForwardList];
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [[backForwardList.get() currentItem].URL absoluteString]);
+    EXPECT_TRUE(![backForwardList.get() forwardItem]);
+    EXPECT_EQ(1U, [backForwardList.get() backList].count);
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[backForwardList.get() backItem].URL absoluteString]);
 
     receivedMessage = false;
     [webView goBack];
@@ -2451,10 +2451,10 @@ static void runNavigationWithLockedHistoryTest(ShouldEnablePSON shouldEnablePSON
     done = false;
 
     EXPECT_EQ(webkitPID, [webView _webProcessIdentifier]);
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backForwardList.currentItem.URL absoluteString]);
-    EXPECT_TRUE(!backForwardList.backItem);
-    EXPECT_EQ(1U, backForwardList.forwardList.count);
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [backForwardList.forwardItem.URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[backForwardList.get() currentItem].URL absoluteString]);
+    EXPECT_TRUE(![backForwardList.get() backItem]);
+    EXPECT_EQ(1U, [backForwardList.get() forwardList].count);
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [[backForwardList.get() forwardItem].URL absoluteString]);
 
     [webView goForward];
     TestWebKitAPI::Util::run(&done);
@@ -2464,10 +2464,10 @@ static void runNavigationWithLockedHistoryTest(ShouldEnablePSON shouldEnablePSON
 
     EXPECT_EQ(applePID, [webView _webProcessIdentifier]);
 
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [backForwardList.currentItem.URL absoluteString]);
-    EXPECT_TRUE(!backForwardList.forwardItem);
-    EXPECT_EQ(1U, backForwardList.backList.count);
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backForwardList.backItem.URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [[backForwardList.get() currentItem].URL absoluteString]);
+    EXPECT_TRUE(![backForwardList.get() forwardItem]);
+    EXPECT_EQ(1U, [backForwardList.get() backList].count);
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[backForwardList.get() backItem].URL absoluteString]);
 }
 
 TEST(ProcessSwap, NavigationWithLockedHistoryWithPSON)
@@ -2531,12 +2531,12 @@ static void runQuickBackForwardNavigationTest(ShouldEnablePSON shouldEnablePSON)
     done = false;
 
     Vector<String> backForwardListURLs;
-    auto* backForwardList = [webView backForwardList];
-    for (unsigned i = 0; i < backForwardList.backList.count; ++i)
-        backForwardListURLs.append([backForwardList.backList[i].URL absoluteString]);
-    backForwardListURLs.append([backForwardList.currentItem.URL absoluteString]);
-    for (unsigned i = 0; i < backForwardList.forwardList.count; ++i)
-        backForwardListURLs.append([backForwardList.forwardList[i].URL absoluteString]);
+    RetainPtr backForwardList = [webView backForwardList];
+    for (unsigned i = 0; i < [backForwardList.get() backList].count; ++i)
+        backForwardListURLs.append([[backForwardList.get() backList][i].URL absoluteString]);
+    backForwardListURLs.append([[backForwardList.get() currentItem].URL absoluteString]);
+    for (unsigned i = 0; i < [backForwardList.get() forwardList].count; ++i)
+        backForwardListURLs.append([[backForwardList.get() forwardList][i].URL absoluteString]);
     RELEASE_ASSERT(backForwardListURLs.size() == 3u);
     EXPECT_WK_STREQ("pson://www.webkit.org/main1.html", backForwardListURLs[0]);
     EXPECT_WK_STREQ("pson://www.webkit.org/main2.html", backForwardListURLs[1]);
@@ -2859,12 +2859,12 @@ TEST(ProcessSwap, HistoryItemIDConfusion)
 
     EXPECT_EQ(webkitPID, [webView _webProcessIdentifier]);
 
-    auto* backForwardList = [webView backForwardList];
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backForwardList.currentItem.URL absoluteString]);
-    EXPECT_EQ(2U, backForwardList.forwardList.count);
-    EXPECT_EQ(0U, backForwardList.backList.count);
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [backForwardList.forwardList[0].URL absoluteString]);
-    EXPECT_WK_STREQ(@"pson://www.google.com/main.html", [backForwardList.forwardList[1].URL absoluteString]);
+    RetainPtr backForwardList = [webView backForwardList];
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[backForwardList.get() currentItem].URL absoluteString]);
+    EXPECT_EQ(2U, [backForwardList.get() forwardList].count);
+    EXPECT_EQ(0U, [backForwardList.get() backList].count);
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [[backForwardList.get() forwardList][0].URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.google.com/main.html", [[backForwardList.get() forwardList][1].URL absoluteString]);
 }
 
 TEST(ProcessSwap, GoToSecondItemInBackHistory)
@@ -4830,11 +4830,11 @@ TEST(ProcessSwap, ConcurrentHistoryNavigations)
     EXPECT_EQ(webkitPID, [webView _webProcessIdentifier]);
     EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[webView URL] absoluteString]);
 
-    auto* backForwardList = [webView backForwardList];
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backForwardList.currentItem.URL absoluteString]);
-    EXPECT_TRUE(!backForwardList.backItem);
-    EXPECT_EQ(1U, backForwardList.forwardList.count);
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [backForwardList.forwardItem.URL absoluteString]);
+    RetainPtr backForwardList = [webView backForwardList];
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[backForwardList.get() currentItem].URL absoluteString]);
+    EXPECT_TRUE(![backForwardList.get() backItem]);
+    EXPECT_EQ(1U, [backForwardList.get() forwardList].count);
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [[backForwardList.get() forwardItem].URL absoluteString]);
 
     // Concurrent requests to go forward, which process swaps.
     [webView goForward];
@@ -4846,10 +4846,10 @@ TEST(ProcessSwap, ConcurrentHistoryNavigations)
     EXPECT_EQ(applePID, [webView _webProcessIdentifier]);
     EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [[webView URL] absoluteString]);
 
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [backForwardList.currentItem.URL absoluteString]);
-    EXPECT_TRUE(!backForwardList.forwardItem);
-    EXPECT_EQ(1U, backForwardList.backList.count);
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backForwardList.backItem.URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [[backForwardList.get() currentItem].URL absoluteString]);
+    EXPECT_TRUE(![backForwardList.get() forwardItem]);
+    EXPECT_EQ(1U, [backForwardList.get() backList].count);
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[backForwardList.get() backItem].URL absoluteString]);
 
     [webView goBack];
     TestWebKitAPI::Util::run(&done);
@@ -4858,10 +4858,10 @@ TEST(ProcessSwap, ConcurrentHistoryNavigations)
     EXPECT_NE(applePID, [webView _webProcessIdentifier]);
     EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[webView URL] absoluteString]);
 
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backForwardList.currentItem.URL absoluteString]);
-    EXPECT_TRUE(!backForwardList.backItem);
-    EXPECT_EQ(1U, backForwardList.forwardList.count);
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [backForwardList.forwardItem.URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[backForwardList.get() currentItem].URL absoluteString]);
+    EXPECT_TRUE(![backForwardList.get() backItem]);
+    EXPECT_EQ(1U, [backForwardList.get() forwardList].count);
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [[backForwardList.get() forwardItem].URL absoluteString]);
 }
 
 TEST(ProcessSwap, CookieAccessAfterMultipleRedirects)
@@ -5819,29 +5819,29 @@ TEST(ProcessSwap, NavigateBackAndForth)
     TestWebKitAPI::Util::run(&done);
     done = false;
 
-    auto* backForwardList = [webView backForwardList];
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [backForwardList.currentItem.URL absoluteString]);
-    EXPECT_TRUE(!backForwardList.forwardItem);
-    EXPECT_EQ(1U, backForwardList.backList.count);
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backForwardList.backItem.URL absoluteString]);
+    RetainPtr backForwardList = [webView backForwardList];
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [[backForwardList.get() currentItem].URL absoluteString]);
+    EXPECT_TRUE(![backForwardList.get() forwardItem]);
+    EXPECT_EQ(1U, [backForwardList.get() backList].count);
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[backForwardList.get() backItem].URL absoluteString]);
 
     [webView goBack];
     TestWebKitAPI::Util::run(&done);
     done = false;
 
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backForwardList.currentItem.URL absoluteString]);
-    EXPECT_TRUE(!backForwardList.backItem);
-    EXPECT_EQ(1U, backForwardList.forwardList.count);
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [backForwardList.forwardItem.URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[backForwardList.get() currentItem].URL absoluteString]);
+    EXPECT_TRUE(![backForwardList.get() backItem]);
+    EXPECT_EQ(1U, [backForwardList.get() forwardList].count);
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [[backForwardList.get() forwardItem].URL absoluteString]);
 
     [webView goForward];
     TestWebKitAPI::Util::run(&done);
     done = false;
 
-    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [backForwardList.currentItem.URL absoluteString]);
-    EXPECT_TRUE(!backForwardList.forwardItem);
-    EXPECT_EQ(1U, backForwardList.backList.count);
-    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [backForwardList.backItem.URL absoluteString]);
+    EXPECT_WK_STREQ(@"pson://www.apple.com/main.html", [[backForwardList.get() currentItem].URL absoluteString]);
+    EXPECT_TRUE(![backForwardList.get() forwardItem]);
+    EXPECT_EQ(1U, [backForwardList.get() backList].count);
+    EXPECT_WK_STREQ(@"pson://www.webkit.org/main.html", [[backForwardList.get() backItem].URL absoluteString]);
 }
 
 TEST(ProcessSwap, SwapOnLoadHTMLString)
@@ -7421,14 +7421,14 @@ TEST(ProcessSwap, QuickLookRequestsPasswordAfterSwap)
     auto navigationDelegate = adoptNS([[PSONNavigationDelegate alloc] init]);
     [webView setNavigationDelegate:navigationDelegate.get()];
 
-    auto* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"pson://www.webkit.org/main.html"]];
-    [webView loadRequest:request];
+    RetainPtr request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"pson://www.webkit.org/main.html"]];
+    [webView loadRequest:request.get()];
 
     TestWebKitAPI::Util::run(&done);
     done = false;
 
     request = [NSURLRequest requestWithURL:[NSBundle.test_resourcesBundle URLForResource:@"password-protected" withExtension:@"pages"]];
-    [webView loadRequest:request];
+    [webView loadRequest:request.get()];
 
     TestWebKitAPI::Util::run(&didStartQuickLookLoad);
     didStartQuickLookLoad = false;
@@ -7479,8 +7479,8 @@ TEST(ProcessSwap, PassMinimumDeviceWidthOnNewWebView)
     [preferences _setShouldIgnoreMetaViewport:YES];
     [webView _setMinimumEffectiveDeviceWidth:1024];
 
-    auto* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"pson://www.webkit.org/main.html"]];
-    [webView loadRequest:request];
+    RetainPtr request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"pson://www.webkit.org/main.html"]];
+    [webView loadRequest:request.get()];
 
     TestWebKitAPI::Util::run(&done);
     done = false;

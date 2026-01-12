@@ -85,8 +85,8 @@ NSObject *getJSWrapper(JSObject* impl)
     ASSERT(isMainThread());
     Locker locker { wrapperCacheLock };
 
-    NSObject* wrapper = wrapperCache().get(impl);
-    return wrapper ? retainPtr(wrapper).autorelease() : nil;
+    RetainPtr wrapper = wrapperCache().get(impl);
+    return wrapper ? wrapper.autorelease() : nil;
 }
 
 void addJSWrapper(NSObject *wrapper, JSObject* impl)
@@ -177,10 +177,10 @@ void disconnectWindowWrapper(WebScriptObject *windowWrapper)
     auto& wrapped = *toJS(jsObject);
 
     if (WebCore::createDOMWrapperFunction) {
-        if (auto wrapper = WebCore::createDOMWrapperFunction(wrapped)) {
-            if (![wrapper _hasImp]) // new wrapper, not from cache
-                [wrapper _setImp:&wrapped originRootObject:originRootObject rootObject:rootObject];
-            return wrapper;
+        if (RetainPtr wrapper = WebCore::createDOMWrapperFunction(wrapped)) {
+            if (![wrapper.get() _hasImp]) // new wrapper, not from cache
+                [wrapper.get() _setImp:&wrapped originRootObject:originRootObject rootObject:rootObject];
+            return wrapper.autorelease();
         }
     }
 

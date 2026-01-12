@@ -230,13 +230,16 @@ CVPixelBufferRef LibWebRTCVPXInternalVideoDecoder::createPixelBuffer(size_t widt
         return nullptr;
     }
 
-    CVPixelBufferRef pixelBuffer = nullptr;
+    RetainPtr<CVPixelBufferRef> pixelBuffer;
     CVReturn status = kCVReturnError;
 
     {
         Locker locker(m_pixelBufferPoolLock);
-        if (auto bufferPool = pixelBufferPool(width, height, pixelBufferType))
-            status = CVPixelBufferPoolCreatePixelBuffer(nullptr, bufferPool, &pixelBuffer);
+        if (RetainPtr bufferPool = pixelBufferPool(width, height, pixelBufferType)) {
+            CVPixelBufferRef rawPixelBuffer = nullptr;
+            status = CVPixelBufferPoolCreatePixelBuffer(nullptr, bufferPool.get(), &rawPixelBuffer);
+            pixelBuffer = adoptCF(rawPixelBuffer);
+        }
     }
 
     if (status || !pixelBuffer) {
@@ -245,11 +248,11 @@ CVPixelBufferRef LibWebRTCVPXInternalVideoDecoder::createPixelBuffer(size_t widt
     }
 
     if (m_resourceOwner) {
-        if (auto surface = CVPixelBufferGetIOSurface(pixelBuffer))
-            IOSurface::setOwnershipIdentity(surface, m_resourceOwner);
+        if (RetainPtr surface = adoptCF(CVPixelBufferGetIOSurface(pixelBuffer.get())))
+            IOSurface::setOwnershipIdentity(surface.get(), m_resourceOwner);
     }
 
-    return pixelBuffer;
+    return pixelBuffer.autorelease();
 }
 
 int32_t LibWebRTCVPXInternalVideoDecoder::Decoded(webrtc::VideoFrame& frame)
@@ -264,10 +267,10 @@ int32_t LibWebRTCVPXInternalVideoDecoder::Decoded(webrtc::VideoFrame& frame)
 
     auto videoFrame = VideoFrameLibWebRTC::create({ }, false, VideoFrame::Rotation::None, colorSpaceFromLibWebRTCVideoFrame(frame), toRef(frame.video_frame_buffer()), [protectedThis = Ref { *this }, colorSpace, isFullRange](auto& buffer) {
         return adoptCF(webrtc::createPixelBufferFromFrameBuffer(buffer, [protectedThis, colorSpace, isFullRange](size_t width, size_t height, webrtc::BufferType bufferType) -> CVPixelBufferRef {
-            auto pixelBuffer = protectedThis->createPixelBuffer(width, height, bufferType, isFullRange);
+            RetainPtr pixelBuffer = adoptCF(protectedThis->createPixelBuffer(width, height, bufferType, isFullRange));
             if (colorSpace)
-                attachColorSpaceToPixelBuffer(*colorSpace, pixelBuffer);
-            return pixelBuffer;
+                attachColorSpaceToPixelBuffer(*colorSpace, pixelBuffer.get());
+            return pixelBuffer.autorelease();
         }));
     });
 

@@ -61,21 +61,21 @@ static void contextMenuCopyLink(WebView* webView, int itemIndex)
     DOMHTMLAnchorElement *anchor = (DOMHTMLAnchorElement *)[[documentElement querySelectorAll:@"a"] item:itemIndex];
 
     NSWindow *window = [webView window];
-    NSEvent *event = [NSEvent mouseEventWithType:NSEventTypeRightMouseDown
+    RetainPtr event = [NSEvent mouseEventWithType:NSEventTypeRightMouseDown
                                         location:NSMakePoint(anchor.offsetLeft + anchor.offsetWidth / 2, window.frame.size.height - (anchor.offsetTop + anchor.offsetHeight / 2))
                                    modifierFlags:0
                                        timestamp:GetCurrentEventTime()
                                     windowNumber:[window windowNumber]
-                                         context:[NSGraphicsContext currentContext] 
+                                         context:[NSGraphicsContext currentContext]
                                      eventNumber:0
                                       clickCount:0
                                         pressure:0.0];
 
-    NSView *subView = [webView hitTest:[event locationInWindow]];
+    NSView *subView = [webView hitTest:[event.get() locationInWindow]];
     if (!subView)
         return;
 
-    NSMenu* menu = [subView menuForEvent:event];
+    NSMenu* menu = [subView menuForEvent:event.get()];
     for (int i = 0; i < [menu numberOfItems]; ++i) {
         NSMenuItem* menuItem = [menu itemAtIndex:i];
         if ([menuItem tag] != WebMenuItemTagCopyLinkToClipboard)

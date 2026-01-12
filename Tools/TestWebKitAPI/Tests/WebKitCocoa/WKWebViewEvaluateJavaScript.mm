@@ -1308,9 +1308,9 @@ TEST(EvaluateJavaScript, Serialization)
     EXPECT_NULL(error);
 
     size_t depth = 0;
-    NSDictionary *nextDictionary = (NSDictionary *)result;
+    RetainPtr nextDictionary = (NSDictionary *)result;
     while (nextDictionary) {
-        nextDictionary = (NSDictionary *)nextDictionary[@"baz"];
+        nextDictionary = (NSDictionary *)nextDictionary.get()[@"baz"];
         ++depth;
     }
     EXPECT_EQ(depth, 40000u);

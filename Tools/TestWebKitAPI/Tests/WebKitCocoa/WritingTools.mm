@@ -4023,14 +4023,14 @@ TEST(WritingTools, IntelligenceTextEffectCoordinatorDelegate_RectsForProofreadin
 
     __block RetainPtr<NSArray<NSValue *>> rectValues = nil;
 
-    id<WKIntelligenceTextEffectCoordinatorDelegate> coordinatorDelegate = (id<WKIntelligenceTextEffectCoordinatorDelegate>)webView.get();
+    RetainPtr<id<WKIntelligenceTextEffectCoordinatorDelegate>> coordinatorDelegate = (id<WKIntelligenceTextEffectCoordinatorDelegate>)webView.get();
 
     // FIXME: Figure out how to use `WebKitSwiftSoftLink` within TestWebKitAPI so that an actual instance can be created.
     id<WKIntelligenceTextEffectCoordinating> coordinator = nil;
 
     NSRange subrange = NSMakeRange(18, 43); // "I didn't quite hear him.\n\nWho's over there?"
 
-    [coordinatorDelegate intelligenceTextEffectCoordinator:coordinator rectsForProofreadingSuggestionsInRange:subrange completion:^(NSArray<NSValue *> *values) {
+    [coordinatorDelegate.get() intelligenceTextEffectCoordinator:coordinator rectsForProofreadingSuggestionsInRange:subrange completion:^(NSArray<NSValue *> *values) {
         rectValues = values;
         finished = true;
     }];
@@ -4085,7 +4085,7 @@ TEST(WritingTools, IntelligenceTextEffectCoordinatorDelegate_UpdateTextVisibilit
     TestWebKitAPI::Util::run(&finished);
     finished = false;
 
-    id<WKIntelligenceTextEffectCoordinatorDelegate> coordinatorDelegate = (id<WKIntelligenceTextEffectCoordinatorDelegate>)webView.get();
+    RetainPtr<id<WKIntelligenceTextEffectCoordinatorDelegate>> coordinatorDelegate = (id<WKIntelligenceTextEffectCoordinatorDelegate>)webView.get();
     id<WKIntelligenceTextEffectCoordinating> coordinator = nil;
 
     __auto_type moveSelectionToFirstNode = ^{
@@ -4120,7 +4120,7 @@ TEST(WritingTools, IntelligenceTextEffectCoordinatorDelegate_UpdateTextVisibilit
 
     RetainPtr identifier = [NSUUID UUID];
 
-    [coordinatorDelegate intelligenceTextEffectCoordinator:coordinator updateTextVisibilityForRange:subrange visible:NO identifier:identifier.get() completion:^{
+    [coordinatorDelegate.get() intelligenceTextEffectCoordinator:coordinator updateTextVisibilityForRange:subrange visible:NO identifier:identifier.get() completion:^{
         finished = true;
     }];
 
@@ -4133,7 +4133,7 @@ TEST(WritingTools, IntelligenceTextEffectCoordinatorDelegate_UpdateTextVisibilit
     moveSelectionToSecondNode();
     EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"internals.hasTransparentContentMarker(0, 19);"] boolValue]);
 
-    [coordinatorDelegate intelligenceTextEffectCoordinator:coordinator updateTextVisibilityForRange:subrange visible:YES identifier:identifier.get() completion:^{
+    [coordinatorDelegate.get() intelligenceTextEffectCoordinator:coordinator updateTextVisibilityForRange:subrange visible:YES identifier:identifier.get() completion:^{
         finished = true;
     }];
 
@@ -4173,13 +4173,13 @@ TEST(WritingTools, IntelligenceTextEffectCoordinatorDelegate_TextPreviewsForRang
 
     NSRange subrange = NSMakeRange(17, 45); // "I didn't quite here him.\n\nWho's over they're."
 
-    id<WKIntelligenceTextEffectCoordinatorDelegate> coordinatorDelegate = (id<WKIntelligenceTextEffectCoordinatorDelegate>)webView.get();
+    RetainPtr<id<WKIntelligenceTextEffectCoordinatorDelegate>> coordinatorDelegate = (id<WKIntelligenceTextEffectCoordinatorDelegate>)webView.get();
     id<WKIntelligenceTextEffectCoordinating> coordinator = nil;
 
 #if PLATFORM(MAC)
     __block RetainPtr<NSArray<_WKTextPreview *>> previews;
 
-    [coordinatorDelegate intelligenceTextEffectCoordinator:coordinator textPreviewsForRange:subrange completion:^(NSArray<_WKTextPreview *> *result) {
+    [coordinatorDelegate.get() intelligenceTextEffectCoordinator:coordinator textPreviewsForRange:subrange completion:^(NSArray<_WKTextPreview *> *result) {
         previews = result;
         finished = true;
     }];
@@ -4206,7 +4206,7 @@ TEST(WritingTools, IntelligenceTextEffectCoordinatorDelegate_TextPreviewsForRang
 #else
     __block RetainPtr<UITargetedPreview> preview;
 
-    [coordinatorDelegate intelligenceTextEffectCoordinator:coordinator textPreviewsForRange:subrange completion:^(UITargetedPreview *result) {
+    [coordinatorDelegate.get() intelligenceTextEffectCoordinator:coordinator textPreviewsForRange:subrange completion:^(UITargetedPreview *result) {
         preview = result;
         finished = true;
     }];

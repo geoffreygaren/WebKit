@@ -50,14 +50,14 @@ static auto *allDataTypesSet = [NSSet setWithArray:@[ WKWebExtensionDataTypeLoca
 
 TEST(WKWebExtensionDataRecord, GetDataRecords)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'] }",
         @"await browser?.storage?.local?.set(data)",
         @"await browser?.storage?.session?.set(data)",
         @"await browser?.storage?.sync?.set(data)",
     ]);
 
-    auto extension = adoptNS([[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestManifest resources:@{ @"background.js": backgroundScript  }]);
+    auto extension = adoptNS([[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestManifest resources:@{ @"background.js": backgroundScript.get()  }]);
     auto *testController = [[WKWebExtensionController alloc] initWithConfiguration:WKWebExtensionControllerConfiguration._temporaryConfiguration];
 
     auto *context = [[WKWebExtensionContext alloc] initForExtension:extension.get()];
@@ -101,12 +101,12 @@ TEST(WKWebExtensionDataRecord, DISABLED_GetDataRecordsForMultipleContexts)
 TEST(WKWebExtensionDataRecord, GetDataRecordsForMultipleContexts)
 #endif
 {
-    auto *backgroundScriptOne = Util::constructScript(@[
+    RetainPtr backgroundScriptOne = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'] }",
         @"await browser?.storage?.local?.set(data)",
     ]);
 
-    auto *backgroundScriptTwo = Util::constructScript(@[
+    RetainPtr backgroundScriptTwo = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'] }",
         @"await browser?.storage?.session?.set(data)",
         @"await browser?.storage?.sync?.set(data)",
@@ -114,12 +114,12 @@ TEST(WKWebExtensionDataRecord, GetDataRecordsForMultipleContexts)
 
     auto *testController = [[WKWebExtensionController alloc] initWithConfiguration:WKWebExtensionControllerConfiguration._temporaryConfiguration];
 
-    auto *testExtensionOne = [[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestManifest resources:@{ @"background.js": backgroundScriptOne }];
+    auto *testExtensionOne = [[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestManifest resources:@{ @"background.js": backgroundScriptOne.get() }];
     auto *testContextOne = [[WKWebExtensionContext alloc] initForExtension:testExtensionOne];
     [testContextOne setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionStorage];
     testContextOne.uniqueIdentifier = @"org.webkit.testOne.extension (76C788B8)";
 
-    auto *testExtensionTwo = [[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestTwoManifest resources:@{ @"background.js": backgroundScriptTwo }];
+    auto *testExtensionTwo = [[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestTwoManifest resources:@{ @"background.js": backgroundScriptTwo.get() }];
     auto *testContextTwo = [[WKWebExtensionContext alloc] initForExtension:testExtensionTwo];
     [testContextTwo setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionStorage];
     testContextTwo.uniqueIdentifier = @"org.webkit.testTwo.extension (76C788B8)";
@@ -175,14 +175,14 @@ TEST(WKWebExtensionDataRecord, GetDataRecordsForMultipleContexts)
 // FIXME: rdar://125926932 (Enable the WKWebExtensionDataRecord.RemoveDataRecords test (272236))
 TEST(WKWebExtensionDataRecord, DISABLED_RemoveDataRecords)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'] }",
         @"await browser?.storage?.local?.set(data)",
         @"await browser?.storage?.session?.set(data)",
         @"await browser?.storage?.sync?.set(data)",
     ]);
 
-    auto extension = adoptNS([[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestManifest resources:@{ @"background.js": backgroundScript  }]);
+    auto extension = adoptNS([[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestManifest resources:@{ @"background.js": backgroundScript.get()  }]);
     auto *testController = [[WKWebExtensionController alloc] initWithConfiguration:WKWebExtensionControllerConfiguration._temporaryConfiguration];
 
     auto *context = [[WKWebExtensionContext alloc] initForExtension:extension.get()];
@@ -220,24 +220,24 @@ TEST(WKWebExtensionDataRecord, DISABLED_RemoveDataRecords)
 // FIXME: rdar://125926932 (Enable the WKWebExtensionDataRecord.RemoveDataRecords test (272236))
 TEST(WKWebExtensionDataRecord, DISABLED_RemoveDataRecordsForMultipleContexts)
 {
-    auto *backgroundScriptOne = Util::constructScript(@[
+    RetainPtr backgroundScriptOne = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'] }",
         @"await browser?.storage?.local?.set(data)",
     ]);
 
-    auto *backgroundScriptTwo = Util::constructScript(@[
+    RetainPtr backgroundScriptTwo = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'] }",
         @"await browser?.storage?.sync?.set(data)",
     ]);
 
     auto *testController = [[WKWebExtensionController alloc] initWithConfiguration:WKWebExtensionControllerConfiguration._temporaryConfiguration];
 
-    auto *testExtensionOne = [[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestManifest resources:@{ @"background.js": backgroundScriptOne }];
+    auto *testExtensionOne = [[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestManifest resources:@{ @"background.js": backgroundScriptOne.get() }];
     auto *testContextOne = [[WKWebExtensionContext alloc] initForExtension:testExtensionOne];
     [testContextOne setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionStorage];
     testContextOne.uniqueIdentifier = @"org.webkit.testOne.extension (76C788B8)";
 
-    auto *testExtensionTwo = [[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestTwoManifest resources:@{ @"background.js": backgroundScriptTwo }];
+    auto *testExtensionTwo = [[WKWebExtension alloc] _initWithManifestDictionary:dataRecordTestTwoManifest resources:@{ @"background.js": backgroundScriptTwo.get() }];
     auto *testContextTwo = [[WKWebExtensionContext alloc] initForExtension:testExtensionTwo];
     [testContextTwo setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionStorage];
     testContextTwo.uniqueIdentifier = @"org.webkit.testTwo.extension (76C788B8)";

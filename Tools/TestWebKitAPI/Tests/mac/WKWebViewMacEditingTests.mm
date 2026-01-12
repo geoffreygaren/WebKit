@@ -264,10 +264,10 @@ TEST(WKWebViewMacEditingTests, DoNotCrashWhenCallingTextInputClientMethodsWhileD
     [webView synchronouslyLoadHTMLString:[NSString stringWithFormat:@"<p>%@</p>", textContent]];
     [webView removeFromSuperview];
 
-    __unsafe_unretained id <NSTextInputClient_Async> inputClient = (id <NSTextInputClient_Async>)webView.get();
-    [inputClient hasMarkedTextWithCompletionHandler:^(BOOL) {
-        [inputClient selectedRangeWithCompletionHandler:^(NSRange) {
-            [inputClient markedRangeWithCompletionHandler:^(NSRange) { }];
+    RetainPtr inputClient = (id <NSTextInputClient_Async>)webView.get();
+    [inputClient.get() hasMarkedTextWithCompletionHandler:^(BOOL) {
+        [inputClient.get() selectedRangeWithCompletionHandler:^(NSRange) {
+            [inputClient.get() markedRangeWithCompletionHandler:^(NSRange) { }];
         }];
     }];
 

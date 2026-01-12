@@ -162,16 +162,16 @@ void WebInspectorClient::hideHighlight()
 
 void WebInspectorClient::didSetSearchingForNode(bool enabled)
 {
-    WebInspector *inspector = [m_inspectedWebView.get() inspector];
+    RetainPtr inspector = [m_inspectedWebView.get() inspector];
 
     ASSERT(isMainThread());
 
     if (enabled) {
         [[m_inspectedWebView.get() window] makeKeyAndOrderFront:nil];
         [[m_inspectedWebView.get() window] makeFirstResponder:m_inspectedWebView.get().get()];
-        [[NSNotificationCenter defaultCenter] postNotificationName:WebInspectorDidStartSearchingForNode object:inspector];
+        [[NSNotificationCenter defaultCenter] postNotificationName:WebInspectorDidStartSearchingForNode object:inspector.get()];
     } else
-        [[NSNotificationCenter defaultCenter] postNotificationName:WebInspectorDidStopSearchingForNode object:inspector];
+        [[NSNotificationCenter defaultCenter] postNotificationName:WebInspectorDidStopSearchingForNode object:inspector.get()];
 }
 
 void WebInspectorClient::releaseFrontend()
@@ -211,12 +211,12 @@ void WebInspectorFrontendClient::frontendLoaded()
 
     InspectorFrontendClientLocal::frontendLoaded();
 
-    WebFrame *frame = [m_inspectedWebView.get() mainFrame];
+    RetainPtr frame = [m_inspectedWebView.get() mainFrame];
 
     WebFrameLoadDelegateImplementationCache* implementations = WebViewGetFrameLoadDelegateImplementations(m_inspectedWebView.get().get());
     if (implementations->didClearInspectorWindowObjectForFrameFunc)
         CallFrameLoadDelegate(implementations->didClearInspectorWindowObjectForFrameFunc, m_inspectedWebView.get().get(),
-                              @selector(webView:didClearInspectorWindowObject:forFrame:), [frame windowObject], frame);
+                              @selector(webView:didClearInspectorWindowObject:forFrame:), [frame.get() windowObject], frame.get());
 
     bool attached = [m_frontendWindowController.get() attached];
     setAttachedWindow(attached ? DockSide::Bottom : DockSide::Undocked);
@@ -229,15 +229,15 @@ void WebInspectorFrontendClient::startWindowDrag()
 
 String WebInspectorFrontendClient::localizedStringsURL() const
 {
-    NSBundle *bundle = [NSBundle bundleWithIdentifier:@"com.apple.WebInspectorUI"];
+    RetainPtr bundle = [NSBundle bundleWithIdentifier:@"com.apple.WebInspectorUI"];
     if (!bundle)
         return String();
 
-    NSString *path = [bundle pathForResource:@"localizedStrings" ofType:@"js"];
-    if (!path.length)
+    RetainPtr path = [bundle.get() pathForResource:@"localizedStrings" ofType:@"js"];
+    if (!path.get().length)
         return String();
-    
-    return [NSURL fileURLWithPath:path isDirectory:NO].absoluteString;
+
+    return [NSURL fileURLWithPath:path.get() isDirectory:NO].absoluteString;
 }
 
 void WebInspectorFrontendClient::bringToFront()
@@ -248,8 +248,8 @@ void WebInspectorFrontendClient::bringToFront()
 
     // Use the window from the WebView since m_frontendWindowController's window
     // is not the same when the Inspector is docked.
-    WebView *frontendWebView = [m_frontendWindowController.get() frontendWebView];
-    [[frontendWebView window] makeFirstResponder:frontendWebView];
+    RetainPtr frontendWebView = [m_frontendWindowController.get() frontendWebView];
+    [[frontendWebView.get() window] makeFirstResponder:frontendWebView.get()];
 }
 
 void WebInspectorFrontendClient::closeWindow()
@@ -259,9 +259,9 @@ void WebInspectorFrontendClient::closeWindow()
 
 void WebInspectorFrontendClient::reopen()
 {
-    WebInspector* inspector = [m_inspectedWebView.get() inspector];
-    [inspector close:nil];
-    [inspector show:nil];
+    RetainPtr inspector = [m_inspectedWebView.get() inspector];
+    [inspector.get() close:nil];
+    [inspector.get() show:nil];
 }
 
 void WebInspectorFrontendClient::resetState()
@@ -277,20 +277,20 @@ void WebInspectorFrontendClient::resetState()
 
 void WebInspectorFrontendClient::setForcedAppearance(InspectorFrontendClient::Appearance appearance)
 {
-    NSWindow *window = [m_frontendWindowController window];
+    RetainPtr window = [m_frontendWindowController window];
     ASSERT(window);
 
     switch (appearance) {
     case InspectorFrontendClient::Appearance::System:
-        window.appearance = nil;
+        window.get().appearance = nil;
         break;
 
     case InspectorFrontendClient::Appearance::Light:
-        window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+        window.get().appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
         break;
 
     case InspectorFrontendClient::Appearance::Dark:
-        window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
+        window.get().appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
         break;
     }
 }
@@ -351,18 +351,18 @@ void WebInspectorFrontendClient::showCertificate(const CertificateInfo& certific
 
     RetainPtr<SFCertificatePanel> certificatePanel = adoptNS([[SFCertificatePanel alloc] init]);
 
-    NSWindow *window = [[m_frontendWindowController frontendWebView] window];
+    RetainPtr window = [[m_frontendWindowController frontendWebView] window];
     if (!window)
         window = [NSApp keyWindow];
 
-    [certificatePanel beginSheetForWindow:window modalDelegate:nil didEndSelector:NULL contextInfo:nullptr trust:certificateInfo.trust().get() showGroup:YES];
+    [certificatePanel beginSheetForWindow:window.get() modalDelegate:nil didEndSelector:NULL contextInfo:nullptr trust:certificateInfo.trust().get() showGroup:YES];
 
     // This must be called after the trust panel has been displayed, because the certificateView doesn't exist beforehand.
-    SFCertificateView *certificateView = [certificatePanel certificateView];
-    [certificateView setDisplayTrust:YES];
-    [certificateView setEditableTrust:NO];
-    [certificateView setDisplayDetails:YES];
-    [certificateView setDetailsDisclosed:YES];
+    RetainPtr certificateView = [certificatePanel certificateView];
+    [certificateView.get() setDisplayTrust:YES];
+    [certificateView.get() setEditableTrust:NO];
+    [certificateView.get() setDisplayDetails:YES];
+    [certificateView.get() setDetailsDisclosed:YES];
 }
 
 #if ENABLE(INSPECTOR_TELEMETRY)
@@ -381,8 +381,8 @@ void WebInspectorFrontendClient::logDiagnosticEvent(const String& eventName, con
 
 void WebInspectorFrontendClient::updateWindowTitle() const
 {
-    NSString *title = [NSString stringWithFormat:UI_STRING_INTERNAL("Web Inspector — %@", "Web Inspector window title"), m_inspectedURL.createNSString().get()];
-    [[m_frontendWindowController.get() window] setTitle:title];
+    RetainPtr title = [NSString stringWithFormat:UI_STRING_INTERNAL("Web Inspector — %@", "Web Inspector window title"), m_inspectedURL.createNSString().get()];
+    [[m_frontendWindowController.get() window] setTitle:title.get()];
 }
 
 bool WebInspectorFrontendClient::canSave(InspectorFrontendClient::SaveMode saveMode)
@@ -444,28 +444,28 @@ void WebInspectorFrontendClient::save(Vector<InspectorFrontendClient::SaveData>&
         return;
     }
 
-    NSSavePanel *panel = [NSSavePanel savePanel];
-    panel.nameFieldStringValue = platformURL.get().lastPathComponent;
+    RetainPtr panel = [NSSavePanel savePanel];
+    panel.get().nameFieldStringValue = platformURL.get().lastPathComponent;
 
     // If we have a file URL we've already saved this file to a path and
     // can provide a good directory to show. Otherwise, use the system's
     // default behavior for the initial directory to show in the dialog.
     if (platformURL.get().isFileURL)
-        panel.directoryURL = [platformURL URLByDeletingLastPathComponent];
+        panel.get().directoryURL = [platformURL URLByDeletingLastPathComponent];
 
     auto completionHandler = ^(NSInteger result) {
         if (result == NSModalResponseCancel)
             return;
         ASSERT(result == NSModalResponseOK);
-        saveToURL(panel.URL);
+        saveToURL(panel.get().URL);
     };
 
-    NSWindow *frontendWindow = [[m_frontendWindowController frontendWebView] window];
-    NSWindow *window = frontendWindow ? frontendWindow : [NSApp keyWindow];
+    RetainPtr frontendWindow = [[m_frontendWindowController frontendWebView] window];
+    RetainPtr window = frontendWindow ? frontendWindow : [NSApp keyWindow];
     if (window)
-        [panel beginSheetModalForWindow:window completionHandler:completionHandler];
+        [panel.get() beginSheetModalForWindow:window.get() completionHandler:completionHandler];
     else
-        completionHandler([panel runModal]);
+        completionHandler([panel.get() runModal]);
 }
 
 void WebInspectorFrontendClient::sendMessageToBackend(const String& message)
@@ -518,8 +518,8 @@ void WebInspectorFrontendClient::sendMessageToBackend(const String& message)
 
     _inspectedWebView = webView;
 
-    NSString *pagePath = isUnderTest ? [self inspectorTestPagePath] : [self inspectorPagePath];
-    auto request = adoptNS([[NSURLRequest alloc] initWithURL:[NSURL fileURLWithPath:pagePath]]);
+    RetainPtr pagePath = isUnderTest ? [self inspectorTestPagePath] : [self inspectorPagePath];
+    auto request = adoptNS([[NSURLRequest alloc] initWithURL:[NSURL fileURLWithPath:pagePath.get()]]);
     [[_frontendWebView mainFrame] loadRequest:request.get()];
 
     return self;
@@ -529,21 +529,21 @@ void WebInspectorFrontendClient::sendMessageToBackend(const String& message)
 
 - (NSString *)inspectorPagePath
 {
-    NSBundle *bundle = [NSBundle bundleWithIdentifier:@"com.apple.WebInspectorUI"];
+    RetainPtr bundle = [NSBundle bundleWithIdentifier:@"com.apple.WebInspectorUI"];
     if (!bundle)
         return nil;
 
-    return [bundle pathForResource:@"Main" ofType:@"html"];
+    return [bundle.get() pathForResource:@"Main" ofType:@"html"];
 }
 
 - (NSString *)inspectorTestPagePath
 {
-    NSBundle *bundle = [NSBundle bundleWithIdentifier:@"com.apple.WebInspectorUI"];
+    RetainPtr bundle = [NSBundle bundleWithIdentifier:@"com.apple.WebInspectorUI"];
     if (!bundle)
         return nil;
 
     // We might not have a Test.html in Production builds.
-    return [bundle pathForResource:@"Test" ofType:@"html"];
+    return [bundle.get() pathForResource:@"Test" ofType:@"html"];
 }
 
 // MARK: -
@@ -617,16 +617,16 @@ void WebInspectorFrontendClient::sendMessageToBackend(const String& message)
 
         [_frontendWebView removeFromSuperview];
 
-        WebFrameView *frameView = [[_inspectedWebView.get() mainFrame] frameView];
-        NSRect frameViewRect = [frameView frame];
+        RetainPtr frameView = [[_inspectedWebView.get() mainFrame] frameView];
+        NSRect frameViewRect = [frameView.get() frame];
 
         // Setting the height based on the previous height is done to work with
         // Safari's find banner. This assumes the previous height is the Y origin.
         frameViewRect.size.height += NSMinY(frameViewRect);
         frameViewRect.origin.y = 0.0;
 
-        [frameView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
-        [frameView setFrame:frameViewRect];
+        [frameView.get() setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+        [frameView.get() setFrame:frameViewRect];
 
         [_inspectedWebView.get() displayIfNeeded];
     } else
@@ -651,24 +651,24 @@ void WebInspectorFrontendClient::sendMessageToBackend(const String& message)
     _shouldAttach = _inspectorClient->inspectorStartsAttached() && _frontendClient->canAttach();
 
     if (_shouldAttach) {
-        WebFrameView *frameView = [[_inspectedWebView.get() mainFrame] frameView];
+        RetainPtr frameView = [[_inspectedWebView.get() mainFrame] frameView];
 
         [_frontendWebView removeFromSuperview];
-        [_inspectedWebView.get() addSubview:_frontendWebView.get() positioned:NSWindowBelow relativeTo:(NSView *)frameView];
+        [_inspectedWebView.get() addSubview:_frontendWebView.get() positioned:NSWindowBelow relativeTo:(NSView *)frameView.get()];
         [[_inspectedWebView.get() window] makeFirstResponder:_frontendWebView.get()];
 
         [_frontendWebView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable | NSViewMaxYMargin)];
-        [frameView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable | NSViewMinYMargin)];
+        [frameView.get() setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable | NSViewMinYMargin)];
 
         _attachedToInspectedWebView = YES;
     } else {
         _attachedToInspectedWebView = NO;
 
-        NSView *contentView = [[self window] contentView];
-        [_frontendWebView setFrame:[contentView frame]];
+        RetainPtr contentView = [[self window] contentView];
+        [_frontendWebView setFrame:[contentView.get() frame]];
         [_frontendWebView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
         [_frontendWebView removeFromSuperview];
-        [contentView addSubview:_frontendWebView.get()];
+        [contentView.get() addSubview:_frontendWebView.get()];
 
         [super showWindow:nil];
     }
@@ -725,8 +725,8 @@ void WebInspectorFrontendClient::sendMessageToBackend(const String& message)
     if (!_attachedToInspectedWebView)
         return;
 
-    WebFrameView *frameView = [[_inspectedWebView.get() mainFrame] frameView];
-    NSRect frameViewRect = [frameView frame];
+    RetainPtr frameView = [[_inspectedWebView.get() mainFrame] frameView];
+    NSRect frameViewRect = [frameView.get() frame];
 
     // Setting the height based on the difference is done to work with
     // Safari's find banner. This assumes the previous height is the Y origin.
@@ -735,7 +735,7 @@ void WebInspectorFrontendClient::sendMessageToBackend(const String& message)
     frameViewRect.origin.y = height;
 
     [_frontendWebView setFrame:NSMakeRect(0.0, 0.0, NSWidth(frameViewRect), height)];
-    [frameView setFrame:frameViewRect];
+    [frameView.get() setFrame:frameViewRect];
 }
 
 - (void)setDockingUnavailable:(BOOL)unavailable
@@ -770,10 +770,10 @@ void WebInspectorFrontendClient::sendMessageToBackend(const String& message)
 
 - (void)webView:(WebView *)sender runOpenPanelForFileButtonWithResultListener:(id<WebOpenPanelResultListener>)resultListener allowMultipleFiles:(BOOL)allowMultipleFiles
 {
-    NSOpenPanel *panel = [NSOpenPanel openPanel];
-    panel.canChooseDirectories = NO;
-    panel.canChooseFiles = YES;
-    panel.allowsMultipleSelection = allowMultipleFiles;
+    RetainPtr panel = [NSOpenPanel openPanel];
+    panel.get().canChooseDirectories = NO;
+    panel.get().canChooseFiles = YES;
+    panel.get().allowsMultipleSelection = allowMultipleFiles;
 
     auto completionHandler = ^(NSInteger result) {
         if (result == NSModalResponseCancel) {
@@ -782,18 +782,18 @@ void WebInspectorFrontendClient::sendMessageToBackend(const String& message)
         }
         ASSERT(result == NSModalResponseOK);
 
-        NSArray *URLs = panel.URLs;
-        NSMutableArray *filenames = [NSMutableArray arrayWithCapacity:URLs.count];
-        for (NSURL *URL in URLs)
-            [filenames addObject:URL.path];
+        RetainPtr<NSArray<NSURL *>> URLs = panel.get().URLs;
+        RetainPtr filenames = [NSMutableArray arrayWithCapacity:URLs.get().count];
+        for (NSURL *URL in URLs.get())
+            [filenames.get() addObject:URL.path];
 
-        [resultListener chooseFilenames:filenames];
+        [resultListener chooseFilenames:filenames.get()];
     };
 
     if ([_frontendWebView window])
-        [panel beginSheetModalForWindow:[_frontendWebView window] completionHandler:completionHandler];
+        [panel.get() beginSheetModalForWindow:[_frontendWebView window] completionHandler:completionHandler];
     else
-        completionHandler([panel runModal]);
+        completionHandler([panel.get() runModal]);
 }
 
 - (void)webView:(WebView *)sender frame:(WebFrame *)frame exceededDatabaseQuotaForSecurityOrigin:(WebSecurityOrigin *)origin database:(NSString *)databaseIdentifier
@@ -842,8 +842,8 @@ void WebInspectorFrontendClient::sendMessageToBackend(const String& message)
     }
 
     // Allow loading of the test inspector file.
-    NSString *testPagePath = [self inspectorTestPagePath];
-    if (testPagePath && [[request URL] isFileURL] && [[[request URL] path] isEqualToString:testPagePath]) {
+    RetainPtr testPagePath = [self inspectorTestPagePath];
+    if (testPagePath && [[request URL] isFileURL] && [[[request URL] path] isEqualToString:testPagePath.get()]) {
         [listener use];
         return;
     }
@@ -883,17 +883,17 @@ void WebInspectorFrontendClient::sendMessageToBackend(const String& message)
 {
     BOOL isMenuItem = [(id)item isKindOfClass:[NSMenuItem class]];
     if ([item action] == @selector(toggleDebuggingJavaScript:) && isMenuItem) {
-        NSMenuItem *menuItem = (NSMenuItem *)item;
+        RetainPtr menuItem = (NSMenuItem *)item;
         if ([[_inspectedWebView.get() inspector] isDebuggingJavaScript])
-            [menuItem setTitle:UI_STRING_INTERNAL("Stop Debugging JavaScript", "title for Stop Debugging JavaScript menu item")];
+            [menuItem.get() setTitle:UI_STRING_INTERNAL("Stop Debugging JavaScript", "title for Stop Debugging JavaScript menu item")];
         else
-            [menuItem setTitle:UI_STRING_INTERNAL("Start Debugging JavaScript", "title for Start Debugging JavaScript menu item")];
+            [menuItem.get() setTitle:UI_STRING_INTERNAL("Start Debugging JavaScript", "title for Start Debugging JavaScript menu item")];
     } else if ([item action] == @selector(toggleProfilingJavaScript:) && isMenuItem) {
-        NSMenuItem *menuItem = (NSMenuItem *)item;
+        RetainPtr menuItem = (NSMenuItem *)item;
         if ([[_inspectedWebView.get() inspector] isProfilingJavaScript])
-            [menuItem setTitle:UI_STRING_INTERNAL("Stop Profiling JavaScript", "title for Stop Profiling JavaScript menu item")];
+            [menuItem.get() setTitle:UI_STRING_INTERNAL("Stop Profiling JavaScript", "title for Stop Profiling JavaScript menu item")];
         else
-            [menuItem setTitle:UI_STRING_INTERNAL("Start Profiling JavaScript", "title for Start Profiling JavaScript menu item")];
+            [menuItem.get() setTitle:UI_STRING_INTERNAL("Start Profiling JavaScript", "title for Start Profiling JavaScript menu item")];
     }
 
     return YES;

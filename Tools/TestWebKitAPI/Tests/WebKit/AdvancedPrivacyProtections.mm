@@ -178,8 +178,8 @@ private:
 
 static RetainPtr<TestWKWebView> createWebViewWithAdvancedPrivacyProtections(BOOL enabled = YES, RetainPtr<WKWebpagePreferences>&& preferences = { }, WKWebsiteDataStore *dataStore = nil, bool enableResourceLoadStatistics = YES)
 {
-    auto store = dataStore ?: WKWebsiteDataStore.nonPersistentDataStore;
-    store._resourceLoadStatisticsEnabled = enableResourceLoadStatistics;
+    RetainPtr store = dataStore ?: WKWebsiteDataStore.nonPersistentDataStore;
+    store.get()._resourceLoadStatisticsEnabled = enableResourceLoadStatistics;
 
     auto policies = enabled
         ? _WKWebsiteNetworkConnectionIntegrityPolicyEnhancedTelemetry | _WKWebsiteNetworkConnectionIntegrityPolicyEnabled | _WKWebsiteNetworkConnectionIntegrityPolicyRequestValidation | _WKWebsiteNetworkConnectionIntegrityPolicySanitizeLookalikeCharacters
@@ -189,7 +189,7 @@ static RetainPtr<TestWKWebView> createWebViewWithAdvancedPrivacyProtections(BOOL
     [preferences _setNetworkConnectionIntegrityPolicy:policies];
 
     auto configuration = adoptNS([WKWebViewConfiguration new]);
-    [configuration setWebsiteDataStore:store];
+    [configuration setWebsiteDataStore:store.get()];
     [configuration setMediaTypesRequiringUserActionForPlayback:WKAudiovisualMediaTypeNone];
     [configuration setDefaultWebpagePreferences:preferences.get()];
     if (!enabled) {

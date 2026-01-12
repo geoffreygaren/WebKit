@@ -50,8 +50,8 @@
     _browserContextController = browserContextController;
     _plugInController = plugInController;
 
-    _WKRemoteObjectInterface *interface = remoteObjectInterface();
-    [[_browserContextController _remoteObjectRegistry] registerExportedObject:self interface:interface];
+    RetainPtr interface = remoteObjectInterface();
+    [[_browserContextController _remoteObjectRegistry] registerExportedObject:self interface:interface.get()];
 }
 
 - (void)sayHello:(NSString *)helloString

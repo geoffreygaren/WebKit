@@ -160,9 +160,9 @@ void PlatformWebView::addChromeInputField()
     [textField setTag:1];
     [[m_window contentView] addSubview:textField.get()];
 
-    NSView *view = platformView();
-    [textField setNextKeyView:view];
-    [view setNextKeyView:textField.get()];
+    RetainPtr view = platformView();
+    [textField setNextKeyView:view.get()];
+    [view.get() setNextKeyView:textField.get()];
 }
 
 void PlatformWebView::removeChromeInputField()

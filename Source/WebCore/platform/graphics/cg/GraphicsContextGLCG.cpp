@@ -345,8 +345,8 @@ bool GraphicsContextGLImageExtractor::extractImage(bool premultiplyAlpha, bool i
     // so, re-render it into an RGB color space. The image re-packing
     // code requires color data, not color table indices, for the
     // image data.
-    CGColorSpaceRef colorSpace = CGImageGetColorSpace(decodedImage->platformImage().get());
-    CGColorSpaceModel model = CGColorSpaceGetModel(colorSpace);
+    RetainPtr<CGColorSpaceRef> colorSpace = CGImageGetColorSpace(decodedImage->platformImage().get());
+    CGColorSpaceModel model = CGColorSpaceGetModel(colorSpace.get());
     if (model == kCGColorSpaceModelIndexed) {
         RetainPtr<CGContextRef> bitmapContext;
         // FIXME: we should probably manually convert the image by indexing into

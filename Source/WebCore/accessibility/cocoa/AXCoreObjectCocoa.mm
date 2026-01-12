@@ -176,13 +176,13 @@ void attributedStringSetElement(NSMutableAttributedString *string, NSString *att
     if (!attributedStringContainsRange(string, range))
         return;
 
-    id wrapper = object.wrapper();
+    RetainPtr wrapper = object.wrapper();
     if ([attribute isEqualToString:NSAccessibilityAttachmentTextAttribute] && object.isAttachment()) {
-        if (id attachmentView = [wrapper attachmentView])
+        if (RetainPtr attachmentView = [wrapper.get() attachmentView])
             wrapper = attachmentView;
     }
 
-    if (RetainPtr axElement = adoptCF(NSAccessibilityCreateAXUIElementRef(wrapper)))
+    if (RetainPtr axElement = adoptCF(NSAccessibilityCreateAXUIElementRef(wrapper.get())))
         [string addAttribute:attribute value:(__bridge id)axElement.get() range:range];
 }
 
@@ -225,11 +225,11 @@ RetainPtr<NSMutableAttributedString> AXCoreObject::createAttributedString(String
     NSRange range = NSMakeRange(0, [string length]);
 
     if (isReplacedElement()) {
-        if (id wrapper = this->wrapper()) {
+        if (RetainPtr wrapper = this->wrapper()) {
 #if PLATFORM(MAC)
-            [string.get() addAttribute:NSAccessibilityAttachmentTextAttribute value:(__bridge id)adoptCF(NSAccessibilityCreateAXUIElementRef(wrapper)).get() range:range];
+            [string.get() addAttribute:NSAccessibilityAttachmentTextAttribute value:(__bridge id)adoptCF(NSAccessibilityCreateAXUIElementRef(wrapper.get())).get() range:range];
 #else
-            [string.get() addAttribute:AccessibilityTokenAttachment value:wrapper range:range];
+            [string.get() addAttribute:AccessibilityTokenAttachment value:wrapper.get() range:range];
 #endif // PLATFORM(MAC)
         }
         return string;
@@ -275,8 +275,8 @@ RetainPtr<NSMutableAttributedString> AXCoreObject::createAttributedString(String
             ++blockquoteLevel;
 
         if (ancestor->isExposableTable()) {
-            if (id wrapper = ancestor->wrapper())
-                [string.get() addAttribute:NSAccessibilityTableAttribute value:(__bridge id)adoptCF(NSAccessibilityCreateAXUIElementRef(wrapper)).get() range:range];
+            if (RetainPtr wrapper = ancestor->wrapper())
+                [string.get() addAttribute:NSAccessibilityTableAttribute value:(__bridge id)adoptCF(NSAccessibilityCreateAXUIElementRef(wrapper.get())).get() range:range];
         }
     }
     if (blockquoteLevel)
@@ -309,13 +309,13 @@ NSArray *renderWidgetChildren(const AXCoreObject& object)
     if (!object.isWidget()) [[likely]]
         return nil;
 
-    id child = Accessibility::retrieveAutoreleasedValueFromMainThread<id>([object = Ref { object }] () -> RetainPtr<id> {
+    RetainPtr child = Accessibility::retrieveAutoreleasedValueFromMainThread<id>([object = Ref { object }] () -> RetainPtr<id> {
         RefPtr widget = object->widget();
         return widget ? widget->accessibilityObject() : nil;
     });
 
     if (child)
-        return @[child];
+        return @[child.get()];
 ALLOW_DEPRECATED_DECLARATIONS_BEGIN
     return [object.platformWidget() accessibilityAttributeValue:NSAccessibilityChildrenAttribute];
 ALLOW_DEPRECATED_DECLARATIONS_END

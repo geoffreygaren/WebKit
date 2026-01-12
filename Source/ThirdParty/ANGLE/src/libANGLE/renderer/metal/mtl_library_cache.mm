@@ -60,11 +60,11 @@ angle::ObjCPtr<id<MTLLibrary>> LibraryCache::getOrCompileShaderLibrary(
     bool usesInvariance,
     angle::ObjCPtr<NSError> *errorOut)
 {
-    id<MTLDevice> metalDevice          = displayMtl->getMetalDevice();
+    angle::ObjCPtr metalDevice = displayMtl->getMetalDevice();
     const angle::FeaturesMtl &features = displayMtl->getFeatures();
     if (!features.enableInMemoryMtlLibraryCache.enabled)
     {
-        return CreateShaderLibrary(metalDevice, *source, macros, disableFastMath, usesInvariance,
+        return CreateShaderLibrary(metalDevice.get(), *source, macros, disableFastMath, usesInvariance,
                                    errorOut);
     }
 
@@ -80,7 +80,7 @@ angle::ObjCPtr<id<MTLLibrary>> LibraryCache::getOrCompileShaderLibrary(
         return entry.library;
     }
 
-    entry.library = CreateShaderLibrary(metalDevice, *source, macros, disableFastMath,
+    entry.library = CreateShaderLibrary(metalDevice.get(), *source, macros, disableFastMath,
                                         usesInvariance, errorOut);
     return entry.library;
 }

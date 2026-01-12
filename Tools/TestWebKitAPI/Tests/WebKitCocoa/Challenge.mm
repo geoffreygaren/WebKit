@@ -591,9 +591,9 @@ void verifyCertificateAndPublicKey(SecTrustRef trust)
 {
     EXPECT_WK_STREQ(challenge.protectionSpace.authenticationMethod, NSURLAuthenticationMethodServerTrust);
     _authenticationChallengeCount++;
-    SecTrustRef trust = challenge.protectionSpace.serverTrust;
-    verifyCertificateAndPublicKey(trust);
-    completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:trust]);
+    RetainPtr<SecTrustRef> trust = challenge.protectionSpace.serverTrust;
+    verifyCertificateAndPublicKey(trust.get());
+    completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:trust.get()]);
 }
 
 @end

@@ -53,7 +53,7 @@ static auto *cookiesManifest = @{
 
 TEST(WKWebExtensionAPICookies, ErrorsRead)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.cookies.get({ url: 123, name: 'Test' }), /'url' is expected to be a string, but a number was provided/i)",
         @"browser.test.assertThrows(() => browser.cookies.get({ url: '', name: 'Test' }), /'url' value is invalid, because it must not be empty/i)",
         @"browser.test.assertThrows(() => browser.cookies.get({ url: 'bad', name: 'Test' }), /'url' value is invalid, because 'bad' is not a valid URL/i)",
@@ -74,12 +74,12 @@ TEST(WKWebExtensionAPICookies, ErrorsRead)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPICookies, ErrorsWrite)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.cookies.set({ url: 123 }), /'url' is expected to be a string, but a number was provided/i)",
         @"browser.test.assertThrows(() => browser.cookies.set({ url: '' }), /'url' value is invalid, because it must not be empty/i)",
         @"browser.test.assertThrows(() => browser.cookies.set({ url: 'bad' }), /'url' value is invalid, because 'bad' is not a valid URL/i)",
@@ -103,12 +103,12 @@ TEST(WKWebExtensionAPICookies, ErrorsWrite)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPICookies, GetAllCookieStores)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const cookieStores = await browser.test.assertSafeResolve(() => browser.cookies.getAllCookieStores())",
         @"browser.test.assertEq(cookieStores?.length, 1, 'Should have one cookie store')",
 
@@ -125,7 +125,7 @@ TEST(WKWebExtensionAPICookies, GetAllCookieStores)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager openNewWindowUsingPrivateBrowsing:YES];
 
@@ -134,7 +134,7 @@ TEST(WKWebExtensionAPICookies, GetAllCookieStores)
 
 TEST(WKWebExtensionAPICookies, GetAllCookieStoresWithPrivateAccess)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const cookieStores = await browser.test.assertSafeResolve(() => browser.cookies.getAllCookieStores())",
         @"browser.test.assertEq(cookieStores?.length, 2, 'Should have two cookie stores')",
 
@@ -157,7 +157,7 @@ TEST(WKWebExtensionAPICookies, GetAllCookieStoresWithPrivateAccess)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().context.hasAccessToPrivateData = YES;
 
@@ -168,7 +168,7 @@ TEST(WKWebExtensionAPICookies, GetAllCookieStoresWithPrivateAccess)
 
 TEST(WKWebExtensionAPICookies, GetAll)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const cookies = await browser.test.assertSafeResolve(() => browser.cookies.getAll({ }))",
         @"browser.test.assertTrue(Array.isArray(cookies), 'Cookies should be an array')",
         @"browser.test.assertTrue(cookies?.length >= 2, 'There should be 2 or more cookies')",
@@ -190,7 +190,7 @@ TEST(WKWebExtensionAPICookies, GetAll)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*.example.com/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
@@ -236,7 +236,7 @@ TEST(WKWebExtensionAPICookies, GetAll)
 
 TEST(WKWebExtensionAPICookies, GetAllIncognito)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allCookieStores = await browser.test.assertSafeResolve(() => browser.cookies.getAllCookieStores())",
         @"const incognitoStore = allCookieStores.find(store => store.incognito)",
         @"browser.test.assertEq(incognitoStore, undefined, 'Incognito store should not be found')",
@@ -254,7 +254,7 @@ TEST(WKWebExtensionAPICookies, GetAllIncognito)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*.private.com/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
@@ -301,7 +301,7 @@ TEST(WKWebExtensionAPICookies, GetAllIncognito)
 
 TEST(WKWebExtensionAPICookies, GetAllIncognitoWithPrivateAccess)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allCookieStores = await browser.test.assertSafeResolve(() => browser.cookies.getAllCookieStores())",
         @"const incognitoStore = allCookieStores.find(store => store.incognito)",
         @"browser.test.assertEq(typeof incognitoStore, 'object', 'Incognito store should be found')",
@@ -327,7 +327,7 @@ TEST(WKWebExtensionAPICookies, GetAllIncognitoWithPrivateAccess)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*.private.com/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
@@ -376,7 +376,7 @@ TEST(WKWebExtensionAPICookies, GetAllIncognitoWithPrivateAccess)
 
 TEST(WKWebExtensionAPICookies, GetAllWithFilters)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const nameCookies = await browser.test.assertSafeResolve(() => browser.cookies.getAll({ name: 'nameCookie' }))",
         @"browser.test.assertEq(nameCookies?.length, 1, 'Should find one cookie with name `nameCookie`')",
         @"browser.test.assertEq(nameCookies?.[0]?.value, 'nameValue', 'Value of `nameCookie` should be `nameValue`')",
@@ -417,7 +417,7 @@ TEST(WKWebExtensionAPICookies, GetAllWithFilters)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*.example.com/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
@@ -492,7 +492,7 @@ TEST(WKWebExtensionAPICookies, GetAllWithFilters)
 
 TEST(WKWebExtensionAPICookies, RemoveCookie)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const removedCookie = await browser.test.assertSafeResolve(() => browser.cookies.remove({ url: 'http://www.example.com/', name: 'testCookie' }))",
         @"browser.test.assertEq(removedCookie?.name, 'testCookie', 'Removed cookie name should be `testCookie`')",
         @"browser.test.assertEq(removedCookie?.value, 'value1', 'Removed cookie value should be `value1`')",
@@ -506,7 +506,7 @@ TEST(WKWebExtensionAPICookies, RemoveCookie)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*.example.com/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
@@ -532,7 +532,7 @@ TEST(WKWebExtensionAPICookies, RemoveCookie)
 
 TEST(WKWebExtensionAPICookies, RemoveCookieNotFound)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const removedCookie = await browser.test.assertSafeResolve(() => browser.cookies.remove({ url: 'http://www.example.com/', name: 'notFoundName' }))",
         @"browser.test.assertEq(removedCookie, null)",
 
@@ -543,7 +543,7 @@ TEST(WKWebExtensionAPICookies, RemoveCookieNotFound)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*.example.com/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
@@ -569,7 +569,7 @@ TEST(WKWebExtensionAPICookies, RemoveCookieNotFound)
 
 TEST(WKWebExtensionAPICookies, SetCookie)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const initialCookies = await browser.cookies.getAll({ url: 'http://www.example.com/' })",
         @"browser.test.assertTrue(!initialCookies.some(cookie => cookie.name === 'testCookie1' || cookie.name === 'testCookie2'), 'Cookies should not exist initially')",
         @"browser.test.assertTrue(initialCookies.some(cookie => cookie.name === 'replacedCookie'), 'Replaced cookie should exist')",
@@ -590,7 +590,7 @@ TEST(WKWebExtensionAPICookies, SetCookie)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*.example.com/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
@@ -616,7 +616,7 @@ TEST(WKWebExtensionAPICookies, SetCookie)
 
 TEST(WKWebExtensionAPICookies, SetCookieWithExpirationDate)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const cookieName = 'token'",
         @"const testUrl = 'http://www.example.com/'",
         @"const expirationDate = Math.floor(Date.now() / 1000) + 2",
@@ -650,7 +650,7 @@ TEST(WKWebExtensionAPICookies, SetCookieWithExpirationDate)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*.example.com/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
@@ -660,7 +660,7 @@ TEST(WKWebExtensionAPICookies, SetCookieWithExpirationDate)
 
 TEST(WKWebExtensionAPICookies, GetCookie)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const cookie = await browser.test.assertSafeResolve(() => browser.cookies.get({ url: 'http://www.example.com/', name: 'testGetCookie' }))",
         @"browser.test.assertEq(cookie?.name, 'testGetCookie', 'The cookie name should match')",
         @"browser.test.assertEq(cookie?.value, 'getValue', 'The cookie value should match')",
@@ -673,7 +673,7 @@ TEST(WKWebExtensionAPICookies, GetCookie)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*.example.com/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];
@@ -699,7 +699,7 @@ TEST(WKWebExtensionAPICookies, GetCookie)
 
 TEST(WKWebExtensionAPICookies, ChangedEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.cookies.onChanged.addListener(() => {",
         @"  browser.test.notifyPass()",
         @"})",
@@ -707,7 +707,7 @@ TEST(WKWebExtensionAPICookies, ChangedEvent)
         @"await browser.test.assertSafeResolve(() => browser.cookies.set({ url: 'http://www.example.com/', name: 'testCookie', value: 'testValue' }))"
     ]);
 
-    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(cookiesManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *matchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*.example.com/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPattern];

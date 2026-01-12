@@ -54,17 +54,17 @@ namespace WebCore {
 
 RefPtr<JSC::Bindings::Instance> ScriptController::createScriptInstanceForWidget(Widget* widget)
 {
-    NSView* widgetView = widget->platformWidget();
+    RetainPtr widgetView = widget->platformWidget();
     if (!widgetView)
         return nullptr;
 
-    auto rootObject = createRootObject((__bridge void*)widgetView);
+    auto rootObject = createRootObject((__bridge void*)widgetView.get());
 
-    if ([widgetView respondsToSelector:@selector(createPluginBindingsInstance:)])
-        return [widgetView createPluginBindingsInstance:WTF::move(rootObject)];
-        
-    if ([widgetView respondsToSelector:@selector(objectForWebScript)]) {
-        id objectForWebScript = [widgetView objectForWebScript];
+    if ([widgetView.get() respondsToSelector:@selector(createPluginBindingsInstance:)])
+        return [widgetView.get() createPluginBindingsInstance:WTF::move(rootObject)];
+
+    if ([widgetView.get() respondsToSelector:@selector(objectForWebScript)]) {
+        id objectForWebScript = [widgetView.get() objectForWebScript];
         if (!objectForWebScript)
             return nullptr;
         return JSC::Bindings::ObjcInstance::create(objectForWebScript, WTF::move(rootObject));
@@ -91,8 +91,8 @@ JSContext *ScriptController::javaScriptContext()
 #if JSC_OBJC_API_ENABLED
     if (!canExecuteScripts(ReasonForCallingCanExecuteScripts::NotAboutToExecuteScript))
         return 0;
-    JSContext *context = [JSContext contextWithJSGlobalContextRef:toGlobalRef(protectedBindingRootObject()->globalObject())];
-    return context;
+    RetainPtr context = [JSContext contextWithJSGlobalContextRef:toGlobalRef(protectedBindingRootObject()->globalObject())];
+    return context.autorelease();
 #else
     return 0;
 #endif

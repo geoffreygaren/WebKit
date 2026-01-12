@@ -90,12 +90,12 @@
     auto configuration = adoptNS([WKWebViewConfiguration new]);
     [configuration setWebsiteDataStore:dataStore];
     auto* newView = WTR::TestController::singleton().createOtherPlatformWebView(nullptr, (__bridge WKPageConfigurationRef)configuration.get(), nullptr, nullptr);
-    WKWebView *webView = newView->platformView();
-    
-    ASSERT(webView.configuration.websiteDataStore == dataStore);
-    
-    [webView loadRequest:[NSURLRequest requestWithURL:url]];
-    completionHandler(webView);
+    RetainPtr webView = newView->platformView();
+
+    ASSERT(webView.get().configuration.websiteDataStore == dataStore);
+
+    [webView.get() loadRequest:[NSURLRequest requestWithURL:url]];
+    completionHandler(webView.get());
 }
 
 - (void)setBackgroundFetchPermission:(BOOL)shouldAllowBackgroundFetchPermission

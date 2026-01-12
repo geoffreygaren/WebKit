@@ -34,41 +34,42 @@
 
 @implementation NSPasteboard (TestRunnerAdditions)
 
-+ (NSPasteboardType)_modernPasteboardType:(NSString *)type
++ (NSPasteboardType)_modernPasteboardType:(NSString *)typeArg
 {
-    if (UTTypeIsDynamic((__bridge CFStringRef)type)) {
-        if (auto legacyType = adoptCF(UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)type, kUTTagClassNSPboardType)))
+    RetainPtr<NSString> type = typeArg;
+    if (UTTypeIsDynamic((__bridge CFStringRef)type.get())) {
+        if (auto legacyType = adoptCF(UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)type.get(), kUTTagClassNSPboardType)))
             type = legacyType.bridgingAutorelease();
     }
 
-    if ([type isEqualToString:WebCore::legacyStringPasteboardTypeSingleton()])
+    if ([type.get() isEqualToString:WebCore::legacyStringPasteboardTypeSingleton()])
         return NSPasteboardTypeString;
 
-    if ([type isEqualToString:WebCore::legacyHTMLPasteboardTypeSingleton()])
+    if ([type.get() isEqualToString:WebCore::legacyHTMLPasteboardTypeSingleton()])
         return NSPasteboardTypeHTML;
 
-    if ([type isEqualToString:WebCore::legacyTIFFPasteboardTypeSingleton()])
+    if ([type.get() isEqualToString:WebCore::legacyTIFFPasteboardTypeSingleton()])
         return NSPasteboardTypeTIFF;
 
-    if ([type isEqualToString:WebCore::legacyURLPasteboardTypeSingleton()])
+    if ([type.get() isEqualToString:WebCore::legacyURLPasteboardTypeSingleton()])
         return NSPasteboardTypeURL;
 
-    if ([type isEqualToString:WebCore::legacyPDFPasteboardTypeSingleton()])
+    if ([type.get() isEqualToString:WebCore::legacyPDFPasteboardTypeSingleton()])
         return NSPasteboardTypePDF;
 
-    if ([type isEqualToString:WebCore::legacyRTFDPasteboardTypeSingleton()])
+    if ([type.get() isEqualToString:WebCore::legacyRTFDPasteboardTypeSingleton()])
         return NSPasteboardTypeRTFD;
 
-    if ([type isEqualToString:WebCore::legacyRTFPasteboardTypeSingleton()])
+    if ([type.get() isEqualToString:WebCore::legacyRTFPasteboardTypeSingleton()])
         return NSPasteboardTypeRTF;
 
-    if ([type isEqualToString:WebCore::legacyColorPasteboardTypeSingleton()])
+    if ([type.get() isEqualToString:WebCore::legacyColorPasteboardTypeSingleton()])
         return NSPasteboardTypeColor;
 
-    if ([type isEqualToString:WebCore::legacyFontPasteboardTypeSingleton()])
+    if ([type.get() isEqualToString:WebCore::legacyFontPasteboardTypeSingleton()])
         return NSPasteboardTypeFont;
 
-    return type;
+    return type.autorelease();
 }
 
 @end

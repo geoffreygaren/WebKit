@@ -78,7 +78,7 @@ void SliderTrackMac::draw(GraphicsContext& context, const FloatRoundedRect& bord
     static constexpr int sliderTrackRadius = 2;
     static constexpr IntSize sliderRadius(sliderTrackRadius, sliderTrackRadius);
 
-    CGContextRef cgContext = context.platformContext();
+    RetainPtr<CGContextRef> cgContext = context.platformContext();
     CGColorSpaceRef cspace = sRGBColorSpaceSingleton();
 
     Ref sliderTrackPart = owningSliderTrackPart();
@@ -88,7 +88,7 @@ void SliderTrackMac::draw(GraphicsContext& context, const FloatRoundedRect& bord
     GraphicsContextStateSaver stateSaver(context);
 
     auto logicalRect = rectForBounds(borderRect.rect(), style);
-    CGContextClipToRect(cgContext, logicalRect);
+    CGContextClipToRect(cgContext.get(), logicalRect);
 
     struct CGFunctionCallbacks mainCallbacks = { 0, trackGradientInterpolate, NULL };
     RetainPtr<CGFunctionRef> mainFunction = adoptCF(CGFunctionCreate(NULL, 1, NULL, 4, NULL, &mainCallbacks));
@@ -99,7 +99,7 @@ void SliderTrackMac::draw(GraphicsContext& context, const FloatRoundedRect& bord
         mainShading = adoptCF(CGShadingCreateAxial(cspace, CGPointMake(logicalRect.x(),  logicalRect.y()), CGPointMake(logicalRect.x(), logicalRect.maxY()), mainFunction.get(), false, false));
 
     context.clipRoundedRect(FloatRoundedRect(logicalRect, sliderRadius, sliderRadius, sliderRadius, sliderRadius));
-    CGContextDrawShading(cgContext, mainShading.get());
+    CGContextDrawShading(cgContext.get(), mainShading.get());
 }
 
 } // namespace WebCore

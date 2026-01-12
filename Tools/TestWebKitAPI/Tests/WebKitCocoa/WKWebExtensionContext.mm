@@ -759,7 +759,7 @@ TEST(WKWebExtensionContext, CommandsParsing)
     EXPECT_NOT_NULL(testContext.commands);
     EXPECT_EQ(testContext.commands.count, 6lu);
 
-    WKWebExtensionCommand *testCommand = nil;
+    RetainPtr<WKWebExtensionCommand> testCommand = nil;
 
     for (WKWebExtensionCommand *command in testContext.commands) {
         if ([command.identifier isEqualToString:@"toggle-feature"]) {
@@ -811,70 +811,70 @@ TEST(WKWebExtensionContext, CommandsParsing)
 
     EXPECT_NOT_NULL(testCommand);
 
-    testCommand.activationKey = nil;
+    testCommand.get().activationKey = nil;
 
-    EXPECT_NULL(testCommand.activationKey);
-    EXPECT_EQ((uint32_t)testCommand.modifierFlags, 0lu);
+    EXPECT_NULL(testCommand.get().activationKey);
+    EXPECT_EQ((uint32_t)testCommand.get().modifierFlags, 0lu);
 
-    testCommand.activationKey = @"\uF70D";
+    testCommand.get().activationKey = @"\uF70D";
 
-    EXPECT_NS_EQUAL(testCommand.activationKey, @"\uF70D");
+    EXPECT_NS_EQUAL(testCommand.get().activationKey, @"\uF70D");
 #if PLATFORM(MAC)
-    EXPECT_EQ(testCommand.modifierFlags, NSEventModifierFlagOption | NSEventModifierFlagShift);
+    EXPECT_EQ(testCommand.get().modifierFlags, NSEventModifierFlagOption | NSEventModifierFlagShift);
 #else
-    EXPECT_EQ(testCommand.modifierFlags, UIKeyModifierAlternate | UIKeyModifierShift);
+    EXPECT_EQ(testCommand.get().modifierFlags, UIKeyModifierAlternate | UIKeyModifierShift);
 #endif
 
-    testCommand.activationKey = @"M";
+    testCommand.get().activationKey = @"M";
 
 #if PLATFORM(MAC)
-    EXPECT_NS_EQUAL(testCommand.activationKey, @"m");
-    EXPECT_EQ(testCommand.modifierFlags, NSEventModifierFlagOption | NSEventModifierFlagShift);
+    EXPECT_NS_EQUAL(testCommand.get().activationKey, @"m");
+    EXPECT_EQ(testCommand.get().modifierFlags, NSEventModifierFlagOption | NSEventModifierFlagShift);
 #else
-    EXPECT_NS_EQUAL(testCommand.activationKey, @"M");
-    EXPECT_EQ(testCommand.modifierFlags, UIKeyModifierAlternate | UIKeyModifierShift);
+    EXPECT_NS_EQUAL(testCommand.get().activationKey, @"M");
+    EXPECT_EQ(testCommand.get().modifierFlags, UIKeyModifierAlternate | UIKeyModifierShift);
 #endif
 
-    testCommand.modifierFlags = 0;
+    testCommand.get().modifierFlags = 0;
 
-    EXPECT_NULL(testCommand.activationKey);
-    EXPECT_EQ((uint32_t)testCommand.modifierFlags, 0lu);
+    EXPECT_NULL(testCommand.get().activationKey);
+    EXPECT_EQ((uint32_t)testCommand.get().modifierFlags, 0lu);
 
 #if PLATFORM(MAC)
-    testCommand.modifierFlags = NSEventModifierFlagCommand | NSEventModifierFlagShift;
+    testCommand.get().modifierFlags = NSEventModifierFlagCommand | NSEventModifierFlagShift;
 #else
-    testCommand.modifierFlags = UIKeyModifierCommand | UIKeyModifierShift;
+    testCommand.get().modifierFlags = UIKeyModifierCommand | UIKeyModifierShift;
 #endif
 
 #if PLATFORM(MAC)
-    EXPECT_NS_EQUAL(testCommand.activationKey, @"m");
-    EXPECT_EQ(testCommand.modifierFlags, NSEventModifierFlagCommand | NSEventModifierFlagShift);
+    EXPECT_NS_EQUAL(testCommand.get().activationKey, @"m");
+    EXPECT_EQ(testCommand.get().modifierFlags, NSEventModifierFlagCommand | NSEventModifierFlagShift);
 #else
-    EXPECT_NS_EQUAL(testCommand.activationKey, @"M");
-    EXPECT_EQ(testCommand.modifierFlags, UIKeyModifierCommand | UIKeyModifierShift);
+    EXPECT_NS_EQUAL(testCommand.get().activationKey, @"M");
+    EXPECT_EQ(testCommand.get().modifierFlags, UIKeyModifierCommand | UIKeyModifierShift);
 #endif
 
     @try {
-        testCommand.activationKey = @"F10";
+        testCommand.get().activationKey = @"F10";
     } @catch (NSException *exception) {
         EXPECT_NS_EQUAL(exception.name, NSInternalInconsistencyException);
     } @finally {
 #if PLATFORM(MAC)
-        EXPECT_NS_EQUAL(testCommand.activationKey, @"m");
+        EXPECT_NS_EQUAL(testCommand.get().activationKey, @"m");
 #else
-        EXPECT_NS_EQUAL(testCommand.activationKey, @"M");
+        EXPECT_NS_EQUAL(testCommand.get().activationKey, @"M");
 #endif
     }
 
     @try {
-        testCommand.modifierFlags = 1 << 16;
+        testCommand.get().modifierFlags = 1 << 16;
     } @catch (NSException *exception) {
         EXPECT_NS_EQUAL(exception.name, NSInternalInconsistencyException);
     } @finally {
 #if PLATFORM(MAC)
-        EXPECT_EQ(testCommand.modifierFlags, NSEventModifierFlagCommand | NSEventModifierFlagShift);
+        EXPECT_EQ(testCommand.get().modifierFlags, NSEventModifierFlagCommand | NSEventModifierFlagShift);
 #else
-        EXPECT_EQ(testCommand.modifierFlags, UIKeyModifierCommand | UIKeyModifierShift);
+        EXPECT_EQ(testCommand.get().modifierFlags, UIKeyModifierCommand | UIKeyModifierShift);
 #endif
     }
 
@@ -945,7 +945,7 @@ TEST(WKWebExtensionContext, LoadNonExistentImage)
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const img = new Image()",
         @"img.src = 'non-existent-image.png'",
 
@@ -954,7 +954,7 @@ TEST(WKWebExtensionContext, LoadNonExistentImage)
         @"}",
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     EXPECT_NS_EQUAL(manager.get().context.errors, @[ ]);
 

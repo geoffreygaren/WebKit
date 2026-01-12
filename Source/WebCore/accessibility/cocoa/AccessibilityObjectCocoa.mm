@@ -88,20 +88,20 @@ std::optional<NSRange> AccessibilityObject::visibleCharacterRange() const
 
 static void addObjectWrapperToArray(const AccessibilityObject& object, NSMutableArray *array)
 {
-    auto* wrapper = object.wrapper();
+    RetainPtr wrapper = object.wrapper();
     if (!wrapper)
         return;
 
     // Don't add the same object twice.
-    if ([array containsObject:wrapper])
+    if ([array containsObject:wrapper.get()])
         return;
 
 #if PLATFORM(IOS_FAMILY)
     // Explicitly set that this is a new element, in case other logic tries to override.
-    [wrapper setValue:@YES forKey:@"isAccessibilityElement"];
+    [wrapper.get() setValue:@YES forKey:@"isAccessibilityElement"];
 #endif
 
-    [array addObject:wrapper];
+    [array addObject:wrapper.get()];
 }
 
 void attributedStringSetNumber(NSMutableAttributedString *attrString, NSString *attribute, NSNumber *number, const NSRange& range)

@@ -258,13 +258,13 @@ static void checkTitleAndClick(UIButton *button, const char* expectedTitle)
 
 template<typename ViewType> void goBack(ViewType *view, bool mainFrame = true)
 {
-    WKWebView *webView = (WKWebView *)view.superview;
+    RetainPtr webView = (WKWebView *)view.superview;
     auto box = view.subviews.firstObject;
     checkTitleAndClick(box.subviews[3], "Go Back");
     if (mainFrame)
-        EXPECT_EQ([webView _safeBrowsingWarning], nil);
+        EXPECT_EQ([webView.get() _safeBrowsingWarning], nil);
     else
-        EXPECT_NE([webView _safeBrowsingWarning], nil);
+        EXPECT_NE([webView.get() _safeBrowsingWarning], nil);
 }
 
 TEST(SafeBrowsing, GoBack)
@@ -590,11 +590,11 @@ TEST(SafeBrowsing, HangTimeout)
     TestWebKitAPI::HTTPServer server({
         { "/test"_s, { "test"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::HttpsProxy);
-    auto configuration = server.httpsProxyConfiguration();
+    RetainPtr configuration = server.httpsProxyConfiguration();
 
     ClassMethodSwizzler swizzler(getSSBLookupContextClassSingleton(), @selector(sharedLookupContext), [DelayedLookupContext methodForSelector:@selector(sharedLookupContext)]);
 
-    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration]);
+    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
     [webView configuration].preferences.fraudulentWebsiteWarningEnabled = YES;
     auto delegate = adoptNS([TestNavigationDelegate new]);
     [delegate allowAnyTLSCertificate];
@@ -611,11 +611,11 @@ TEST(SafeBrowsing, PostResponse)
     TestWebKitAPI::HTTPServer server({
         { "/test"_s, { "test"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::HttpsProxy);
-    auto configuration = server.httpsProxyConfiguration();
+    RetainPtr configuration = server.httpsProxyConfiguration();
 
     ClassMethodSwizzler swizzler(getSSBLookupContextClassSingleton(), @selector(sharedLookupContext), [DelayedLookupContext methodForSelector:@selector(sharedLookupContext)]);
 
-    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration]);
+    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
     [webView configuration].preferences.fraudulentWebsiteWarningEnabled = YES;
     auto delegate = adoptNS([TestNavigationDelegate new]);
     [delegate allowAnyTLSCertificate];
@@ -694,11 +694,11 @@ TEST(SafeBrowsing, PostResponseServerSideRedirect)
         { "/safe"_s, { 301, { { "Location"_s, "/redirectTarget"_s } } } },
         { "/redirectTarget"_s, { "hi"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::HttpsProxy);
-    auto configuration = server.httpsProxyConfiguration();
+    RetainPtr configuration = server.httpsProxyConfiguration();
 
     ClassMethodSwizzler swizzler(getSSBLookupContextClassSingleton(), @selector(sharedLookupContext), [DelayedLookupContext methodForSelector:@selector(sharedLookupContext)]);
 
-    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration]);
+    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
     [webView configuration].preferences.fraudulentWebsiteWarningEnabled = YES;
     auto delegate = adoptNS([TestNavigationDelegate new]);
     [delegate allowAnyTLSCertificate];
@@ -718,11 +718,11 @@ TEST(SafeBrowsing, MultipleRedirectsFirstPhishing)
         { "/redirectTarget1"_s, { 301, { { "Location"_s, "/redirectTarget2"_s } } } },
         { "/redirectTarget2"_s, { "hi"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::HttpsProxy);
-    auto configuration = server.httpsProxyConfiguration();
+    RetainPtr configuration = server.httpsProxyConfiguration();
 
     ClassMethodSwizzler swizzler(getSSBLookupContextClassSingleton(), @selector(sharedLookupContext), [SimpleLookupContext methodForSelector:@selector(sharedLookupContext)]);
 
-    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration]);
+    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
     [webView configuration].preferences.fraudulentWebsiteWarningEnabled = YES;
     auto delegate = adoptNS([TestNavigationDelegate new]);
     [delegate allowAnyTLSCertificate];
@@ -742,11 +742,11 @@ TEST(SafeBrowsing, MultipleRedirectsMiddlePhishing)
         { "/redirectTarget1"_s, { 301, { { "Location"_s, "/redirectTarget2"_s } } } },
         { "/redirectTarget2"_s, { "hi"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::HttpsProxy);
-    auto configuration = server.httpsProxyConfiguration();
+    RetainPtr configuration = server.httpsProxyConfiguration();
 
     ClassMethodSwizzler swizzler(getSSBLookupContextClassSingleton(), @selector(sharedLookupContext), [SimpleLookupContext methodForSelector:@selector(sharedLookupContext)]);
 
-    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration]);
+    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
     [webView configuration].preferences.fraudulentWebsiteWarningEnabled = YES;
     auto delegate = adoptNS([TestNavigationDelegate new]);
     [delegate allowAnyTLSCertificate];
@@ -766,11 +766,11 @@ TEST(SafeBrowsing, MultipleRedirectsLastPhishing)
         { "/redirectTarget1"_s, { 301, { { "Location"_s, "/redirectTarget2"_s } } } },
         { "/redirectTarget2"_s, { "hi"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::HttpsProxy);
-    auto configuration = server.httpsProxyConfiguration();
+    RetainPtr configuration = server.httpsProxyConfiguration();
 
     ClassMethodSwizzler swizzler(getSSBLookupContextClassSingleton(), @selector(sharedLookupContext), [SimpleLookupContext methodForSelector:@selector(sharedLookupContext)]);
 
-    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration]);
+    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
     [webView configuration].preferences.fraudulentWebsiteWarningEnabled = YES;
     auto delegate = adoptNS([TestNavigationDelegate new]);
     [delegate allowAnyTLSCertificate];
@@ -810,11 +810,11 @@ TEST(SafeBrowsing, PostTimeout)
     TestWebKitAPI::HTTPServer server({
         { "/test"_s, { "test"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::HttpsProxy);
-    auto configuration = server.httpsProxyConfiguration();
+    RetainPtr configuration = server.httpsProxyConfiguration();
 
     ClassMethodSwizzler swizzler(getSSBLookupContextClassSingleton(), @selector(sharedLookupContext), [DelayedLookupContext methodForSelector:@selector(sharedLookupContext)]);
 
-    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration]);
+    auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
     [webView configuration].preferences.fraudulentWebsiteWarningEnabled = YES;
     auto delegate = adoptNS([TestNavigationDelegate new]);
     [delegate allowAnyTLSCertificate];

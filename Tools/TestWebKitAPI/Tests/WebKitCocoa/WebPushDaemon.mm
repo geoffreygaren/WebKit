@@ -528,7 +528,7 @@ XPCObjectPtr<xpc_connection_t> createAndConfigureConnectionToService(const char*
 
 TEST(WebPushD, BasicCommunication)
 {
-    NSURL *tempDir = setUpTestWebPushD();
+    RetainPtr tempDir = setUpTestWebPushD();
 
     // FIXME: This is a false positive. <rdar://164843889>
     SUPPRESS_RETAINPTR_CTOR_ADOPT auto connection = adoptXPCObject(xpc_connection_create_mach_service("org.webkit.webpushtestdaemon.service", mainDispatchQueueSingleton(), 0));
@@ -561,7 +561,7 @@ TEST(WebPushD, BasicCommunication)
 
     TestWebKitAPI::Util::run(&messageReplied);
     TestWebKitAPI::Util::run(&interrupted);
-    cleanUpTestWebPushD(tempDir);
+    cleanUpTestWebPushD(tempDir.get());
 }
 
 static void clearWebsiteDataStore(WKWebsiteDataStore *store)
@@ -1017,8 +1017,8 @@ public:
     {
         NSError *error = nil;
         auto script = makeString("return await subscribe('"_s, key, "')"_s);
-        id obj = [m_webView objectByCallingAsyncFunction:script.createNSString().get() withArguments:@{ } error:&error];
-        return error ?: obj;
+        RetainPtr<id> obj = [m_webView objectByCallingAsyncFunction:script.createNSString().get() withArguments:@{ } error:&error];
+        return error ?: obj.autorelease();
     }
 
     id unsubscribe()
@@ -1207,12 +1207,12 @@ public:
             .dataStoreIdentifier = m_dataStoreIdentifier
         };
         auto topic = WebCore::makePushTopic(subscriptionSetIdentifier, scope);
-        id obj = @{
+        RetainPtr<id> obj = @{
             @"topic": topic.createNSString().get(),
             @"userInfo": apsUserInfo
         };
 
-        String message { byteCast<Latin1Character>(span([NSJSONSerialization dataWithJSONObject:obj options:0 error:nullptr])) };
+        String message { byteCast<Latin1Character>(span([NSJSONSerialization dataWithJSONObject:obj.get() options:0 error:nullptr])) };
 
         auto utilityConnection = createAndConfigureConnectionToService("org.webkit.webpushtestdaemon.service");
         auto sender = WebPushXPCConnectionMessageSender { utilityConnection.get() };
@@ -1451,19 +1451,19 @@ TEST_F(WebPushDTest, SubscribeTest)
 {
     for (auto& v : webViews()) {
         ASSERT_FALSE(v->hasPushSubscription());
-        id obj = v->subscribe();
+        RetainPtr<id> obj = v->subscribe();
         ASSERT_TRUE(v->hasPushSubscription());
 
-        ASSERT_TRUE([obj isKindOfClass:[NSDictionary class]]);
-        NSDictionary *subscription = obj;
-        ASSERT_TRUE([subscription[@"endpoint"] hasPrefix:@"https://"]);
-        ASSERT_TRUE([subscription[@"keys"] isKindOfClass:[NSDictionary class]]);
+        ASSERT_TRUE([obj.get() isKindOfClass:[NSDictionary class]]);
+        RetainPtr subscription = obj;
+        ASSERT_TRUE([subscription.get()[@"endpoint"] hasPrefix:@"https://"]);
+        ASSERT_TRUE([subscription.get()[@"keys"] isKindOfClass:[NSDictionary class]]);
 
         // Shared auth secret should be 16 bytes (22 bytes in unpadded base64url).
-        ASSERT_EQ([subscription[@"keys"][@"auth"] length], 22u);
+        ASSERT_EQ([subscription.get()[@"keys"][@"auth"] length], 22u);
 
         // Client public key should be 65 bytes (87 bytes in unpadded base64url).
-        ASSERT_EQ([subscription[@"keys"][@"p256dh"] length], 87u);
+        ASSERT_EQ([subscription.get()[@"keys"][@"p256dh"] length], 87u);
     }
 
     auto lessThan = [](const String& lhs, const String& rhs) {
@@ -1498,8 +1498,8 @@ TEST_F(WebPushDTest, SubscribeWithBadIPCVersionRaisesExceptionTest)
 
     for (auto& v : webViews()) {
         ASSERT_FALSE(v->hasPushSubscription());
-        id obj = v->subscribe();
-        ASSERT_TRUE([obj isEqual:@"Error: AbortError: Connection to web push daemon failed"]);
+        RetainPtr<id> obj = v->subscribe();
+        ASSERT_TRUE([obj.get() isEqual:@"Error: AbortError: Connection to web push daemon failed"]);
     }
 }
 
@@ -1508,19 +1508,19 @@ TEST_F(WebPushDNavigatorTest, SubscribeTest)
 {
     for (auto& v : webViews()) {
         ASSERT_FALSE(v->hasPushSubscription());
-        id obj = v->subscribe();
+        RetainPtr<id> obj = v->subscribe();
         ASSERT_TRUE(v->hasPushSubscription());
 
-        ASSERT_TRUE([obj isKindOfClass:[NSDictionary class]]);
-        NSDictionary *subscription = obj;
-        ASSERT_TRUE([subscription[@"endpoint"] hasPrefix:@"https://"]);
-        ASSERT_TRUE([subscription[@"keys"] isKindOfClass:[NSDictionary class]]);
+        ASSERT_TRUE([obj.get() isKindOfClass:[NSDictionary class]]);
+        RetainPtr subscription = obj;
+        ASSERT_TRUE([subscription.get()[@"endpoint"] hasPrefix:@"https://"]);
+        ASSERT_TRUE([subscription.get()[@"keys"] isKindOfClass:[NSDictionary class]]);
 
         // Shared auth secret should be 16 bytes (22 bytes in unpadded base64url).
-        ASSERT_EQ([subscription[@"keys"][@"auth"] length], 22u);
+        ASSERT_EQ([subscription.get()[@"keys"][@"auth"] length], 22u);
 
         // Client public key should be 65 bytes (87 bytes in unpadded base64url).
-        ASSERT_EQ([subscription[@"keys"][@"p256dh"] length], 87u);
+        ASSERT_EQ([subscription.get()[@"keys"][@"p256dh"] length], 87u);
     }
 
     auto lessThan = [](const String& lhs, const String& rhs) {
@@ -1548,12 +1548,12 @@ TEST_F(WebPushDTest, SubscribeFailureTest)
 {
     for (auto& v : webViews()) {
         ASSERT_FALSE(v->hasPushSubscription());
-        id obj = v->subscribe(keyThatCausesInjectedFailure);
+        RetainPtr<id> obj = v->subscribe(keyThatCausesInjectedFailure);
         ASSERT_FALSE(v->hasPushSubscription());
 
         // Spec says that an error in the push service should be an AbortError.
-        ASSERT_TRUE([obj isKindOfClass:[NSString class]]);
-        ASSERT_TRUE([obj hasPrefix:@"Error: AbortError"]);
+        ASSERT_TRUE([obj.get() isKindOfClass:[NSString class]]);
+        ASSERT_TRUE([obj.get() hasPrefix:@"Error: AbortError"]);
     }
 
     ASSERT_EQ(subscribedTopicsCount(), 0u);
@@ -1564,12 +1564,12 @@ TEST_F(WebPushDNavigatorTest, SubscribeFailureTest)
 {
     for (auto& v : webViews()) {
         ASSERT_FALSE(v->hasPushSubscription());
-        id obj = v->subscribe(keyThatCausesInjectedFailure);
+        RetainPtr<id> obj = v->subscribe(keyThatCausesInjectedFailure);
         ASSERT_FALSE(v->hasPushSubscription());
 
         // Spec says that an error in the push service should be an AbortError.
-        ASSERT_TRUE([obj isKindOfClass:[NSString class]]);
-        ASSERT_TRUE([obj hasPrefix:@"Error: AbortError"]);
+        ASSERT_TRUE([obj.get() isKindOfClass:[NSString class]]);
+        ASSERT_TRUE([obj.get() hasPrefix:@"Error: AbortError"]);
     }
 
     ASSERT_EQ(subscribedTopicsCount(), 0u);
@@ -1634,8 +1634,8 @@ TEST_F(WebPushDTest, UnsubscribesOnServiceWorkerUnregisterTest)
 
     for (auto& v : webViews()) {
         ASSERT_TRUE(v->hasPushSubscription());
-        id result = v->unregisterServiceWorker();
-        ASSERT_TRUE([result isEqual:@YES]);
+        RetainPtr<id> result = v->unregisterServiceWorker();
+        ASSERT_TRUE([result.get() isEqual:@YES]);
         ASSERT_TRUE(v->hasPushSubscription());
     }
 }
@@ -1843,8 +1843,8 @@ TEST_F(WebPushDMultipleLaunchTest, GetPushSubscriptionAfterDaemonRelaunch)
     // Note that getSubscription() will return null now since we launch webpushd in in-memory mode
     // when running tests. We're just making sure that this doesn't fail with an AbortError.
     for (auto& v : webViews()) {
-        id result = v->getPushSubscription();
-        ASSERT_TRUE([result isEqual:[NSNull null]]);
+        RetainPtr<id> result = v->getPushSubscription();
+        ASSERT_TRUE([result.get() isEqual:[NSNull null]]);
     }
 
     ASSERT_EQ(subscribedTopicsCount(), 0u);
@@ -1902,13 +1902,13 @@ TEST_F(WebPushDBuiltInTest, ShowAndGetNotifications)
     }];
     TestWebKitAPI::Util::run(&done);
 
-    id result = view->getNotifications();
-    EXPECT_TRUE([result isEqualToString:@"0 - title: notification body:  tag:  dir: auto silent: null data: null "]);
+    RetainPtr<id> result = view->getNotifications();
+    EXPECT_TRUE([result.get() isEqualToString:@"0 - title: notification body:  tag:  dir: auto silent: null data: null "]);
 
     view->closeAllNotifications();
 
     result = view->getNotifications();
-    EXPECT_TRUE([result isEqualToString:@""]);
+    EXPECT_TRUE([result.get() isEqualToString:@""]);
 
     // The push message handler should set the app badge to 42
     EXPECT_TRUE([view->getAppBadge() isEqual:@42]);
@@ -3051,11 +3051,11 @@ public:
 
     void checkLastActionURL(NSString *url)
     {
-        NSURL *recentActionURL = webViews().first()->mostRecentActionURL();
-        EXPECT_TRUE([url isEqualToString:recentActionURL.absoluteString]);
+        RetainPtr recentActionURL = webViews().first()->mostRecentActionURL();
+        EXPECT_TRUE([url isEqualToString:recentActionURL.get().absoluteString]);
 
-        if (![url isEqualToString:recentActionURL.absoluteString])
-            NSLog(@"Lact action URL: %@\nExpected URL: %@", recentActionURL, url);
+        if (![url isEqualToString:recentActionURL.get().absoluteString])
+            NSLog(@"Lact action URL: %@\nExpected URL: %@", recentActionURL.get(), url);
 
     }
 

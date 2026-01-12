@@ -45,12 +45,12 @@ TEST(WKWebExtensionAPINamespace, NoWebNavigationObjectWithoutPermission)
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(typeof browser.webNavigation, 'undefined')",
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     // Deny the permission, since TestWebKitAPI auto grants all requested permissions.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusDeniedExplicitly forPermission:WKWebExtensionPermissionWebNavigation];
@@ -70,14 +70,14 @@ TEST(WKWebExtensionAPINamespace, WebNavigationObjectWithPermission)
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(typeof browser.webNavigation, 'object')",
         @"browser.test.notifyPass()"
     ]);
 
     // TestWebKitAPI auto grants all requested permissions.
 
-    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPINamespace, NoNotificationsObjectWithoutPermission)
@@ -92,12 +92,12 @@ TEST(WKWebExtensionAPINamespace, NoNotificationsObjectWithoutPermission)
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(typeof browser.notifications, 'undefined')",
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     // Deny the permission, since TestWebKitAPI auto grants all requested permissions.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusDeniedExplicitly forPermission:@"notifications"];
@@ -117,14 +117,14 @@ TEST(WKWebExtensionAPINamespace, NotificationsObjectWithPermission)
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(typeof browser.notifications, 'object')",
         @"browser.test.notifyPass()"
     ]);
 
     // TestWebKitAPI auto grants all requested permissions.
 
-    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPINamespace, NotificationsUnsupported)
@@ -139,13 +139,13 @@ TEST(WKWebExtensionAPINamespace, NotificationsUnsupported)
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(browser.notifications, undefined)",
 
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::parseExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::parseExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().context.unsupportedAPIs = [NSSet setWithObject:@"browser.notifications"];
 
@@ -165,7 +165,7 @@ TEST(WKWebExtensionAPINamespace, ObjectEquality)
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(browser.storage, browser.storage)",
         @"browser.test.assertEq(browser.storage.local, browser.storage.local)",
         @"browser.test.assertEq(browser.storage.session, browser.storage.session)",
@@ -176,7 +176,7 @@ TEST(WKWebExtensionAPINamespace, ObjectEquality)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript.get() });
 }
 
 
@@ -201,25 +201,25 @@ TEST(WKWebExtensionAPINamespace, BrowserNamespaceIsAvailableInContentScripts)
         } ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Background page loaded')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.test.assertEq(typeof browser, 'object')",
         @"browser.test.notifyPass()",
     ]);
 
     auto manager = Util::parseExtension(manifest, @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript
+        @"background.js": backgroundScript.get(),
+        @"content.js": contentScript.get()
     });
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
     // Steps to reproduce:
     // Step 1: Navigate to a page
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
     [manager.get().defaultTab.webView _test_waitForDidFinishNavigation];
 
     // Step 2: Enable the extension
@@ -227,7 +227,7 @@ TEST(WKWebExtensionAPINamespace, BrowserNamespaceIsAvailableInContentScripts)
     [manager runUntilTestMessage:@"Background page loaded"];
 
     // Step 3: Grant it access to the page
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     // Step 4: Disable the extension
     [manager unload];

@@ -138,10 +138,10 @@ void WKNotifyHistoryItemChanged()
 {
     WebCoreThreadViolationCheckRoundOne();
 
-    WebHistoryItem *item = [self initWithWebCoreHistoryItem:HistoryItem::create(LegacyHistoryItemClient::singleton(), URLString, title)];
-    item->_private->_lastVisitedTime = time;
+    RetainPtr item = [self initWithWebCoreHistoryItem:HistoryItem::create(LegacyHistoryItemClient::singleton(), URLString, title)];
+    item.get()->_private->_lastVisitedTime = time;
 
-    return item;
+    return item.autorelease();
 }
 
 - (void)dealloc
@@ -225,30 +225,30 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 - (NSString *)description
 {
     HistoryItem* coreItem = core(_private);
-    NSMutableString *result = [NSMutableString stringWithFormat:@"%@ %@", [super description], coreItem->urlString().createNSString().get()];
+    RetainPtr result = [NSMutableString stringWithFormat:@"%@ %@", [super description], coreItem->urlString().createNSString().get()];
     if (!coreItem->target().isEmpty())
-        [result appendFormat:@" in \"%@\"", coreItem->target().createNSString().get()];
+        [result.get() appendFormat:@" in \"%@\"", coreItem->target().createNSString().get()];
     if (coreItem->isTargetItem())
-        [result appendString:@" *target*"];
+        [result.get() appendString:@" *target*"];
     if (coreItem->formData()) {
-        [result appendString:@" *POST*"];
+        [result.get() appendString:@" *POST*"];
     }
     
     if (coreItem->children().size()) {
         const auto& children = coreItem->children();
-        int currPos = [result length];
-        unsigned size = children.size();        
+        int currPos = [result.get() length];
+        unsigned size = children.size();
         for (unsigned i = 0; i < size; ++i) {
-            WebHistoryItem *child = kit(const_cast<HistoryItem*>(children[i].ptr()));
-            [result appendString:@"\n"];
-            [result appendString:[child description]];
+            RetainPtr child = kit(const_cast<HistoryItem*>(children[i].ptr()));
+            [result.get() appendString:@"\n"];
+            [result.get() appendString:[child.get() description]];
         }
         // shift all the contents over.  A bit slow, but hey, this is for debugging.
-        NSRange replRange = { static_cast<NSUInteger>(currPos), [result length] - currPos };
-        [result replaceOccurrencesOfString:@"\n" withString:@"\n    " options:0 range:replRange];
+        NSRange replRange = { static_cast<NSUInteger>(currPos), [result.get() length] - currPos };
+        [result.get() replaceOccurrencesOfString:@"\n" withString:@"\n    " options:0 range:replRange];
     }
-    
-    return result;
+
+    return result.autorelease();
 }
 
 HistoryItem* core(WebHistoryItem *item)
@@ -263,8 +263,8 @@ WebHistoryItem *kit(HistoryItem* item)
 {
     if (!item)
         return nil;
-    if (auto wrapper = historyItemWrappers().get(*item))
-        return retainPtr(wrapper).autorelease();
+    if (RetainPtr wrapper = historyItemWrappers().get(*item))
+        return wrapper.autorelease();
     return adoptNS([[WebHistoryItem alloc] initWithWebCoreHistoryItem:*item]).autorelease();
 }
 
@@ -275,11 +275,11 @@ WebHistoryItem *kit(HistoryItem* item)
 
 - (id)initWithURLString:(NSString *)URLString title:(NSString *)title displayTitle:(NSString *)displayTitle lastVisitedTimeInterval:(NSTimeInterval)time
 {
-    auto item = [self initWithWebCoreHistoryItem:HistoryItem::create(LegacyHistoryItemClient::singleton(), URLString, title, displayTitle)];
+    RetainPtr item = [self initWithWebCoreHistoryItem:HistoryItem::create(LegacyHistoryItemClient::singleton(), URLString, title, displayTitle)];
     if (!item)
         return nil;
     item->_private->_lastVisitedTime = time;
-    return item;
+    return item.autorelease();
 }
 
 - (id)initWithWebCoreHistoryItem:(Ref<HistoryItem>&&)item
@@ -336,7 +336,7 @@ WebHistoryItem *kit(HistoryItem* item)
         _private->_redirectURLs = makeUnique<Vector<String>>(makeVector<String>(redirectURLs));
 
     for (id childDict in [[dict objectForKey:childrenKey] reverseObjectEnumerator]) {
-        auto child = adoptNS([[WebHistoryItem alloc] initFromDictionaryRepresentation:childDict]);
+        RetainPtr child = adoptNS([[WebHistoryItem alloc] initFromDictionaryRepresentation:childDict]);
         core(_private)->addChildItem(*core(child->_private));
     }
 

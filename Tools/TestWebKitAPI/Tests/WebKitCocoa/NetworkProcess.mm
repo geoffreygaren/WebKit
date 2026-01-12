@@ -59,14 +59,14 @@ TEST(NetworkProcess, Entitlements)
 {
     auto webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:adoptNS([[WKWebViewConfiguration alloc] init]).get()]);
     [webView synchronouslyLoadTestPageNamed:@"simple"];
-    WKWebsiteDataStore *store = [webView configuration].websiteDataStore;
-    bool hasEntitlement = [store _networkProcessHasEntitlementForTesting:@"com.apple.rootless.storage.WebKitNetworkingSandbox"];
+    RetainPtr<WKWebsiteDataStore> store = [webView configuration].websiteDataStore;
+    bool hasEntitlement = [store.get() _networkProcessHasEntitlementForTesting:@"com.apple.rootless.storage.WebKitNetworkingSandbox"];
 #if PLATFORM(MAC) && USE(APPLE_INTERNAL_SDK)
     EXPECT_TRUE(hasEntitlement);
 #else
     EXPECT_FALSE(hasEntitlement);
 #endif
-    EXPECT_FALSE([store _networkProcessHasEntitlementForTesting:@"test failure case"]);
+    EXPECT_FALSE([store.get() _networkProcessHasEntitlementForTesting:@"test failure case"]);
 }
 
 TEST(WebKit, HTTPReferer)
@@ -93,14 +93,14 @@ TEST(WebKit, HTTPReferer)
     a5k.append(0);
     Vector<char> a3k(3000, 'a');
     a3k.append(0);
-    NSString *longPath = [NSString stringWithFormat:@"http://webkit.org/%s?asdf", a5k.span().data()];
-    NSString *shorterPath = [NSString stringWithFormat:@"http://webkit.org/%s?asdf", a3k.span().data()];
-    NSString *longHost = [NSString stringWithFormat:@"http://webkit.org%s/path", a5k.span().data()];
-    NSString *shorterHost = [NSString stringWithFormat:@"http://webkit.org%s/path", a3k.span().data()];
-    checkReferer([NSURL URLWithString:longPath], "http://webkit.org/");
-    checkReferer([NSURL URLWithString:shorterPath], shorterPath.UTF8String);
-    checkReferer([NSURL URLWithString:longHost], nullptr);
-    checkReferer([NSURL URLWithString:shorterHost], shorterHost.UTF8String);
+    RetainPtr longPath = [NSString stringWithFormat:@"http://webkit.org/%s?asdf", a5k.span().data()];
+    RetainPtr shorterPath = [NSString stringWithFormat:@"http://webkit.org/%s?asdf", a3k.span().data()];
+    RetainPtr longHost = [NSString stringWithFormat:@"http://webkit.org%s/path", a5k.span().data()];
+    RetainPtr shorterHost = [NSString stringWithFormat:@"http://webkit.org%s/path", a3k.span().data()];
+    checkReferer([NSURL URLWithString:longPath.get()], "http://webkit.org/");
+    checkReferer([NSURL URLWithString:shorterPath.get()], [shorterPath.get() UTF8String]);
+    checkReferer([NSURL URLWithString:longHost.get()], nullptr);
+    checkReferer([NSURL URLWithString:shorterHost.get()], [shorterHost.get() UTF8String]);
 }
 
 TEST(NetworkProcess, LaunchOnlyWhenNecessary)
@@ -154,13 +154,13 @@ TEST(NetworkProcess, TerminateWhenNoWebsiteDataStore)
     pid_t networkProcessIdentifier = 0;
     @autoreleasepool {
         auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
-        auto nonPersistentStore = [WKWebsiteDataStore nonPersistentDataStore];
-        configuration.get().websiteDataStore = nonPersistentStore;
+        RetainPtr nonPersistentStore = [WKWebsiteDataStore nonPersistentDataStore];
+        configuration.get().websiteDataStore = nonPersistentStore.get();
         auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0) configuration:configuration.get()]);
         [webView synchronouslyLoadTestPageNamed:@"simple"];
         EXPECT_TRUE([WKWebsiteDataStore _defaultNetworkProcessExists]);
 
-        networkProcessIdentifier = [nonPersistentStore _networkProcessIdentifier];
+        networkProcessIdentifier = [nonPersistentStore.get() _networkProcessIdentifier];
         EXPECT_NE(networkProcessIdentifier, 0);
     }
 
@@ -215,15 +215,15 @@ TEST(NetworkProcess, TerminateWhenNetworkProcessIsSuspended)
     pid_t networkProcessIdentifier = 0;
     @autoreleasepool {
         auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
-        auto nonPersistentStore = [WKWebsiteDataStore nonPersistentDataStore];
+        RetainPtr nonPersistentStore = [WKWebsiteDataStore nonPersistentDataStore];
 
         bool networkProcessLaunched = TestWebKitAPI::Util::waitFor([&]() {
-            networkProcessIdentifier = [nonPersistentStore _networkProcessIdentifier];
+            networkProcessIdentifier = [nonPersistentStore.get() _networkProcessIdentifier];
             return !!networkProcessIdentifier;
         });
         ASSERT_TRUE(networkProcessLaunched);
 
-        [nonPersistentStore _forceNetworkProcessToTaskSuspendForTesting];
+        [nonPersistentStore.get() _forceNetworkProcessToTaskSuspendForTesting];
 
         bool isNetworkProcessTaskSuspended = TestWebKitAPI::Util::waitFor([&]() {
             return isTaskSuspended(networkProcessIdentifier);
@@ -285,17 +285,17 @@ TEST(NetworkProcess, CORSPreflightCachePartitioned)
             });
         });
     });
-    NSString *html = [NSString stringWithFormat:@"<script>var xhr = new XMLHttpRequest();xhr.open('DELETE', 'http://localhost:%d/');xhr.send()</script>", server.port()];
-    NSURL *baseURL = [NSURL URLWithString:@"http://example.com/"];
+    RetainPtr html = [NSString stringWithFormat:@"<script>var xhr = new XMLHttpRequest();xhr.open('DELETE', 'http://localhost:%d/');xhr.send()</script>", server.port()];
+    RetainPtr baseURL = [NSURL URLWithString:@"http://example.com/"];
     auto firstWebView = adoptNS([WKWebView new]);
-    [firstWebView loadHTMLString:html baseURL:baseURL];
+    [firstWebView loadHTMLString:html.get() baseURL:baseURL.get()];
     while (preflightRequestsReceived != 1)
         TestWebKitAPI::Util::spinRunLoop();
 
     auto configuration = adoptNS([WKWebViewConfiguration new]);
     configuration.get().websiteDataStore = [WKWebsiteDataStore nonPersistentDataStore];
     auto secondWebView = adoptNS([[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:configuration.get()]);
-    [secondWebView loadHTMLString:html baseURL:baseURL];
+    [secondWebView loadHTMLString:html.get() baseURL:baseURL.get()];
     while (preflightRequestsReceived != 2)
         TestWebKitAPI::Util::spinRunLoop();
 }
@@ -358,11 +358,11 @@ TEST(NetworkProcess, BroadcastChannelCrashRecovery)
     receivedMessage = false;
     receivedMessagesVector.clear();
 
-    NSString *html = [NSString stringWithFormat:@"<script>let bc = new BroadcastChannel('test'); bc.onmessage = (msg) => { webkit.messageHandlers.test.postMessage(msg.data); };</script>"];
-    NSURL *baseURL = [NSURL URLWithString:@"http://example.com/"];
+    RetainPtr html = [NSString stringWithFormat:@"<script>let bc = new BroadcastChannel('test'); bc.onmessage = (msg) => { webkit.messageHandlers.test.postMessage(msg.data); };</script>"];
+    RetainPtr baseURL = [NSURL URLWithString:@"http://example.com/"];
 
-    [webView1 synchronouslyLoadHTMLString:html baseURL:baseURL];
-    [webView2 synchronouslyLoadHTMLString:html baseURL:baseURL];
+    [webView1 synchronouslyLoadHTMLString:html.get() baseURL:baseURL.get()];
+    [webView2 synchronouslyLoadHTMLString:html.get() baseURL:baseURL.get()];
 
     auto webPID1 = [webView1 _webProcessIdentifier];
     auto webPID2 = [webView2 _webProcessIdentifier];
@@ -772,10 +772,10 @@ TEST(_WKDataTask, CrashDuringCreation)
             done = true;
         };
     }];
-    auto* dataStore = webView.get().configuration.websiteDataStore;
-    while (!dataStore._networkProcessIdentifier)
+    RetainPtr<WKWebsiteDataStore> dataStore = webView.get().configuration.websiteDataStore;
+    while (!dataStore.get()._networkProcessIdentifier)
         Util::spinRunLoop();
-    [dataStore _terminateNetworkProcess];
+    [dataStore.get() _terminateNetworkProcess];
     Util::run(&done);
 }
 
@@ -806,11 +806,11 @@ TEST(_WKDataTask, Blob)
 {
     __block bool done { false };
     auto webView = adoptNS([WKWebView new]);
-    NSString *html = @"<script>alert(window.URL.createObjectURL(new Blob(['Blob hello'], {type: 'application/octet-stream'})));</script>";
-    [webView loadHTMLString:html baseURL:[NSURL URLWithString:@"https://webkit.org/"]];
-    NSString *url = [webView _test_waitForAlert];
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
-    [webView _dataTaskWithRequest:request completionHandler:^(_WKDataTask *task) {
+    RetainPtr html = @"<script>alert(window.URL.createObjectURL(new Blob(['Blob hello'], {type: 'application/octet-stream'})));</script>";
+    [webView loadHTMLString:html.get() baseURL:[NSURL URLWithString:@"https://webkit.org/"]];
+    RetainPtr url = [webView _test_waitForAlert];
+    RetainPtr request = [NSURLRequest requestWithURL:[NSURL URLWithString:url.get()]];
+    [webView _dataTaskWithRequest:request.get() completionHandler:^(_WKDataTask *task) {
         auto delegate = adoptNS([TestDataTaskDelegate new]);
         task.delegate = delegate.get();
         __block bool receivedResponse = false;
@@ -872,11 +872,11 @@ TEST(WKWebView, CrossOriginDoubleRedirectAuthentication)
     auto viewConfiguration = adoptNS([WKWebViewConfiguration new]);
     [viewConfiguration setWebsiteDataStore:dataStore.get()];
 
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://example.com/original-target"]];
-    [request setValue:@"TestValue" forHTTPHeaderField:@"Authorization"];
+    RetainPtr request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://example.com/original-target"]];
+    [request.get() setValue:@"TestValue" forHTTPHeaderField:@"Authorization"];
 
     auto webView = adoptNS([[WKWebView alloc] initWithFrame:NSZeroRect configuration:viewConfiguration.get()]);
-    [webView loadRequest:request];
+    [webView loadRequest:request.get()];
     Util::run(&done);
 }
 

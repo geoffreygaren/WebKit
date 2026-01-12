@@ -40,7 +40,7 @@ static auto *webRequestManifest = @{ @"manifest_version": @3, @"permissions": @[
 
 TEST(WKWebExtensionAPIWebRequest, ManifestV2Persistent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(typeof browser.webRequest, 'object', 'webRequest should be defined')",
 
         @"browser.test.notifyPass()"
@@ -48,14 +48,14 @@ TEST(WKWebExtensionAPIWebRequest, ManifestV2Persistent)
 
     auto *manifest = @{ @"manifest_version": @2, @"permissions": @[ @"webRequest" ], @"background": @{ @"scripts": @[ @"background.js" ], @"type": @"module", @"persistent": @YES } };
 
-    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript.get() });
 }
 
 #endif // PLATFORM(MAC)
 
 TEST(WKWebExtensionAPIWebRequest, ManifestV2NonPersistent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(typeof browser.webRequest, 'object', 'webRequest should be defined')",
 
         @"browser.test.notifyPass()"
@@ -63,12 +63,12 @@ TEST(WKWebExtensionAPIWebRequest, ManifestV2NonPersistent)
 
     auto *manifest = @{ @"manifest_version": @2, @"permissions": @[ @"webRequest" ], @"background": @{ @"scripts": @[ @"background.js" ], @"type": @"module", @"persistent": @NO } };
 
-    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIWebRequest, EventListenerRegistration)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"function listener() { browser.test.notifyFail('This listener should not have been called') }",
         @"browser.test.assertFalse(browser.webRequest.onCompleted.hasListener(listener), 'Should not have listener')",
 
@@ -81,7 +81,7 @@ TEST(WKWebExtensionAPIWebRequest, EventListenerRegistration)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIWebRequest, BeforeRequestEvent)
@@ -90,7 +90,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEvent)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onBeforeRequest.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.requestId, 'string', 'details.requestId should be')",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
@@ -112,16 +112,16 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEvent)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -133,7 +133,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventForSubresource)
         { "/image.png"_s, { { { "Content-Type"_s, "image/png"_s } }, "..."_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onBeforeRequest.addListener((details) => {",
         @"  if (details?.type !== 'image')",
         @"    return",
@@ -157,23 +157,23 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventForSubresource)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndFormData)
 {
-    auto *pageScript = Util::constructScript(@[
+    RetainPtr pageScript = Util::constructScript(@[
         @"const formData = new FormData()",
         @"formData.append('username', 'user1')",
         @"formData.append('username', 'user2')",
@@ -195,7 +195,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndFormData)
         } },
         { "/form.js"_s, {
             { { "Content-Type"_s, "application/javascript"_s } },
-            pageScript
+            pageScript.get()
         } },
         { "/test"_s, {
             { { "Content-Type"_s, "text/plain"_s } },
@@ -203,7 +203,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndFormData)
         } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onBeforeRequest.addListener((details) => {",
         @"  if (!details.url.includes('/test'))",
         @"    return",
@@ -227,23 +227,23 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndFormData)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndBlob)
 {
-    auto *pageScript = Util::constructScript(@[
+    RetainPtr pageScript = Util::constructScript(@[
         @"const blob = new Blob(['This is some text blob content'], { type: 'text/plain' })",
 
         @"const response = await fetch('/test', {",
@@ -262,7 +262,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndBlob)
         } },
         { "/blob.js"_s, {
             { { "Content-Type"_s, "application/javascript"_s } },
-            pageScript
+            pageScript.get()
         } },
         { "/test"_s, {
             { { "Content-Type"_s, "text/plain"_s } },
@@ -270,7 +270,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndBlob)
         } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onBeforeRequest.addListener((details) => {",
         @"  if (!details.url.includes('/test'))",
         @"    return",
@@ -288,23 +288,23 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndBlob)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndJSON)
 {
-    auto *pageScript = Util::constructScript(@[
+    RetainPtr pageScript = Util::constructScript(@[
         @"const response = await fetch('/test', {",
         @"  method: 'POST',",
         @"  headers: { 'Content-Type': 'application/json' },",
@@ -322,7 +322,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndJSON)
         } },
         { "/fetch.js"_s, {
             { { "Content-Type"_s, "application/javascript"_s } },
-            pageScript
+            pageScript.get()
         } },
         { "/test"_s, {
             { { "Content-Type"_s, "text/plain"_s } },
@@ -330,7 +330,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndJSON)
         } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onBeforeRequest.addListener((details) => {",
         @"  if (!details.url.includes('/test'))",
         @"    return",
@@ -352,23 +352,23 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndJSON)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndForm)
 {
-    auto *pageScript = Util::constructScript(@[
+    RetainPtr pageScript = Util::constructScript(@[
         @"const form = document.createElement('form')",
         @"form.action = '/test'",
         @"form.method = 'POST'",
@@ -402,7 +402,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndForm)
         } },
         { "/form.js"_s, {
             { { "Content-Type"_s, "application/javascript"_s } },
-            pageScript
+            pageScript.get()
         } },
         { "/test"_s, {
             { { "Content-Type"_s, "text/plain"_s } },
@@ -410,7 +410,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndForm)
         } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onBeforeRequest.addListener((details) => {",
         @"  if (!details.url.includes('/test'))",
         @"    return",
@@ -432,16 +432,16 @@ TEST(WKWebExtensionAPIWebRequest, BeforeRequestEventWithRequestBodyAndForm)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -452,7 +452,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeSendHeadersEvent)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onBeforeSendHeaders.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.requestId, 'string', 'details.requestId should be')",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
@@ -474,16 +474,16 @@ TEST(WKWebExtensionAPIWebRequest, BeforeSendHeadersEvent)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -494,7 +494,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeSendHeadersEventWithRequestHeaders)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onBeforeSendHeaders.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.requestId, 'string', 'details.requestId should be')",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
@@ -517,16 +517,16 @@ TEST(WKWebExtensionAPIWebRequest, BeforeSendHeadersEventWithRequestHeaders)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -538,7 +538,7 @@ TEST(WKWebExtensionAPIWebRequest, BeforeSendHeadersEventForSubresource)
         { "/image.png"_s, { { { "Content-Type"_s, "image/png"_s } }, "..."_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onBeforeSendHeaders.addListener((details) => {",
         @"  if (details?.type !== 'image')",
         @"    return",
@@ -563,16 +563,16 @@ TEST(WKWebExtensionAPIWebRequest, BeforeSendHeadersEventForSubresource)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -583,7 +583,7 @@ TEST(WKWebExtensionAPIWebRequest, SendHeadersEvent)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onSendHeaders.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.requestId, 'string', 'details.requestId should be')",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
@@ -605,16 +605,16 @@ TEST(WKWebExtensionAPIWebRequest, SendHeadersEvent)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -625,7 +625,7 @@ TEST(WKWebExtensionAPIWebRequest, SendHeadersEventWithRequestHeaders)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onSendHeaders.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.requestId, 'string', 'details.requestId should be')",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
@@ -648,16 +648,16 @@ TEST(WKWebExtensionAPIWebRequest, SendHeadersEventWithRequestHeaders)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -669,7 +669,7 @@ TEST(WKWebExtensionAPIWebRequest, SendHeadersEventForSubresource)
         { "/image.png"_s, { { { "Content-Type"_s, "image/png"_s } }, "..."_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onSendHeaders.addListener((details) => {",
         @"  if (details?.type !== 'image')",
         @"    return",
@@ -694,16 +694,16 @@ TEST(WKWebExtensionAPIWebRequest, SendHeadersEventForSubresource)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -714,7 +714,7 @@ TEST(WKWebExtensionAPIWebRequest, HeadersReceivedEvent)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onHeadersReceived.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.requestId, 'string', 'details.requestId should be')",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
@@ -739,16 +739,16 @@ TEST(WKWebExtensionAPIWebRequest, HeadersReceivedEvent)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -759,7 +759,7 @@ TEST(WKWebExtensionAPIWebRequest, HeadersReceivedEventWithResponseHeaders)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onHeadersReceived.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.requestId, 'string', 'details.requestId should be')",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
@@ -785,16 +785,16 @@ TEST(WKWebExtensionAPIWebRequest, HeadersReceivedEventWithResponseHeaders)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -806,7 +806,7 @@ TEST(WKWebExtensionAPIWebRequest, HeadersReceivedEventForSubresource)
         { "/image.png"_s, { { { "Content-Type"_s, "image/png"_s }, { "Cache-Control"_s, "no-cache"_s } }, "..."_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onHeadersReceived.addListener((details) => {",
         @"  if (details?.type !== 'image')",
         @"    return",
@@ -835,16 +835,16 @@ TEST(WKWebExtensionAPIWebRequest, HeadersReceivedEventForSubresource)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -856,7 +856,7 @@ TEST(WKWebExtensionAPIWebRequest, ErrorOccurredEvent)
         { "/nonexistent.png"_s, { HTTPResponse::Behavior::TerminateConnectionAfterReceivingRequest } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onErrorOccurred.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.requestId, 'string', 'details.requestId should be')",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
@@ -879,16 +879,16 @@ TEST(WKWebExtensionAPIWebRequest, ErrorOccurredEvent)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -900,7 +900,7 @@ TEST(WKWebExtensionAPIWebRequest, RedirectOccurredEvent)
         { "/target.html"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     });
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onBeforeRedirect.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.requestId, 'string', 'details.requestId should be')",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
@@ -922,16 +922,16 @@ TEST(WKWebExtensionAPIWebRequest, RedirectOccurredEvent)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -944,7 +944,7 @@ TEST(WKWebExtensionAPIWebRequest, RedirectOccurredEventForSubresource)
         { "/final.png"_s, { { { "Content-Type"_s, "image/png"_s } }, "..."_s } },
     });
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onBeforeRedirect.addListener((details) => {",
         @"  if (details?.type !== 'image')",
         @"    return",
@@ -968,16 +968,16 @@ TEST(WKWebExtensionAPIWebRequest, RedirectOccurredEventForSubresource)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -988,7 +988,7 @@ TEST(WKWebExtensionAPIWebRequest, ResponseStartedEvent)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onResponseStarted.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.requestId, 'string', 'details.requestId should be')",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
@@ -1013,16 +1013,16 @@ TEST(WKWebExtensionAPIWebRequest, ResponseStartedEvent)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1033,7 +1033,7 @@ TEST(WKWebExtensionAPIWebRequest, ResponseStartedEventWithResponseHeaders)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onResponseStarted.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.requestId, 'string', 'details.requestId should be')",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
@@ -1059,16 +1059,16 @@ TEST(WKWebExtensionAPIWebRequest, ResponseStartedEventWithResponseHeaders)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1080,7 +1080,7 @@ TEST(WKWebExtensionAPIWebRequest, ResponseStartedEventForSubresource)
         { "/image.png"_s, { { { "Content-Type"_s, "image/png"_s } }, "..."_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onResponseStarted.addListener((details) => {",
         @"  if (details?.type !== 'image')",
         @"    return",
@@ -1109,16 +1109,16 @@ TEST(WKWebExtensionAPIWebRequest, ResponseStartedEventForSubresource)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1129,7 +1129,7 @@ TEST(WKWebExtensionAPIWebRequest, CompletedEvent)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onCompleted.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
         @"  browser.test.assertEq(details?.frameId, 0, 'details.frameId should be')",
@@ -1153,16 +1153,16 @@ TEST(WKWebExtensionAPIWebRequest, CompletedEvent)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1173,7 +1173,7 @@ TEST(WKWebExtensionAPIWebRequest, CompletedEventWithResponseHeaders)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onCompleted.addListener((details) => {",
         @"  browser.test.assertEq(typeof details?.tabId, 'number', 'details.tabId should be')",
         @"  browser.test.assertEq(details?.frameId, 0, 'details.frameId should be')",
@@ -1198,16 +1198,16 @@ TEST(WKWebExtensionAPIWebRequest, CompletedEventWithResponseHeaders)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1219,7 +1219,7 @@ TEST(WKWebExtensionAPIWebRequest, CompletedEventForSubresource)
         { "/image.png"_s, { { { "Content-Type"_s, "image/png"_s } }, "..."_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.webRequest.onCompleted.addListener((details) => {",
         @"  if (details?.type !== 'image')",
         @"    return",
@@ -1247,16 +1247,16 @@ TEST(WKWebExtensionAPIWebRequest, CompletedEventForSubresource)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1267,7 +1267,7 @@ TEST(WKWebExtensionAPIWebRequest, AllowedFilter)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"function passListener() { browser.test.notifyPass() }",
 
         @"browser.webRequest.onCompleted.addListener(passListener, { 'urls': [ '*://*.localhost/*' ] })",
@@ -1275,17 +1275,17 @@ TEST(WKWebExtensionAPIWebRequest, AllowedFilter)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     // Grant the webRequest permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1296,7 +1296,7 @@ TEST(WKWebExtensionAPIWebRequest, DeniedFilter)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"function passListener() { browser.test.notifyPass() }",
         @"function failListener() { browser.test.notifyFail('This listener should not have been called') }",
 
@@ -1306,17 +1306,17 @@ TEST(WKWebExtensionAPIWebRequest, DeniedFilter)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     // Grant the webRequest permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1327,7 +1327,7 @@ TEST(WKWebExtensionAPIWebRequest, AllEventsFired)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let beforeRequestFired = false",
         @"let beforeSendHeadersFired = false",
         @"let sendHeadersFired = false",
@@ -1355,17 +1355,17 @@ TEST(WKWebExtensionAPIWebRequest, AllEventsFired)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     // Grant the webRequest permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1376,7 +1376,7 @@ TEST(WKWebExtensionAPIWebRequest, DocumentIdAcrossEvents)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let documentId = null",
 
         @"browser.webRequest.onBeforeRequest.addListener((details) => {",
@@ -1413,16 +1413,16 @@ TEST(WKWebExtensionAPIWebRequest, DocumentIdAcrossEvents)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1433,7 +1433,7 @@ TEST(WKWebExtensionAPIWebRequest, RemoveListenerDuringEvent)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"function requestListener() {",
         @"  browser.webRequest.onCompleted.removeListener(requestListener)",
         @"  browser.test.assertFalse(browser.webRequest.onCompleted.hasListener(requestListener), 'Listener should be removed')",
@@ -1447,16 +1447,16 @@ TEST(WKWebExtensionAPIWebRequest, RemoveListenerDuringEvent)
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
-    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(webRequestManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionWebRequest];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1532,23 +1532,23 @@ TEST(WKWebExtensionAPIWebRequest, TabIDMatch)
     NSURL *url = [NSURL URLWithString:@"http://example.com/a"];
     _WKWebExtensionWebRequestResourceType type = _WKWebExtensionWebRequestResourceTypeOther;
 
-    auto filter = filterWithDictionary(@{
+    RetainPtr filter = filterWithDictionary(@{
         @"urls": @[ @"http://example.com/*" ],
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:type URL:url tabID:100 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:100 windowID:1]);
 
     filter = filterWithDictionary(@{
         @"urls": @[ @"http://example.com/*" ],
         @"tabId": @(-1),
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:type URL:url tabID:100 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:100 windowID:1]);
 
     filter = filterWithDictionary(@{
         @"urls": @[ @"http://example.com/*" ],
         @"tabId": @(100),
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:type URL:url tabID:100 windowID:1]);
-    EXPECT_FALSE([filter matchesRequestForResourceOfType:type URL:url tabID:200 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:100 windowID:1]);
+    EXPECT_FALSE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:200 windowID:1]);
 }
 
 TEST(WKWebExtensionAPIWebRequest, WindowIDMatch)
@@ -1556,23 +1556,23 @@ TEST(WKWebExtensionAPIWebRequest, WindowIDMatch)
     NSURL *url = [NSURL URLWithString:@"http://example.com/a"];
     _WKWebExtensionWebRequestResourceType type = _WKWebExtensionWebRequestResourceTypeOther;
 
-    auto filter = filterWithDictionary(@{
+    RetainPtr filter = filterWithDictionary(@{
         @"urls": @[ @"http://example.com/*" ],
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:type URL:url tabID:-1 windowID:-1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:-1 windowID:-1]);
 
     filter = filterWithDictionary(@{
         @"urls": @[ @"http://example.com/*" ],
         @"windowId": @(-1),
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
 
     filter = filterWithDictionary(@{
         @"urls": @[ @"http://example.com/*" ],
         @"windowId": @(100),
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:type URL:url tabID:1 windowID:100]);
-    EXPECT_FALSE([filter matchesRequestForResourceOfType:type URL:url tabID:1 windowID:200]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:1 windowID:100]);
+    EXPECT_FALSE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:1 windowID:200]);
 }
 
 TEST(WKWebExtensionAPIWebRequest, URLMatch)
@@ -1581,67 +1581,67 @@ TEST(WKWebExtensionAPIWebRequest, URLMatch)
     NSURL *otherURL = [NSURL URLWithString:@"http://some-other-website.biz/a/b"];
     _WKWebExtensionWebRequestResourceType type = _WKWebExtensionWebRequestResourceTypeOther;
 
-    auto filter = filterWithDictionary(@{
+    RetainPtr filter = filterWithDictionary(@{
         @"urls": @[ ],
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:type URL:otherURL tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:type URL:otherURL tabID:1 windowID:1]);
 
     filter = filterWithDictionary(@{
         @"urls": @[ @"http://example.com/*" ],
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
-    EXPECT_FALSE([filter matchesRequestForResourceOfType:type URL:otherURL tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
+    EXPECT_FALSE([filter.get() matchesRequestForResourceOfType:type URL:otherURL tabID:1 windowID:1]);
 
     filter = filterWithDictionary(@{
         @"urls": @[ @"http://not-example.com/*", @"http://not-some-other-website.biz/*" ],
     });
-    EXPECT_FALSE([filter matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
+    EXPECT_FALSE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
 
     filter = filterWithDictionary(@{
         @"urls": @[ @"http://example.com/*", @"http://not-some-other-website.biz/*" ],
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
-    EXPECT_FALSE([filter matchesRequestForResourceOfType:type URL:otherURL tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
+    EXPECT_FALSE([filter.get() matchesRequestForResourceOfType:type URL:otherURL tabID:1 windowID:1]);
 
     filter = filterWithDictionary(@{
         @"urls": @[ @"http://example.com/*/b", @"http://example.com/a/*" ]
     });
 
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:type URL:url tabID:1 windowID:1]);
 }
 
 TEST(WKWebExtensionAPIWebRequest, ResourceTypesMatch)
 {
     NSURL *url = [NSURL URLWithString:@"http://example.com/a/b"];
 
-    auto filter = filterWithDictionary(@{
+    RetainPtr filter = filterWithDictionary(@{
         @"urls": @[ ],
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeImage URL:url tabID:1 windowID:1]);
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeScript URL:url tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeImage URL:url tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeScript URL:url tabID:1 windowID:1]);
 
     filter = filterWithDictionary(@{
         @"urls": @[ ],
         @"types": @[ ],
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeImage URL:url tabID:1 windowID:1]);
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeScript URL:url tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeImage URL:url tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeScript URL:url tabID:1 windowID:1]);
 
     filter = filterWithDictionary(@{
         @"urls": @[ ],
         @"types": @[ @"image" ],
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeImage URL:url tabID:1 windowID:1]);
-    EXPECT_FALSE([filter matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeScript URL:url tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeImage URL:url tabID:1 windowID:1]);
+    EXPECT_FALSE([filter.get() matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeScript URL:url tabID:1 windowID:1]);
 
     filter = filterWithDictionary(@{
         @"urls": @[ ],
         @"types": @[ @"image", @"script" ],
     });
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeImage URL:url tabID:1 windowID:1]);
-    EXPECT_TRUE([filter matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeScript URL:url tabID:1 windowID:1]);
-    EXPECT_FALSE([filter matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeWebsocket URL:url tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeImage URL:url tabID:1 windowID:1]);
+    EXPECT_TRUE([filter.get() matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeScript URL:url tabID:1 windowID:1]);
+    EXPECT_FALSE([filter.get() matchesRequestForResourceOfType:_WKWebExtensionWebRequestResourceTypeWebsocket URL:url tabID:1 windowID:1]);
 }
 
 } // namespace TestWebKitAPI

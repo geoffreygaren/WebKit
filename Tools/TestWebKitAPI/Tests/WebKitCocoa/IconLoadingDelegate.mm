@@ -116,20 +116,20 @@ TEST(IconLoading, DefaultFavicon)
     TestWebKitAPI::Util::run(&doneWithIcons);
     TestWebKitAPI::Util::run(&iconDelegate.get()->receivedFaviconDataCallback);
 
-    auto* faviconParameters = iconDelegate.get()->favicon.get();
-    EXPECT_WK_STREQ(makeString(mainURL, "favicon.ico"_s), faviconParameters.url.absoluteString);
-    EXPECT_EQ(WKLinkIconTypeFavicon, faviconParameters.iconType);
-    EXPECT_EQ(static_cast<unsigned long>(0), faviconParameters.attributes.count);
+    RetainPtr faviconParameters = iconDelegate.get()->favicon.get();
+    EXPECT_WK_STREQ(makeString(mainURL, "favicon.ico"_s), faviconParameters.get().url.absoluteString);
+    EXPECT_EQ(WKLinkIconTypeFavicon, faviconParameters.get().iconType);
+    EXPECT_EQ(static_cast<unsigned long>(0), faviconParameters.get().attributes.count);
 
-    auto* touchParameters = iconDelegate.get()->touch.get();
-    EXPECT_WK_STREQ("http://example.com/my-apple-touch-icon.png", touchParameters.url.absoluteString);
-    EXPECT_EQ(WKLinkIconTypeTouchIcon, touchParameters.iconType);
-    EXPECT_EQ(static_cast<unsigned long>(4), touchParameters.attributes.count);
-    EXPECT_WK_STREQ("apple-touch-icon", [touchParameters.attributes valueForKey:@"rel"]);
-    EXPECT_WK_STREQ("57x57", [touchParameters.attributes valueForKey:@"sizes"]);
-    EXPECT_WK_STREQ("http://example.com/my-apple-touch-icon.png", [touchParameters.attributes valueForKey:@"href"]);
-    EXPECT_TRUE([touchParameters.attributes.allKeys containsObject:@"non-standard-attribute"]);
-    EXPECT_FALSE([touchParameters.attributes.allKeys containsObject:@"nonexistent-attribute"]);
+    RetainPtr touchParameters = iconDelegate.get()->touch.get();
+    EXPECT_WK_STREQ("http://example.com/my-apple-touch-icon.png", touchParameters.get().url.absoluteString);
+    EXPECT_EQ(WKLinkIconTypeTouchIcon, touchParameters.get().iconType);
+    EXPECT_EQ(static_cast<unsigned long>(4), touchParameters.get().attributes.count);
+    EXPECT_WK_STREQ("apple-touch-icon", [touchParameters.get().attributes valueForKey:@"rel"]);
+    EXPECT_WK_STREQ("57x57", [touchParameters.get().attributes valueForKey:@"sizes"]);
+    EXPECT_WK_STREQ("http://example.com/my-apple-touch-icon.png", [touchParameters.get().attributes valueForKey:@"href"]);
+    EXPECT_TRUE([touchParameters.get().attributes.allKeys containsObject:@"non-standard-attribute"]);
+    EXPECT_FALSE([touchParameters.get().attributes.allKeys containsObject:@"nonexistent-attribute"]);
 }
 
 TEST(IconLoading, AlreadyCachedIcon)

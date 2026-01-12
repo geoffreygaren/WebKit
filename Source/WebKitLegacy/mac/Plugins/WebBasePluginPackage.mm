@@ -99,49 +99,49 @@ static constexpr auto QuickTimeCocoaPluginIdentifier = "com.apple.quicktime.webp
 {
     if (createFile)
         [self createPropertyListFile];
-    
+
     NSDictionary *pList = nil;
-    NSData *data = [NSData dataWithContentsOfFile:pListPath];
+    RetainPtr data = [NSData dataWithContentsOfFile:pListPath];
     if (data)
-        pList = [NSPropertyListSerialization propertyListWithData:data options:kCFPropertyListImmutable format:nil error:nil];
-    
+        pList = [NSPropertyListSerialization propertyListWithData:data.get() options:kCFPropertyListImmutable format:nil error:nil];
+
     return pList;
 }
 
 - (id)_objectForInfoDictionaryKey:(NSString *)key
 {
-    CFDictionaryRef bundleInfoDictionary = CFBundleGetInfoDictionary(cfBundle.get());
+    RetainPtr<CFDictionaryRef> bundleInfoDictionary = CFBundleGetInfoDictionary(cfBundle.get());
     if (!bundleInfoDictionary)
         return nil;
 
-    return (__bridge id)CFDictionaryGetValue(bundleInfoDictionary, (__bridge CFStringRef)key);
+    return (__bridge id)CFDictionaryGetValue(bundleInfoDictionary.get(), (__bridge CFStringRef)key);
 }
 
 - (BOOL)getPluginInfoFromPLists
 {
     if (!cfBundle)
         return NO;
-    
-    NSDictionary *MIMETypes = [self _objectForInfoDictionaryKey:WebPluginMIMETypesKey];
+
+    RetainPtr MIMETypes = [self _objectForInfoDictionaryKey:WebPluginMIMETypesKey];
     if (!MIMETypes)
         return NO;
 
-    NSEnumerator *keyEnumerator = [MIMETypes keyEnumerator];
+    NSEnumerator *keyEnumerator = [MIMETypes.get() keyEnumerator];
     NSDictionary *MIMEDictionary;
     NSString *MIME;
 
     while ((MIME = [keyEnumerator nextObject]) != nil) {
-        MIMEDictionary = [MIMETypes objectForKey:MIME];
-        
+        MIMEDictionary = [MIMETypes.get() objectForKey:MIME];
+
         // FIXME: Consider storing disabled MIME types.
         NSNumber *isEnabled = [MIMEDictionary objectForKey:WebPluginTypeEnabledKey];
         if (isEnabled && [isEnabled boolValue] == NO)
             continue;
 
         WebCore::MimeClassInfo mimeClassInfo;
-        
-        NSArray *extensions = [[MIMEDictionary objectForKey:WebPluginExtensionsKey] _web_lowercaseStrings];
-        for (NSString *extension in extensions) {
+
+        RetainPtr extensions = [[MIMEDictionary objectForKey:WebPluginExtensionsKey] _web_lowercaseStrings];
+        for (NSString *extension in extensions.get()) {
             // The DivX plug-in lists multiple extensions in a comma separated string instead of using
             // multiple array elements in the property list. Work around this here by splitting the
             // extension string into components.
@@ -155,18 +155,18 @@ static constexpr auto QuickTimeCocoaPluginIdentifier = "com.apple.quicktime.webp
         pluginInfo.mimes.append(mimeClassInfo);
     }
 
-    NSString *filename = [path.createNSString() lastPathComponent];
-    pluginInfo.file = filename;
+    RetainPtr filename = [path.createNSString() lastPathComponent];
+    pluginInfo.file = filename.get();
 
-    NSString *theName = [self _objectForInfoDictionaryKey:WebPluginNameKey];
+    RetainPtr theName = [self _objectForInfoDictionaryKey:WebPluginNameKey];
     if (!theName)
         theName = filename;
-    pluginInfo.name = theName;
+    pluginInfo.name = theName.get();
 
-    NSString *description = [self _objectForInfoDictionaryKey:WebPluginDescriptionKey];
+    RetainPtr description = [self _objectForInfoDictionaryKey:WebPluginDescriptionKey];
     if (!description)
         description = filename;
-    pluginInfo.desc = description;
+    pluginInfo.desc = description.get();
 
     pluginInfo.isApplicationPlugin = false;
 #if PLATFORM(MAC)
@@ -366,11 +366,11 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 
 - (String)bundleVersion
 {
-    auto infoDictionary = CFBundleGetInfoDictionary(cfBundle.get());
+    RetainPtr<CFDictionaryRef> infoDictionary = CFBundleGetInfoDictionary(cfBundle.get());
     if (!infoDictionary)
         return String();
 
-    return dynamic_cf_cast<CFStringRef>(CFDictionaryGetValue(infoDictionary, kCFBundleVersionKey));
+    return dynamic_cf_cast<CFStringRef>(CFDictionaryGetValue(infoDictionary.get(), kCFBundleVersionKey));
 }
 
 @end
@@ -379,16 +379,16 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 
 - (NSArray *)_web_lowercaseStrings
 {
-    NSMutableArray *lowercaseStrings = [NSMutableArray arrayWithCapacity:[self count]];
+    RetainPtr lowercaseStrings = [NSMutableArray arrayWithCapacity:[self count]];
     NSEnumerator *strings = [self objectEnumerator];
     NSString *string;
 
     while ((string = [strings nextObject]) != nil) {
         if ([string isKindOfClass:[NSString class]])
-            [lowercaseStrings addObject:[string lowercaseString]];
+            [lowercaseStrings.get() addObject:[string lowercaseString]];
     }
 
-    return lowercaseStrings;
+    return lowercaseStrings.autorelease();
 }
 
 @end

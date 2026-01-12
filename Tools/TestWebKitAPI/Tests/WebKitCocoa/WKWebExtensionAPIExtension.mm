@@ -76,7 +76,7 @@ TEST(WKWebExtensionAPIExtension, GetURL)
 {
     auto *baseURLString = @"test-extension://76C788B8-3374-400D-8259-40E5B9DF79D3";
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Variable Setup
         [NSString stringWithFormat:@"const baseURL = '%@'", baseURLString],
 
@@ -112,7 +112,7 @@ TEST(WKWebExtensionAPIExtension, GetURL)
 
     auto *manifest = @{ @"manifest_version": @2, @"background": @{ @"scripts": @[ @"background.js" ], @"type": @"module", @"persistent": @NO } };
 
-    auto manager = Util::parseExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::parseExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     // Set a base URL so it is a known value and not the default random one.
     [WKWebExtensionMatchPattern registerCustomURLScheme:@"test-extension"];
@@ -132,12 +132,12 @@ TEST(WKWebExtensionAPIExtension, GetURL)
 
     manifest = @{ @"manifest_version": @3, @"background": @{ @"scripts": @[ @"background.js" ], @"type": @"module", @"persistent": @NO } };
 
-    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIExtension, GetBackgroundPageFromBackground)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"window.notifyTestPass = () => {",
         @"  browser.test.notifyPass()",
         @"}",
@@ -148,12 +148,12 @@ TEST(WKWebExtensionAPIExtension, GetBackgroundPageFromBackground)
         @"browser.test.assertSafe(() => backgroundPage.notifyTestPass())"
     ]);
 
-    Util::loadAndRunExtension(extensionManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(extensionManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIExtension, GetBackgroundPageFromTab)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"window.notifyTestPass = () => {",
         @"  browser.test.notifyPass()",
         @"}",
@@ -161,7 +161,7 @@ TEST(WKWebExtensionAPIExtension, GetBackgroundPageFromTab)
         @"browser.tabs.create({ url: 'test.html' })"
     ]);
 
-    auto *testScript = Util::constructScript(@[
+    RetainPtr testScript = Util::constructScript(@[
         @"const backgroundPage = browser.extension.getBackgroundPage()",
         @"browser.test.assertSafe(() => backgroundPage.notifyTestPass())",
     ]);
@@ -169,15 +169,15 @@ TEST(WKWebExtensionAPIExtension, GetBackgroundPageFromTab)
     auto *testHTML = @"<script type='module' src='test.js'></script>";
 
     Util::loadAndRunExtension(extensionManifest, @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"test.html": testHTML,
-        @"test.js": testScript
+        @"test.js": testScript.get()
     });
 }
 
 TEST(WKWebExtensionAPIExtension, GetBackgroundPageFromPopup)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"window.notifyTestPass = () => {",
         @"  browser.test.notifyPass()",
         @"}",
@@ -185,7 +185,7 @@ TEST(WKWebExtensionAPIExtension, GetBackgroundPageFromPopup)
         @"browser.action.openPopup()"
     ]);
 
-    auto *popupScript = Util::constructScript(@[
+    RetainPtr popupScript = Util::constructScript(@[
         @"const backgroundPage = browser.extension.getBackgroundPage()",
         @"browser.test.assertSafe(() => backgroundPage.notifyTestPass())"
     ]);
@@ -193,9 +193,9 @@ TEST(WKWebExtensionAPIExtension, GetBackgroundPageFromPopup)
     auto *popupHTML = @"<script type='module' src='popup.js'></script>";
 
     auto resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": popupHTML,
-        @"popup.js": popupScript
+        @"popup.js": popupScript.get()
     };
 
     auto manager = Util::loadExtension(extensionManifest, resources);
@@ -209,11 +209,11 @@ TEST(WKWebExtensionAPIExtension, GetBackgroundPageFromPopup)
 
 TEST(WKWebExtensionAPIExtension, GetBackgroundPageForServiceWorker)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.tabs.create({ url: 'test.html' })"
     ]);
 
-    auto *testScript = Util::constructScript(@[
+    RetainPtr testScript = Util::constructScript(@[
         @"const backgroundPage = browser.extension.getBackgroundPage()",
         @"browser.test.assertEq(backgroundPage, null, 'Background page should be null for service workers')",
         @"browser.test.notifyPass()"
@@ -222,15 +222,15 @@ TEST(WKWebExtensionAPIExtension, GetBackgroundPageForServiceWorker)
     auto *testHTML = @"<script type='module' src='test.js'></script>";
 
     Util::loadAndRunExtension(extensionServiceWorkerManifest, @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"test.html": testHTML,
-        @"test.js": testScript
+        @"test.js": testScript.get()
     });
 }
 
 TEST(WKWebExtensionAPIExtension, GetViewsFromBackgroundPage)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"window.notifyTestPass = () => {",
         @"  browser.test.notifyPass()",
         @"}",
@@ -241,12 +241,12 @@ TEST(WKWebExtensionAPIExtension, GetViewsFromBackgroundPage)
         @"browser.test.assertSafe(() => views[0].notifyTestPass())"
     ]);
 
-    Util::loadAndRunExtension(extensionManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(extensionManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIExtension, GetViewsForBackground)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"window.notifyTestPass = () => {",
         @"  browser.test.notifyPass()",
         @"}",
@@ -254,7 +254,7 @@ TEST(WKWebExtensionAPIExtension, GetViewsForBackground)
         @"browser.tabs.create({ url: 'test.html' })"
     ]);
 
-    auto *testScript = Util::constructScript(@[
+    RetainPtr testScript = Util::constructScript(@[
         @"const views = browser.extension.getViews()",
         @"browser.test.assertEq(views.length, 2)",
 
@@ -269,15 +269,15 @@ TEST(WKWebExtensionAPIExtension, GetViewsForBackground)
     auto *testHTML = @"<script type='module' src='test.js'></script>";
 
     Util::loadAndRunExtension(extensionManifest, @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"test.html": testHTML,
-        @"test.js": testScript
+        @"test.js": testScript.get()
     });
 }
 
 TEST(WKWebExtensionAPIExtension, GetViewsForTab)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message, 'ready')",
 
@@ -290,7 +290,7 @@ TEST(WKWebExtensionAPIExtension, GetViewsForTab)
         @"browser.tabs.create({ url: 'test.html' })"
     ]);
 
-    auto *testScript = Util::constructScript(@[
+    RetainPtr testScript = Util::constructScript(@[
         @"window.notifyTestPass = () => {",
         @"  browser.test.notifyPass()",
         @"}",
@@ -301,9 +301,9 @@ TEST(WKWebExtensionAPIExtension, GetViewsForTab)
     auto *testHTML = @"<script type='module' src='test.js'></script>";
 
     Util::loadAndRunExtension(extensionManifest, @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"test.html": testHTML,
-        @"test.js": testScript
+        @"test.js": testScript.get()
     });
 }
 
@@ -313,7 +313,7 @@ TEST(WKWebExtensionAPIExtension, GetViewsForMultipleTabs)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let tabCount = 0",
 
         @"browser.runtime.onMessage.addListener((message, sender, sendResponse) => {",
@@ -335,7 +335,7 @@ TEST(WKWebExtensionAPIExtension, GetViewsForMultipleTabs)
         @"browser.tabs.create({ url: 'test.html' })"
     ]);
 
-    auto *testScript = Util::constructScript(@[
+    RetainPtr testScript = Util::constructScript(@[
         @"window.notifyTestPass = (index) => {",
         @"  if (index === 1)",
         @"    browser.test.notifyPass()",
@@ -347,9 +347,9 @@ TEST(WKWebExtensionAPIExtension, GetViewsForMultipleTabs)
     auto *testHTML = @"<script type='module' src='test.js'></script>";
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"test.html": testHTML,
-        @"test.js": testScript
+        @"test.js": testScript.get()
     };
 
     auto manager = Util::loadExtension(extensionManifest, resources);
@@ -361,7 +361,7 @@ TEST(WKWebExtensionAPIExtension, GetViewsForMultipleTabs)
 
 TEST(WKWebExtensionAPIExtension, GetViewsForPopup)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message, 'ready')",
 
@@ -374,7 +374,7 @@ TEST(WKWebExtensionAPIExtension, GetViewsForPopup)
         @"browser.action.openPopup()"
     ]);
 
-    auto *popupScript = Util::constructScript(@[
+    RetainPtr popupScript = Util::constructScript(@[
         @"window.notifyTestPass = () => {",
         @"  browser.test.notifyPass()",
         @"}",
@@ -385,9 +385,9 @@ TEST(WKWebExtensionAPIExtension, GetViewsForPopup)
     auto *popupHTML = @"<script type='module' src='popup.js'></script>";
 
     auto resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"popup.html": popupHTML,
-        @"popup.js": popupScript
+        @"popup.js": popupScript.get()
     };
 
     auto manager = Util::loadExtension(extensionManifest, resources);
@@ -401,14 +401,14 @@ TEST(WKWebExtensionAPIExtension, GetViewsForPopup)
 
 TEST(WKWebExtensionAPIExtension, GetViewsExcludesServiceWorkerBackground)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const views = browser.extension.getViews()",
         @"browser.test.assertEq(views.length, 0, 'Background view should not be included for service workers')",
         @"browser.test.notifyPass()"
     ]);
 
     Util::loadAndRunExtension(extensionServiceWorkerManifest, @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
     });
 }
 
@@ -418,24 +418,24 @@ TEST(WKWebExtensionAPIExtension, InIncognitoContext)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertFalse(browser.extension.inIncognitoContext, 'Should not be in incognito in background script')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"if (browser.extension.inIncognitoContext)",
         @"  browser.test.sendMessage('Content Script is Incognito')",
         @"else",
         @"  browser.test.sendMessage('Content Script is Not Incognito')"
     ]);
 
-    auto manager = Util::loadExtension(extensionManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(extensionManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
     manager.get().context.hasAccessToPrivateData = YES;
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager runUntilTestMessage:@"Content Script is Not Incognito"];
 
@@ -444,7 +444,7 @@ TEST(WKWebExtensionAPIExtension, InIncognitoContext)
     auto *privateWindow = [manager openNewWindowUsingPrivateBrowsing:YES];
     auto *privateTab = privateWindow.tabs.firstObject;
 
-    [privateTab.webView loadRequest:urlRequest];
+    [privateTab.webView loadRequest:urlRequest.get()];
 
     [manager runUntilTestMessage:@"Content Script is Incognito"];
 }
@@ -455,23 +455,23 @@ TEST(WKWebExtensionAPIExtension, InIncognitoContextWithoutPrivateAccess)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertFalse(browser.extension.inIncognitoContext, 'Should not be in incognito in background script')"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"if (browser.extension.inIncognitoContext)",
         @"  browser.test.sendMessage('Content Script is Incognito')",
         @"else",
         @"  browser.test.sendMessage('Content Script is Not Incognito')"
     ]);
 
-    auto manager = Util::loadExtension(extensionManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(extensionManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager runUntilTestMessage:@"Content Script is Not Incognito"];
 
@@ -480,7 +480,7 @@ TEST(WKWebExtensionAPIExtension, InIncognitoContextWithoutPrivateAccess)
     auto *privateWindow = [manager openNewWindowUsingPrivateBrowsing:YES];
     auto *privateTab = privateWindow.tabs.firstObject;
 
-    [privateTab.webView loadRequest:urlRequest];
+    [privateTab.webView loadRequest:urlRequest.get()];
 
     // The content script should not run in the private tab, so timeout after waiting for 3 seconds.
     [manager runForTimeInterval:3];
@@ -488,12 +488,12 @@ TEST(WKWebExtensionAPIExtension, InIncognitoContextWithoutPrivateAccess)
 
 TEST(WKWebExtensionAPIExtension, IsAllowedIncognitoAccess)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allowed = await browser.extension.isAllowedIncognitoAccess()",
         @"browser.test.sendMessage(allowed ? 'Allowed Incognito Access' : 'Not Allowed Incognito Access')",
     ]);
 
-    auto manager = Util::loadExtension(extensionManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(extensionManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().context.hasAccessToPrivateData = YES;
 
@@ -502,24 +502,24 @@ TEST(WKWebExtensionAPIExtension, IsAllowedIncognitoAccess)
 
 TEST(WKWebExtensionAPIExtension, IsAllowedIncognitoAccessWithoutPrivateAccess)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allowed = await browser.extension.isAllowedIncognitoAccess()",
         @"browser.test.sendMessage(allowed ? 'Allowed Incognito Access' : 'Not Allowed Incognito Access')",
     ]);
 
-    auto manager = Util::loadExtension(extensionManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(extensionManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Not Allowed Incognito Access"];
 }
 
 TEST(WKWebExtensionAPIExtension, IsAllowedFileSchemeAccess)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const allowed = await browser.extension.isAllowedFileSchemeAccess()",
         @"browser.test.sendMessage(allowed ? 'Allowed File Access' : 'Not Allowed File Access')",
     ]);
 
-    auto manager = Util::loadExtension(extensionManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(extensionManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Not Allowed File Access"];
 }

@@ -98,7 +98,7 @@ static auto *emptyCommandsManifest = @{
 
 TEST(WKWebExtensionAPICommands, GetAllCommands)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let commands = await browser.commands.getAll()",
         @"browser.test.assertEq(commands.length, 2, 'Should be two commands.')",
 
@@ -116,12 +116,12 @@ TEST(WKWebExtensionAPICommands, GetAllCommands)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(commandsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(commandsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPICommands, GetAllCommandsEmptyManifest)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let commands = await browser.commands.getAll()",
         @"browser.test.assertEq(commands.length, 1, 'Should be one command.')",
 
@@ -133,7 +133,7 @@ TEST(WKWebExtensionAPICommands, GetAllCommandsEmptyManifest)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(emptyCommandsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(emptyCommandsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPICommands, GetAllCommandsEmptyManifestNoActionName)
@@ -160,7 +160,7 @@ TEST(WKWebExtensionAPICommands, GetAllCommandsEmptyManifestNoActionName)
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let commands = await browser.commands.getAll()",
         @"browser.test.assertEq(commands.length, 1, 'Should be one command.')",
 
@@ -172,12 +172,12 @@ TEST(WKWebExtensionAPICommands, GetAllCommandsEmptyManifestNoActionName)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(emptyCommandsNoActionNameManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(emptyCommandsNoActionNameManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPICommands, CommandEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.commands.onCommand.addListener((command, tab) => {",
         @"  browser.test.assertEq(command, 'test-command', 'The command should be test-command')",
         @"  browser.test.assertEq(typeof tab, 'object', 'The tab should be an object')",
@@ -189,7 +189,7 @@ TEST(WKWebExtensionAPICommands, CommandEvent)
         @"browser.test.sendMessage('Perform Command')"
     ]);
 
-    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript.get() });
     [manager runUntilTestMessage:@"Perform Command"];
 
     auto *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", @"test-command"];
@@ -246,7 +246,7 @@ TEST(WKWebExtensionAPICommands, CommandForEvent)
 
 TEST(WKWebExtensionAPICommands, PerformCommandForEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.commands.onCommand.addListener((command, tab) => {",
         @"  browser.test.assertEq(command, 'test-command', 'The command should be')",
         @"  browser.test.assertEq(typeof tab, 'object', 'The tab should be')",
@@ -258,7 +258,7 @@ TEST(WKWebExtensionAPICommands, PerformCommandForEvent)
         @"browser.test.sendMessage('Test Command Event')"
     ]);
 
-    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript.get() });
     [manager runUntilTestMessage:@"Test Command Event"];
 
     auto *keyCommandEvent = [NSEvent keyEventWithType:NSEventTypeKeyDown location:NSZeroPoint modifierFlags:(NSEventModifierFlagCommand | NSEventModifierFlagOption)
@@ -275,7 +275,7 @@ TEST(WKWebExtensionAPICommands, PerformCommandForEvent)
 
 TEST(WKWebExtensionAPICommands, PerformKeyCommand)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.commands.onCommand.addListener((command, tab) => {",
         @"  browser.test.assertEq(command, 'test-command', 'The command should be')",
         @"  browser.test.assertEq(typeof tab, 'object', 'The tab should be')",
@@ -287,7 +287,7 @@ TEST(WKWebExtensionAPICommands, PerformKeyCommand)
         @"browser.test.sendMessage('Test Command Event')"
     ]);
 
-    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript.get() });
     [manager runUntilTestMessage:@"Test Command Event"];
 
     auto *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", @"test-command"];
@@ -305,7 +305,7 @@ TEST(WKWebExtensionAPICommands, PerformKeyCommand)
 
 TEST(WKWebExtensionAPICommands, PerformMenuItem)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.commands.onCommand.addListener((command, tab) => {",
         @"  browser.test.assertEq(command, 'test-command', 'The command should be')",
         @"  browser.test.assertEq(typeof tab, 'object', 'The tab should be')",
@@ -317,7 +317,7 @@ TEST(WKWebExtensionAPICommands, PerformMenuItem)
         @"browser.test.sendMessage('Test Command Event')"
     ]);
 
-    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript.get() });
     [manager runUntilTestMessage:@"Test Command Event"];
 
     auto *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", @"test-command"];
@@ -338,7 +338,7 @@ TEST(WKWebExtensionAPICommands, PerformMenuItem)
 
 TEST(WKWebExtensionAPICommands, ExecuteActionCommand)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.commands.onCommand.addListener((command, tab) => {",
         @"  browser.test.notifyFail('The action command should not fire onCommand')",
         @"})",
@@ -353,7 +353,7 @@ TEST(WKWebExtensionAPICommands, ExecuteActionCommand)
         @"browser.test.sendMessage('Test Execute Action Command')"
     ]);
 
-    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript.get() });
     [manager runUntilTestMessage:@"Test Execute Action Command"];
 
     auto *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", @"_execute_action"];
@@ -367,7 +367,7 @@ TEST(WKWebExtensionAPICommands, ExecuteActionCommand)
 
 TEST(WKWebExtensionAPICommands, ChangedEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.commands.onChanged.addListener((changeInfo) => {",
         @"  browser.test.assertEq(typeof changeInfo, 'object', 'The change should be an object')",
         @"  browser.test.assertEq(changeInfo.name, 'test-command', 'The name should be')",
@@ -380,7 +380,7 @@ TEST(WKWebExtensionAPICommands, ChangedEvent)
         @"browser.test.sendMessage('Test Command Shortcut Change')"
     ]);
 
-    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript.get() });
     [manager runUntilTestMessage:@"Test Command Shortcut Change"];
 
     auto *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", @"test-command"];
@@ -401,7 +401,7 @@ TEST(WKWebExtensionAPICommands, ChangedEvent)
 
 TEST(WKWebExtensionAPICommands, PerformCommandAndPermissionsRequest)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.commands.onCommand.addListener(async (tab) => {",
         @"  try {",
         @"    const result = await browser.permissions.request({ 'permissions': [ 'webNavigation' ] })",
@@ -417,7 +417,7 @@ TEST(WKWebExtensionAPICommands, PerformCommandAndPermissionsRequest)
         @"browser.test.sendMessage('Perform Command')"
     ]);
 
-    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(commandsManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().internalDelegate.promptForPermissions = ^(id<WKWebExtensionTab> tab, NSSet<NSString *> *requestedPermissions, void (^callback)(NSSet<NSString *> *, NSDate *)) {
         EXPECT_EQ(requestedPermissions.count, 1lu);

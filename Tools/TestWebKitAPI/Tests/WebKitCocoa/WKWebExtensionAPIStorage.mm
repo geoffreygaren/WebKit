@@ -56,7 +56,7 @@ static auto *storageManifest = @{
 
 TEST(WKWebExtensionAPIStorage, Errors)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser?.storage?.local?.get(Date.now()), /'items' value is invalid, because an object or a string or an array of strings or null is expected, but a number was provided/i)",
 
         @"browser.test.assertThrows(() => browser?.storage?.local?.getKeys('invalid'), /'callback' value is invalid, because a function is expected/i)",
@@ -81,12 +81,12 @@ TEST(WKWebExtensionAPIStorage, Errors)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, UndefinedProperties)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(browser?.storage?.local?.setAccessLevel, undefined)",
         @"browser.test.assertEq(browser?.storage?.sync?.setAccessLevel, undefined)",
 
@@ -105,7 +105,7 @@ TEST(WKWebExtensionAPIStorage, UndefinedProperties)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 // FIXME rdar://147858640
@@ -119,7 +119,7 @@ TEST(WKWebExtensionAPIStorage, SetAccessLevelTrustedContexts)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message, 'Ready')",
 
@@ -135,7 +135,7 @@ TEST(WKWebExtensionAPIStorage, SetAccessLevelTrustedContexts)
         @"})"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message?.content, 'Access level set', 'Should receive the correct message content')",
 
@@ -145,11 +145,11 @@ TEST(WKWebExtensionAPIStorage, SetAccessLevelTrustedContexts)
         @"setTimeout(() => browser.runtime.sendMessage('Ready'), 1000)"
     ]);
 
-    auto manager = Util::loadExtension(storageManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(storageManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -165,7 +165,7 @@ TEST(WKWebExtensionAPIStorage, SetAccessLevelTrustedAndUntrustedContexts)
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } }
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message, 'Ready')",
 
@@ -181,7 +181,7 @@ TEST(WKWebExtensionAPIStorage, SetAccessLevelTrustedAndUntrustedContexts)
         @"})"
     ]);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender, sendResponse) => {",
         @"  browser.test.assertEq(message?.content, 'Access level set', 'Should receive the correct message content')",
 
@@ -191,18 +191,18 @@ TEST(WKWebExtensionAPIStorage, SetAccessLevelTrustedAndUntrustedContexts)
         @"setTimeout(() => browser.runtime.sendMessage('Ready'), 1000)"
     ]);
 
-    auto manager = Util::loadExtension(storageManifest, @{ @"background.js": backgroundScript, @"content.js": contentScript });
+    auto manager = Util::loadExtension(storageManifest, @{ @"background.js": backgroundScript.get(), @"content.js": contentScript.get() });
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIStorage, Set)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'], 'null': null, 'undefined': undefined }",
         @"await browser?.storage?.local?.set(data)",
 
@@ -232,12 +232,12 @@ TEST(WKWebExtensionAPIStorage, Set)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, SetCustomObject)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"class BaseObject {",
         @"  constructor(name) {",
         @"    this.name = name",
@@ -269,12 +269,12 @@ TEST(WKWebExtensionAPIStorage, SetCustomObject)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, Get)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'], 'null': null, 'nan': NaN, '': 'empty' }",
         @"await browser?.storage?.local?.set(data)",
 
@@ -299,12 +299,12 @@ TEST(WKWebExtensionAPIStorage, Get)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, GetWithDefaultValue)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const data = { 'abc': 123 }",
         @"await browser.storage.local.set(data)",
 
@@ -318,12 +318,12 @@ TEST(WKWebExtensionAPIStorage, GetWithDefaultValue)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, GetKeys)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'], 'null': null }",
         @"await browser?.storage?.local?.set(data)",
 
@@ -348,12 +348,12 @@ TEST(WKWebExtensionAPIStorage, GetKeys)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, GetBytesInUse)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'] }",
         @"await browser?.storage?.local?.set(data)",
 
@@ -377,12 +377,12 @@ TEST(WKWebExtensionAPIStorage, GetBytesInUse)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, GetBytesInUseWhenEmpty)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"var result = await browser?.storage?.local?.getBytesInUse()",
         @"browser.test.assertEq(result, 0)",
 
@@ -395,12 +395,12 @@ TEST(WKWebExtensionAPIStorage, GetBytesInUseWhenEmpty)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, Remove)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'] }",
         @"await browser?.storage?.local?.set(data)",
 
@@ -418,12 +418,12 @@ TEST(WKWebExtensionAPIStorage, Remove)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, Clear)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const data = { 'string': 'string', 'number': 1, 'boolean': true, 'dictionary': {'key': 'value'}, 'array': [1, true, 'string'] }",
         @"await browser?.storage?.local?.set(data)",
 
@@ -438,12 +438,12 @@ TEST(WKWebExtensionAPIStorage, Clear)
         @"browser.test.notifyPass()",
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, StorageOnChanged)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let changeCount = 0",
 
         @"browser.storage.onChanged.addListener((changes, areaName) => {",
@@ -510,12 +510,12 @@ TEST(WKWebExtensionAPIStorage, StorageOnChanged)
         @"await browser.storage.local.remove([ 'string', 'number', 'boolean', 'dictionary', 'array' ])"
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, StorageAreaOnChanged)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let changeCount = 0",
 
         @"browser.storage.local.onChanged.addListener((changes, areaName) => {",
@@ -583,7 +583,7 @@ TEST(WKWebExtensionAPIStorage, StorageAreaOnChanged)
         @"await browser.storage.local.remove([ 'string', 'number', 'boolean', 'dictionary', 'array' ])"
     ]);
 
-    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(storageManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIStorage, StorageFromSubframe)
@@ -597,10 +597,10 @@ TEST(WKWebExtensionAPIStorage, StorageFromSubframe)
         { "/subframe"_s, { { { "Content-Type"_s, "text/html"_s } }, ""_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequestMain = server.requestWithLocalhost("/main"_s);
-    auto *urlRequestSubframe = server.request("/subframe"_s);
+    RetainPtr urlRequestMain = server.requestWithLocalhost("/main"_s);
+    RetainPtr urlRequestSubframe = server.request("/subframe"_s);
 
-    auto *contentScript = Util::constructScript(@[
+    RetainPtr contentScript = Util::constructScript(@[
         @"(async () => {",
         @"  await browser.storage.local.set({ key: 'value' })",
         @"  const result = await browser.storage.local.get('key')",
@@ -627,14 +627,14 @@ TEST(WKWebExtensionAPIStorage, StorageFromSubframe)
     };
 
     auto *resources = @{
-        @"content.js": contentScript
+        @"content.js": contentScript.get()
     };
 
     auto manager = Util::loadExtension(manifest, resources);
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequestSubframe.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequestSubframe.get().URL];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequestMain];
+    [manager.get().defaultTab.webView loadRequest:urlRequestMain.get()];
 
     [manager run];
 }

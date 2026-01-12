@@ -258,8 +258,8 @@ TEST(LegacyDragAndDropTests, DropUTF8PlainText)
 TEST(LegacyDragAndDropTests, DropJPEG)
 {
     NSPasteboard *pasteboard = [NSPasteboard pasteboardWithUniqueName];
-    NSImage *icon = getTestImage();
-    NSBitmapImageRep *imageRep = [NSBitmapImageRep imageRepWithData:icon.TIFFRepresentation];
+    RetainPtr icon = getTestImage();
+    NSBitmapImageRep *imageRep = [NSBitmapImageRep imageRepWithData:icon.get().TIFFRepresentation];
     [pasteboard setData:[imageRep representationUsingType:NSJPEGFileType properties:@{ NSImageCompressionFactor: @(0.9) }] forType:UTTypeJPEG.identifier];
 
     RetainPtr<WebView> resultingWebView = webViewAfterPerformingDragOperation(pasteboard);

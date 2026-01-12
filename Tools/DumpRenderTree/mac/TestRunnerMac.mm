@@ -210,15 +210,15 @@ void TestRunner::clearBackForwardList()
 JSRetainPtr<JSStringRef> TestRunner::copyDecodedHostName(JSStringRef name)
 {
     auto nameCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, name));
-    NSString *nameNS = (__bridge NSString *)nameCF.get();
-    return adopt(JSStringCreateWithCFString((__bridge CFStringRef)[nameNS _web_decodeHostName]));
+    RetainPtr nameNS = (__bridge NSString *)nameCF.get();
+    return adopt(JSStringCreateWithCFString((__bridge CFStringRef)[nameNS.get() _web_decodeHostName]));
 }
 
 JSRetainPtr<JSStringRef> TestRunner::copyEncodedHostName(JSStringRef name)
 {
     auto nameCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, name));
-    NSString *nameNS = (__bridge NSString *)nameCF.get();
-    return adopt(JSStringCreateWithCFString((__bridge CFStringRef)[nameNS _web_encodeHostName]));
+    RetainPtr nameNS = (__bridge NSString *)nameCF.get();
+    return adopt(JSStringCreateWithCFString((__bridge CFStringRef)[nameNS.get() _web_encodeHostName]));
 }
 
 void TestRunner::display()
@@ -344,9 +344,9 @@ JSRetainPtr<JSStringRef> TestRunner::pathToLocalResource(JSContextRef context, J
 void TestRunner::queueLoad(JSStringRef url, JSStringRef target)
 {
     RetainPtr<CFStringRef> urlCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, url));
-    NSString *urlNS = (__bridge NSString *)urlCF.get();
+    RetainPtr urlNS = (__bridge NSString *)urlCF.get();
 
-    NSURL *nsurl = [NSURL URLWithString:urlNS relativeToURL:[[[mainFrame dataSource] response] URL]];
+    NSURL *nsurl = [NSURL URLWithString:urlNS.get() relativeToURL:[[[mainFrame dataSource] response] URL]];
     NSString *nsurlString = [nsurl absoluteString];
 
     auto absoluteURL = adopt(JSStringCreateWithUTF8CString([nsurlString UTF8String]));
@@ -414,9 +414,9 @@ void TestRunner::setMockDeviceOrientation(bool canProvideAlpha, double alpha, bo
 {
     // DumpRenderTree configured the WebView to use WebDeviceOrientationProviderMock.
     id<WebDeviceOrientationProvider> provider = [[mainFrame webView] _deviceOrientationProvider];
-    WebDeviceOrientationProviderMock *mockProvider = static_cast<WebDeviceOrientationProviderMock*>(provider);
+    RetainPtr mockProvider = static_cast<WebDeviceOrientationProviderMock*>(provider);
     auto orientation = adoptNS([[WebDeviceOrientation alloc] initWithCanProvideAlpha:canProvideAlpha alpha:alpha canProvideBeta:canProvideBeta beta:beta canProvideGamma:canProvideGamma gamma:gamma]);
-    [mockProvider setOrientation:orientation.get()];
+    [mockProvider.get() setOrientation:orientation.get()];
 }
 
 void TestRunner::setMockGeolocationPosition(double latitude, double longitude, double accuracy, bool providesAltitude, double altitude, bool providesAltitudeAccuracy, double altitudeAccuracy, bool providesHeading, double heading, bool providesSpeed, double speed, bool providesFloorLevel, double floorLevel)
@@ -445,8 +445,8 @@ void TestRunner::setMockGeolocationPosition(double latitude, double longitude, d
 void TestRunner::setMockGeolocationPositionUnavailableError(JSStringRef message)
 {
     RetainPtr<CFStringRef> messageCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, message));
-    NSString *messageNS = (__bridge NSString *)messageCF.get();
-    [[MockGeolocationProvider shared] setPositionUnavailableErrorWithMessage:messageNS];
+    RetainPtr messageNS = (__bridge NSString *)messageCF.get();
+    [[MockGeolocationProvider shared] setPositionUnavailableErrorWithMessage:messageNS.get()];
 }
 
 void TestRunner::setGeolocationPermission(bool allow)
@@ -464,9 +464,9 @@ void TestRunner::setMainFrameIsFirstResponder(bool flag)
 {
 #if !PLATFORM(IOS_FAMILY)
     NSView *documentView = [[mainFrame frameView] documentView];
-    
-    NSResponder *firstResponder = flag ? documentView : nil;
-    [[[mainFrame webView] window] makeFirstResponder:firstResponder];
+
+    RetainPtr firstResponder = flag ? documentView : nil;
+    [[[mainFrame webView] window] makeFirstResponder:firstResponder.get()];
 #endif
 }
 
@@ -592,12 +592,12 @@ int TestRunner::windowCount()
 void TestRunner::execCommand(JSStringRef name, JSStringRef value)
 {
     RetainPtr<CFStringRef> nameCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, name));
-    NSString *nameNS = (__bridge NSString *)nameCF.get();
+    RetainPtr nameNS = (__bridge NSString *)nameCF.get();
 
     RetainPtr<CFStringRef> valueCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, value));
-    NSString *valueNS = (__bridge NSString *)valueCF.get();
+    RetainPtr valueNS = (__bridge NSString *)valueCF.get();
 
-    [[mainFrame webView] _executeCoreCommandByName:nameNS value:valueNS];
+    [[mainFrame webView] _executeCoreCommandByName:nameNS.get() value:valueNS.get()];
 }
 
 bool TestRunner::findString(JSContextRef context, JSStringRef target, JSObjectRef optionsArray)
@@ -640,16 +640,16 @@ bool TestRunner::isCommandEnabled(JSStringRef name)
 {
 #if !PLATFORM(IOS_FAMILY)
     RetainPtr<CFStringRef> nameCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, name));
-    NSString *nameNS = (__bridge NSString *)nameCF.get();
+    RetainPtr nameNS = (__bridge NSString *)nameCF.get();
 
     // Accept command strings with capital letters for first letter without trailing colon.
-    if (![nameNS hasSuffix:@":"] && [nameNS length]) {
-        nameNS = [[[[nameNS substringToIndex:1] lowercaseString]
-            stringByAppendingString:[nameNS substringFromIndex:1]]
+    if (![nameNS.get() hasSuffix:@":"] && [nameNS.get() length]) {
+        nameNS = [[[[nameNS.get() substringToIndex:1] lowercaseString]
+            stringByAppendingString:[nameNS.get() substringFromIndex:1]]
             stringByAppendingString:@":"];
     }
 
-    SEL selector = NSSelectorFromString(nameNS);
+    SEL selector = NSSelectorFromString(nameNS.get());
     RetainPtr<CommandValidationTarget> target = adoptNS([[CommandValidationTarget alloc] initWithAction:selector]);
     id validator = [NSApp targetForAction:selector to:[mainFrame webView] from:target.get()];
     if (!validator)
@@ -674,23 +674,23 @@ void TestRunner::waitForPolicyDelegate()
 void TestRunner::addOriginAccessAllowListEntry(JSStringRef sourceOrigin, JSStringRef destinationProtocol, JSStringRef destinationHost, bool allowDestinationSubdomains)
 {
     RetainPtr<CFStringRef> sourceOriginCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, sourceOrigin));
-    NSString *sourceOriginNS = (__bridge NSString *)sourceOriginCF.get();
+    RetainPtr sourceOriginNS = (__bridge NSString *)sourceOriginCF.get();
     RetainPtr<CFStringRef> protocolCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, destinationProtocol));
-    NSString *destinationProtocolNS = (__bridge NSString *)protocolCF.get();
+    RetainPtr destinationProtocolNS = (__bridge NSString *)protocolCF.get();
     RetainPtr<CFStringRef> hostCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, destinationHost));
-    NSString *destinationHostNS = (__bridge NSString *)hostCF.get();
-    [WebView _addOriginAccessAllowListEntryWithSourceOrigin:sourceOriginNS destinationProtocol:destinationProtocolNS destinationHost:destinationHostNS allowDestinationSubdomains:allowDestinationSubdomains];
+    RetainPtr destinationHostNS = (__bridge NSString *)hostCF.get();
+    [WebView _addOriginAccessAllowListEntryWithSourceOrigin:sourceOriginNS.get() destinationProtocol:destinationProtocolNS.get() destinationHost:destinationHostNS.get() allowDestinationSubdomains:allowDestinationSubdomains];
 }
 
 void TestRunner::removeOriginAccessAllowListEntry(JSStringRef sourceOrigin, JSStringRef destinationProtocol, JSStringRef destinationHost, bool allowDestinationSubdomains)
 {
     RetainPtr<CFStringRef> sourceOriginCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, sourceOrigin));
-    NSString *sourceOriginNS = (__bridge NSString *)sourceOriginCF.get();
+    RetainPtr sourceOriginNS = (__bridge NSString *)sourceOriginCF.get();
     RetainPtr<CFStringRef> protocolCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, destinationProtocol));
-    NSString *destinationProtocolNS = (__bridge NSString *)protocolCF.get();
+    RetainPtr destinationProtocolNS = (__bridge NSString *)protocolCF.get();
     RetainPtr<CFStringRef> hostCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, destinationHost));
-    NSString *destinationHostNS = (__bridge NSString *)hostCF.get();
-    [WebView _removeOriginAccessAllowListEntryWithSourceOrigin:sourceOriginNS destinationProtocol:destinationProtocolNS destinationHost:destinationHostNS allowDestinationSubdomains:allowDestinationSubdomains];
+    RetainPtr destinationHostNS = (__bridge NSString *)hostCF.get();
+    [WebView _removeOriginAccessAllowListEntryWithSourceOrigin:sourceOriginNS.get() destinationProtocol:destinationProtocolNS.get() destinationHost:destinationHostNS.get() allowDestinationSubdomains:allowDestinationSubdomains];
 }
 
 void TestRunner::setScrollbarPolicy(JSStringRef orientation, JSStringRef policy)
@@ -701,15 +701,15 @@ void TestRunner::setScrollbarPolicy(JSStringRef orientation, JSStringRef policy)
 void TestRunner::addUserScript(JSStringRef source, bool runAtStart, bool allFrames)
 {
     RetainPtr<CFStringRef> sourceCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, source));
-    NSString *sourceNS = (__bridge NSString *)sourceCF.get();
-    [WebView _addUserScriptToGroup:@"org.webkit.DumpRenderTree" world:[WebScriptWorld world] source:sourceNS url:nil includeMatchPatternStrings:nil excludeMatchPatternStrings:nil injectionTime:(runAtStart ? WebInjectAtDocumentStart : WebInjectAtDocumentEnd) injectedFrames:(allFrames ? WebInjectInAllFrames : WebInjectInTopFrameOnly)];
+    RetainPtr sourceNS = (__bridge NSString *)sourceCF.get();
+    [WebView _addUserScriptToGroup:@"org.webkit.DumpRenderTree" world:[WebScriptWorld world] source:sourceNS.get() url:nil includeMatchPatternStrings:nil excludeMatchPatternStrings:nil injectionTime:(runAtStart ? WebInjectAtDocumentStart : WebInjectAtDocumentEnd) injectedFrames:(allFrames ? WebInjectInAllFrames : WebInjectInTopFrameOnly)];
 }
 
 void TestRunner::addUserStyleSheet(JSStringRef source, bool allFrames)
 {
     RetainPtr<CFStringRef> sourceCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, source));
-    NSString *sourceNS = (__bridge NSString *)sourceCF.get();
-    [WebView _addUserStyleSheetToGroup:@"org.webkit.DumpRenderTree" world:[WebScriptWorld world] source:sourceNS url:nil includeMatchPatternStrings:nil excludeMatchPatternStrings:nil injectedFrames:(allFrames ? WebInjectInAllFrames : WebInjectInTopFrameOnly)];
+    RetainPtr sourceNS = (__bridge NSString *)sourceCF.get();
+    [WebView _addUserStyleSheetToGroup:@"org.webkit.DumpRenderTree" world:[WebScriptWorld world] source:sourceNS.get() url:nil includeMatchPatternStrings:nil excludeMatchPatternStrings:nil injectedFrames:(allFrames ? WebInjectInAllFrames : WebInjectInTopFrameOnly)];
 }
 
 void TestRunner::showWebInspector()
@@ -725,8 +725,8 @@ void TestRunner::closeWebInspector()
 void TestRunner::evaluateInWebInspector(JSStringRef script)
 {
     RetainPtr<CFStringRef> scriptCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, script));
-    NSString *scriptNS = (__bridge NSString *)scriptCF.get();
-    [[[mainFrame webView] inspector] evaluateInFrontend:nil script:scriptNS];
+    RetainPtr scriptNS = (__bridge NSString *)scriptCF.get();
+    [[[mainFrame webView] inspector] evaluateInFrontend:nil script:scriptNS.get()];
 }
 
 JSRetainPtr<JSStringRef> TestRunner::inspectorTestStubURL()
@@ -734,16 +734,16 @@ JSRetainPtr<JSStringRef> TestRunner::inspectorTestStubURL()
 #if PLATFORM(IOS_FAMILY)
     return nullptr;
 #else
-    CFBundleRef inspectorBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.WebInspectorUI"));
+    RetainPtr inspectorBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.WebInspectorUI"));
     if (!inspectorBundle)
         return nullptr;
 
-    RetainPtr<CFURLRef> url = adoptCF(CFBundleCopyResourceURL(inspectorBundle, CFSTR("TestStub"), CFSTR("html"), NULL));
+    RetainPtr<CFURLRef> url = adoptCF(CFBundleCopyResourceURL(inspectorBundle.get(), CFSTR("TestStub"), CFSTR("html"), NULL));
     if (!url)
         return nullptr;
 
-    CFStringRef urlString = CFURLGetString(url.get());
-    return adopt(JSStringCreateWithCFString(urlString));
+    RetainPtr urlString = CFURLGetString(url.get());
+    return adopt(JSStringCreateWithCFString(urlString.get()));
 #endif
 }
 
@@ -773,11 +773,11 @@ void TestRunner::evaluateScriptInIsolatedWorldAndReturnValue(unsigned worldID, J
 void TestRunner::evaluateScriptInIsolatedWorld(unsigned worldID, JSObjectRef globalObject, JSStringRef script)
 {
     RetainPtr<CFStringRef> scriptCF = adoptCF(JSStringCopyCFString(kCFAllocatorDefault, script));
-    NSString *scriptNS = (__bridge NSString *)scriptCF.get();
+    RetainPtr scriptNS = (__bridge NSString *)scriptCF.get();
 
     // A worldID of 0 always corresponds to a new world. Any other worldID corresponds to a world
     // that is created once and cached forever.
-    WebScriptWorld *world;
+    RetainPtr<WebScriptWorld> world;
     if (!worldID)
         world = [WebScriptWorld world];
     else {
@@ -787,7 +787,7 @@ void TestRunner::evaluateScriptInIsolatedWorld(unsigned worldID, JSObjectRef glo
         world = worldSlot.get();
     }
 
-    [mainFrame _stringByEvaluatingJavaScriptFromString:scriptNS withGlobalObject:globalObject inScriptWorld:world];
+    [mainFrame _stringByEvaluatingJavaScriptFromString:scriptNS.get() withGlobalObject:globalObject inScriptWorld:world.get()];
 }
 
 @interface APITestDelegate : NSObject <WebFrameLoadDelegate>

@@ -196,7 +196,7 @@ bool eventIsOfGestureTypes(CGEventRef event, IOHIDEventType first, Types ... res
 
 + (NSDictionary *)dictionaryForEvent:(CGEventRef)rawEvent relativeToTime:(CGEventTimestamp)referenceTimestamp
 {
-    auto plainEvent = adoptCF(CGEventCreate(NULL));
+    RetainPtr plainEvent = adoptCF(CGEventCreate(NULL));
     CGEventRef rawPlainEvent = plainEvent.get();
 
     auto dict = adoptNS([[NSMutableDictionary alloc] init]);
@@ -227,7 +227,7 @@ bool eventIsOfGestureTypes(CGEventRef event, IOHIDEventType first, Types ... res
 
 + (RetainPtr<CGEventRef>)createEventForDictionary:(NSDictionary *)dict inWindow:(NSWindow *)window relativeToTime:(MonotonicTime)referenceTimestamp
 {
-    auto event = adoptCF(CGEventCreate(NULL));
+    RetainPtr event = adoptCF(CGEventCreate(NULL));
     CGEventRef rawEvent = event.get();
 
     FOR_EACH_CGEVENT_INTEGER_FIELD(STORE_INTEGER_FIELD_TO_EVENT);

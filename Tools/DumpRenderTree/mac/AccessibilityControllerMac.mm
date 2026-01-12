@@ -88,9 +88,9 @@ static id findAccessibleObjectById(id obj, NSString *idAttribute)
     NSArray *children = [obj accessibilityAttributeValue:NSAccessibilityChildrenAttribute];
     NSUInteger childrenCount = [children count];
     for (NSUInteger i = 0; i < childrenCount; ++i) {
-        id result = findAccessibleObjectById([children objectAtIndex:i], idAttribute);
+        RetainPtr result = findAccessibleObjectById([children objectAtIndex:i], idAttribute);
         if (result)
-            return result;
+            return result.autorelease();
     }
     END_AX_OBJC_EXCEPTIONS
 
@@ -101,9 +101,9 @@ AccessibilityUIElement AccessibilityController::accessibleElementById(JSStringRe
 {
     NSString *idAttribute = [NSString stringWithJSStringRef:idAttributeRef];
     id root = [[mainFrame accessibilityRoot] accessibilityAttributeValue:NSAccessibilityParentAttribute];
-    id result = findAccessibleObjectById(root, idAttribute);
+    RetainPtr result = findAccessibleObjectById(root, idAttribute);
     if (result)
-        return AccessibilityUIElement(result);
+        return AccessibilityUIElement(result.get());
 
     return nullptr;
 }

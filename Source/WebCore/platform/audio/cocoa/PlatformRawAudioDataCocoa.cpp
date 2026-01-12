@@ -151,9 +151,9 @@ PlatformRawAudioDataCocoa::PlatformRawAudioDataCocoa(Ref<MediaSampleAVFObjC>&& s
 
 const AudioStreamBasicDescription& PlatformRawAudioDataCocoa::asbd() const
 {
-    auto description = PAL::CMSampleBufferGetFormatDescription(m_sample->sampleBuffer());
+    RetainPtr description = retainPtr(PAL::CMSampleBufferGetFormatDescription(m_sample->sampleBuffer()));
     ASSERT(description);
-    const AudioStreamBasicDescription* const asbd = PAL::CMAudioFormatDescriptionGetStreamBasicDescription(description);
+    const AudioStreamBasicDescription* const asbd = PAL::CMAudioFormatDescriptionGetStreamBasicDescription(description.get());
     ASSERT(asbd);
     return *asbd;
 }

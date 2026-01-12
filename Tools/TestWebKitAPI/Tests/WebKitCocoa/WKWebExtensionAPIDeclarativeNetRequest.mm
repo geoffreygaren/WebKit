@@ -42,7 +42,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, BlockedLoadTest)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='background-color: blue'></body>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
@@ -63,7 +63,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, BlockedLoadTest)
 
     auto *rules = @"[ { \"id\" : 1, \"priority\": 1, \"action\" : { \"type\" : \"block\" }, \"condition\" : { \"urlFilter\" : \"frame\" } } ]";
 
-    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript, @"rules.json": rules  });
+    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get(), @"rules.json": rules  });
 
     // Grant the declarativeNetRequest permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequest];
@@ -96,7 +96,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, BlockedLoadInPrivateBrowsingTest)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='background-color: blue'></body>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
@@ -117,7 +117,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, BlockedLoadInPrivateBrowsingTest)
 
     auto *rules = @"[ { \"id\" : 1, \"priority\": 1, \"action\" : { \"type\" : \"block\" }, \"condition\" : { \"urlFilter\" : \"frame\" } } ]";
 
-    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript, @"rules.json": rules  });
+    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get(), @"rules.json": rules  });
 
     // Grant the declarativeNetRequest permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequest];
@@ -147,7 +147,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, BlockedLoadInPrivateBrowsingTest)
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, GetEnabledRulesets)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const enabledRulesets = await browser.declarativeNetRequest.getEnabledRulesets()",
         @"browser.test.assertEq(enabledRulesets.length, 1, 'One ruleset should have been enabled')",
         @"browser.test.assertEq(enabledRulesets[0], 'blockFrame', 'blockFrame should have been enabled')",
@@ -177,7 +177,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, GetEnabledRulesets)
 
     auto *rules = @"[ { \"id\" : 1, \"priority\": 1, \"action\" : { \"type\" : \"block\" }, \"condition\" : { \"urlFilter\" : \"frame\" } } ]";
 
-    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript, @"rules.json": rules  });
+    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get(), @"rules.json": rules  });
 
     // Grant the declarativeNetRequest permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequest];
@@ -187,7 +187,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, GetEnabledRulesets)
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, UpdateEnabledRulesets)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
 
         // Test invalid argument types
         @"browser.test.assertThrows(() => browser.declarativeNetRequest.updateEnabledRulesets({ enableRulesetIds: 5 }), /'options' value is invalid, because 'enableRulesetIds' is expected to be an array of strings/i)",
@@ -240,7 +240,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, UpdateEnabledRulesets)
 
     auto *rules = @"[ { \"id\" : 1, \"priority\": 1, \"action\" : { \"type\" : \"block\" }, \"condition\" : { \"urlFilter\" : \"frame\" } } ]";
 
-    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript, @"rules.json": rules  });
+    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get(), @"rules.json": rules  });
 
     // Grant the declarativeNetRequest permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequest];
@@ -255,7 +255,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, UpdateEnabledRulesetsPerformsCompil
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='background-color: blue'></body>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Before any modifications
         @"let enabledRulesets = await browser.declarativeNetRequest.getEnabledRulesets()",
         @"browser.test.assertEq(enabledRulesets.length, 0, 'No rulesets should have been enabled')",
@@ -288,7 +288,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, UpdateEnabledRulesetsPerformsCompil
 
     auto *rules = @"[ { \"id\" : 1, \"priority\": 1, \"action\" : { \"type\" : \"block\" }, \"condition\" : { \"urlFilter\" : \"frame\" } } ]";
 
-    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript, @"rules.json": rules  });
+    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get(), @"rules.json": rules  });
 
     // Grant the declarativeNetRequest permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequest];
@@ -312,7 +312,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, UpdateEnabledRulesetsPerformsCompil
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, IsRegexSupported)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Invalid arguments
         @"browser.test.assertThrows(() => browser.declarativeNetRequest.isRegexSupported({ }), /'regexOptions' value is invalid, because it is missing required keys: 'regex'/i)",
         @"browser.test.assertThrows(() => browser.declarativeNetRequest.isRegexSupported({ regex: 5 }), /'regexOptions' value is invalid, because 'regex' is expected to be a string/i)",
@@ -342,7 +342,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, IsRegexSupported)
         @"background": @{ @"scripts": @[ @"background.js" ], @"type": @"module", @"persistent": @NO },
     };
 
-    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript  });
+    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get()  });
 
     // Grant the declarativeNetRequest permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequest];
@@ -357,7 +357,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, SetExtensionActionOptions)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='background-color: blue'></body>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true })",
         @"browser.declarativeNetRequest.setExtensionActionOptions({ displayActionCountAsBadgeText: true })",
 
@@ -386,7 +386,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, SetExtensionActionOptions)
 
     auto *rules = @"[ { \"id\" : 1, \"priority\": 1, \"action\" : { \"type\" : \"block\" }, \"condition\" : { \"urlFilter\" : \"frame\" } } ]";
 
-    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript, @"rules.json": rules  });
+    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get(), @"rules.json": rules  });
 
     // Grant the declarativeNetRequest and tabs permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequest];
@@ -427,7 +427,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, GetMatchedRules)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='background-color: blue'></body>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"setTimeout(async () => {",
         @"  const matchedRules = await browser.declarativeNetRequest.getMatchedRules()",
         @"  browser.test.assertEq(matchedRules.rulesMatchedInfo.length, 1)",
@@ -457,20 +457,20 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, GetMatchedRules)
 
     auto *rules = @"[ { \"id\" : 1, \"priority\": 1, \"action\" : { \"type\" : \"block\" }, \"condition\" : { \"urlFilter\" : \"frame\" } } ]";
 
-    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript, @"rules.json": rules  });
+    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get(), @"rules.json": rules  });
 
     // Grant the declarativeNetRequestFeedback permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequest];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequestFeedback];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    NSURL *requestURL = urlRequest.URL;
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    NSURL *requestURL = urlRequest.get().URL;
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:requestURL];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:[requestURL URLByAppendingPathComponent:@"frame.html"]];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -482,7 +482,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, SessionRules)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='background-color: blue'></body>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let sessionRules = await browser.declarativeNetRequest.getSessionRules()",
         @"browser.test.assertEq(sessionRules.length, 0)",
         @"await browser.declarativeNetRequest.updateSessionRules({ addRules: [{ id: 1, priority: 1, action: {type: 'block'}, condition: { urlFilter: 'frame' } }] })",
@@ -498,7 +498,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, SessionRules)
         @"background": @{ @"scripts": @[ @"background.js" ], @"type": @"module", @"persistent": @NO },
     };
 
-    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript  });
+    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get()  });
 
     // Grant the declarativeNetRequest permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequest];
@@ -526,7 +526,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, SessionRules)
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, GetSessionRules)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let sessionRules = await browser.declarativeNetRequest.getSessionRules()",
         @"browser.test.assertEq(sessionRules.length, 0)",
 
@@ -584,12 +584,12 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, GetSessionRules)
         @"background": @{ @"scripts": @[ @"background.js" ], @"type": @"module", @"persistent": @NO },
     };
 
-    Util::loadAndRunExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript  });
+    Util::loadAndRunExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get()  });
 }
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, RemoveSessionRules)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let sessionRules = await browser.declarativeNetRequest.getSessionRules()",
         @"browser.test.assertEq(sessionRules.length, 0)",
 
@@ -614,7 +614,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RemoveSessionRules)
         @"background": @{ @"scripts": @[ @"background.js" ], @"type": @"module", @"persistent": @NO },
     };
 
-    Util::loadAndRunExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript  });
+    Util::loadAndRunExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get()  });
 }
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, DynamicRules)
@@ -624,7 +624,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, DynamicRules)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='background-color: blue'></body>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let dynamicRules = await browser.declarativeNetRequest.getDynamicRules()",
         @"if (dynamicRules.length == 0) {",
         @"  await browser.declarativeNetRequest.updateDynamicRules({ addRules: [{ id: 1, priority: 1, action: {type: 'block'}, condition: { urlFilter: 'frame' } }] })",
@@ -645,7 +645,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, DynamicRules)
         @"background": @{ @"scripts": @[ @"background.js" ], @"type": @"module", @"persistent": @NO },
     };
 
-    auto manager = Util::parseExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript }, WKWebExtensionControllerConfiguration._temporaryConfiguration);
+    auto manager = Util::parseExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get() }, WKWebExtensionControllerConfiguration._temporaryConfiguration);
 
     // Give the extension a unique identifier so it opts into saving data in the temporary configuration.
     manager.get().context.uniqueIdentifier = @"org.webkit.test.extension (76C788B8)";
@@ -685,7 +685,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, DynamicRules)
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, GetDynamicRules)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let dynamicRules = await browser.declarativeNetRequest.getDynamicRules()",
         @"browser.test.assertEq(dynamicRules.length, 0)",
 
@@ -743,12 +743,12 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, GetDynamicRules)
         @"background": @{ @"scripts": @[ @"background.js" ], @"type": @"module", @"persistent": @NO },
     };
 
-    Util::loadAndRunExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript  });
+    Util::loadAndRunExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get()  });
 }
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, RemoveDynamicRules)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let dynamicRules = await browser.declarativeNetRequest.getDynamicRules()",
         @"browser.test.assertEq(dynamicRules.length, 0)",
 
@@ -773,12 +773,12 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RemoveDynamicRules)
         @"background": @{ @"scripts": @[ @"background.js" ], @"type": @"module", @"persistent": @NO },
     };
 
-    Util::loadAndRunExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript  });
+    Util::loadAndRunExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get()  });
 }
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, RedirectRule)
 {
-    auto *pageScript = Util::constructScript(@[
+    RetainPtr pageScript = Util::constructScript(@[
         @"<script>",
         @"  browser.test.assertTrue(location.href.startsWith('http://127.0.0.1'), 'Final load should be via IP address')",
 
@@ -787,10 +787,10 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RedirectRule)
     ]);
 
     TestWebKitAPI::HTTPServer server({
-        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript } },
+        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript.get() } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
     auto *redirectURL = server.request().URL.absoluteString;
 
     auto *rules = @[ @{
@@ -851,18 +851,18 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RedirectRule)
 
     manager.get().defaultTab.webView.navigationDelegate = navigationDelegate.get();
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, RedirectRuleWithoutHostAccessPermission)
 {
-    auto *pageScript = Util::constructScript(@[
+    RetainPtr pageScript = Util::constructScript(@[
         @"<script>",
         @"  browser.test.assertTrue(location.href.startsWith('http://localhost'), 'Final load should be via localhost')",
 
@@ -871,10 +871,10 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RedirectRuleWithoutHostAccessPermis
     ]);
 
     TestWebKitAPI::HTTPServer server({
-        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript } },
+        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript.get() } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
     auto *redirectURL = server.request().URL.absoluteString;
 
     auto *rules = @[ @{
@@ -915,30 +915,30 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RedirectRuleWithoutHostAccessPermis
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"rules.json": rules
     };
 
     auto manager = Util::loadExtension(manifest, resources);
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusDeniedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequestWithHostAccess];
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, RedirectRuleWithoutHostPermission)
 {
-    auto *pageScript = Util::constructScript(@[
+    RetainPtr pageScript = Util::constructScript(@[
         @"<script>",
         @"  browser.test.assertTrue(location.href.startsWith('http://localhost'), 'Final load should be via localhost')",
 
@@ -947,10 +947,10 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RedirectRuleWithoutHostPermission)
     ]);
 
     TestWebKitAPI::HTTPServer server({
-        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript } },
+        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript.get() } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
     auto *redirectURL = server.request().URL.absoluteString;
 
     auto *rules = @[ @{
@@ -991,12 +991,12 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RedirectRuleWithoutHostPermission)
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"rules.json": rules
     };
 
@@ -1004,14 +1004,14 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RedirectRuleWithoutHostPermission)
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, ModifyHeadersRule)
 {
-    auto *pageScript = Util::constructScript(@[
+    RetainPtr pageScript = Util::constructScript(@[
         @"<script>",
         @"  browser.test.assertEq(document.referrer, 'https://example.com/')",
 
@@ -1020,10 +1020,10 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, ModifyHeadersRule)
     ]);
 
     TestWebKitAPI::HTTPServer server({
-        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript } },
+        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript.get() } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
     auto *rules = @[@{
         @"id": @1,
@@ -1065,29 +1065,29 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, ModifyHeadersRule)
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"rules.json": rules
     };
 
     auto manager = Util::loadExtension(manifest, resources);
 
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, ModifyHeadersRuleWithoutHostAccessPermission)
 {
-    auto *pageScript = Util::constructScript(@[
+    RetainPtr pageScript = Util::constructScript(@[
         @"<script>",
         @"  browser.test.assertEq(document.referrer, '')",
 
@@ -1096,10 +1096,10 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, ModifyHeadersRuleWithoutHostAccessP
     ]);
 
     TestWebKitAPI::HTTPServer server({
-        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript } },
+        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript.get() } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
     auto *rules = @[@{
         @"id": @1,
@@ -1141,30 +1141,30 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, ModifyHeadersRuleWithoutHostAccessP
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"rules.json": rules
     };
 
     auto manager = Util::loadExtension(manifest, resources);
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusDeniedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequestWithHostAccess];
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, ModifyHeadersRuleWithoutHostPermission)
 {
-    auto *pageScript = Util::constructScript(@[
+    RetainPtr pageScript = Util::constructScript(@[
         @"<script>",
         @"  browser.test.assertEq(document.referrer, '')",
 
@@ -1173,10 +1173,10 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, ModifyHeadersRuleWithoutHostPermiss
     ]);
 
     TestWebKitAPI::HTTPServer server({
-        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript } },
+        { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, pageScript.get() } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *urlRequest = server.requestWithLocalhost();
+    RetainPtr urlRequest = server.requestWithLocalhost();
 
     auto *rules = @[@{
         @"id": @1,
@@ -1218,12 +1218,12 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, ModifyHeadersRuleWithoutHostPermiss
         }
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
         @"rules.json": rules
     };
 
@@ -1231,7 +1231,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, ModifyHeadersRuleWithoutHostPermiss
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -1243,7 +1243,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, MainFrameAllowAllRequests)
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<script>browser.test.notifyPass()</script>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Load Tab')"
     ]);
 
@@ -1264,7 +1264,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, MainFrameAllowAllRequests)
         }
     };
 
-    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript, @"rules.json": rules  });
+    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get(), @"rules.json": rules  });
 
     // Grant the declarativeNetRequest permission.
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequest];
@@ -1273,12 +1273,12 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, MainFrameAllowAllRequests)
 
     auto webView = manager.get().defaultTab.webView;
 
-    auto *urlRequest = server.requestWithLocalhost();
-    NSURL *requestURL = urlRequest.URL;
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    NSURL *requestURL = urlRequest.get().URL;
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:requestURL];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:[requestURL URLByAppendingPathComponent:@"frame.html"]];
 
-    [webView loadRequest:urlRequest];
+    [webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -3894,7 +3894,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RemoveAllContentRuleListsDoesNotRem
         { "/frame.html"_s, { { { "Content-Type"_s, "text/html"_s } }, "<body style='background-color: blue'></body>"_s } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.sendMessage('Remove RuleLists and Load Tab')"
     ]);
 
@@ -3915,7 +3915,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RemoveAllContentRuleListsDoesNotRem
 
     auto *rules = @"[ { \"id\" : 1, \"priority\": 1, \"action\" : { \"type\" : \"block\" }, \"condition\" : { \"urlFilter\" : \"frame\" } } ]";
 
-    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript, @"rules.json": rules });
+    auto manager = Util::loadExtension(declarativeNetRequestManifest, @{ @"background.js": backgroundScript.get(), @"rules.json": rules });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionDeclarativeNetRequest];
 
@@ -3940,7 +3940,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, RemoveAllContentRuleListsDoesNotRem
 
 TEST(WKWebExtensionAPIDeclarativeNetRequest, MigrateDeclarativeNetRequestDataToNewFormat)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"var expectedResults = [{",
         @"  'id': 1,",
         @"  'condition': {",
@@ -3960,7 +3960,7 @@ TEST(WKWebExtensionAPIDeclarativeNetRequest, MigrateDeclarativeNetRequestDataToN
     ]);
 
     static auto *resources = @{
-        @"background.js": backgroundScript,
+        @"background.js": backgroundScript.get(),
     };
 
     auto *declarativeNetRequestManifest = @{

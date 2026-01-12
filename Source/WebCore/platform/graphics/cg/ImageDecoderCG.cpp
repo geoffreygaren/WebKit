@@ -142,11 +142,11 @@ static RetainPtr<CFMutableDictionaryRef> imageSourceMetadataOptions()
 
 static RetainPtr<CFDictionaryRef> imageSourceOptions(SubsamplingLevel subsamplingLevel = SubsamplingLevel::Default, ShouldDecodeToHDR shouldDecodeToHDR = ShouldDecodeToHDR::No)
 {
-    static const auto options = createImageSourceOptions().leakRef();
+    static NeverDestroyed<RetainPtr<CFDictionaryRef>> options = createImageSourceOptions();
     if (subsamplingLevel == SubsamplingLevel::Default && shouldDecodeToHDR == ShouldDecodeToHDR::No)
-        return options;
+        return options->get();
 
-    auto extendedOptions = adoptCF(CFDictionaryCreateMutableCopy(nullptr, 0, options));
+    auto extendedOptions = adoptCF(CFDictionaryCreateMutableCopy(nullptr, 0, options->get()));
     appendImageSourceOption(extendedOptions.get(), subsamplingLevel);
     appendImageSourceOption(extendedOptions.get(), shouldDecodeToHDR);
     return extendedOptions;
@@ -174,8 +174,8 @@ static IntSize frameSizeFromProperties(CFDictionaryRef properties)
 
     auto dimension = [&](const void *key) -> int {
         int value = 0;
-        if (auto num = (CFNumberRef)CFDictionaryGetValue(properties, key))
-            CFNumberGetValue(num, kCFNumberIntType, &value);
+        if (RetainPtr num = (CFNumberRef)CFDictionaryGetValue(properties, key))
+            CFNumberGetValue(num.get(), kCFNumberIntType, &value);
         return value;
     };
 
@@ -213,72 +213,72 @@ static CFDictionaryRef animationPropertiesFromProperties(CFDictionaryRef propert
     //      LoopCount = 0;
     //      ...
     //  };
-    auto animationProperties = (CFDictionaryRef)CFDictionaryGetValue(properties, animationDictionaryName);
+    RetainPtr animationProperties = (CFDictionaryRef)CFDictionaryGetValue(properties, animationDictionaryName);
     if (!animationProperties)
         return nullptr;
 
-    auto frameInfoArray = (CFArrayRef)CFDictionaryGetValue(animationProperties, WebCoreCGImagePropertyFrameInfoArray);
+    RetainPtr frameInfoArray = (CFArrayRef)CFDictionaryGetValue(animationProperties.get(), WebCoreCGImagePropertyFrameInfoArray);
     if (!frameInfoArray)
         return nullptr;
 
-    return (CFDictionaryRef)CFArrayGetValueAtIndex(frameInfoArray, index);
+    return (CFDictionaryRef)CFArrayGetValueAtIndex(frameInfoArray.get(), index);
 }
 
 static ImageOrientation orientationFromProperties(CFDictionaryRef imageProperties)
 {
     ASSERT(imageProperties);
-    CFNumberRef orientationProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyOrientation);
+    RetainPtr orientationProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyOrientation);
     if (!orientationProperty)
         return ImageOrientation::Orientation::None;
-    
+
     int exifValue;
-    CFNumberGetValue(orientationProperty, kCFNumberIntType, &exifValue);
+    CFNumberGetValue(orientationProperty.get(), kCFNumberIntType, &exifValue);
     return ImageOrientation::fromEXIFValue(exifValue);
 }
 
 static bool mayHaveDensityCorrectedSize(CFDictionaryRef imageProperties)
 {
     ASSERT(imageProperties);
-    auto resolutionXProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyDPIWidth);
-    auto resolutionYProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyDPIHeight);
+    RetainPtr resolutionXProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyDPIWidth);
+    RetainPtr resolutionYProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyDPIHeight);
     if (!resolutionXProperty || !resolutionYProperty)
         return false;
 
     float resolutionX, resolutionY;
-    return CFNumberGetValue(resolutionXProperty, kCFNumberFloat32Type, &resolutionX)
-        && CFNumberGetValue(resolutionYProperty, kCFNumberFloat32Type, &resolutionY)
+    return CFNumberGetValue(resolutionXProperty.get(), kCFNumberFloat32Type, &resolutionX)
+        && CFNumberGetValue(resolutionYProperty.get(), kCFNumberFloat32Type, &resolutionY)
         && (resolutionX != ImageResolution::DefaultResolution || resolutionY != ImageResolution::DefaultResolution);
 }
 
 static std::optional<IntSize> densityCorrectedSizeFromProperties(CFDictionaryRef imageProperties)
 {
     ASSERT(imageProperties);
-    auto exifDictionary = (CFDictionaryRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyExifDictionary);
-    auto tiffDictionary = (CFDictionaryRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyTIFFDictionary);
+    RetainPtr exifDictionary = (CFDictionaryRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyExifDictionary);
+    RetainPtr tiffDictionary = (CFDictionaryRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyTIFFDictionary);
 
     if (!exifDictionary || !tiffDictionary)
         return std::nullopt;
 
-    auto widthProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyPixelWidth);
-    auto heightProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyPixelHeight);
-    auto preferredWidthProperty = (CFNumberRef)CFDictionaryGetValue(exifDictionary, kCGImagePropertyExifPixelXDimension);
-    auto preferredHeightProperty = (CFNumberRef)CFDictionaryGetValue(exifDictionary, kCGImagePropertyExifPixelYDimension);
-    auto resolutionXProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyDPIWidth);
-    auto resolutionYProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyDPIHeight);
-    auto resolutionUnitProperty = (CFNumberRef)CFDictionaryGetValue(tiffDictionary, kCGImagePropertyTIFFResolutionUnit);
+    RetainPtr widthProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyPixelWidth);
+    RetainPtr heightProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyPixelHeight);
+    RetainPtr preferredWidthProperty = (CFNumberRef)CFDictionaryGetValue(exifDictionary.get(), kCGImagePropertyExifPixelXDimension);
+    RetainPtr preferredHeightProperty = (CFNumberRef)CFDictionaryGetValue(exifDictionary.get(), kCGImagePropertyExifPixelYDimension);
+    RetainPtr resolutionXProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyDPIWidth);
+    RetainPtr resolutionYProperty = (CFNumberRef)CFDictionaryGetValue(imageProperties, kCGImagePropertyDPIHeight);
+    RetainPtr resolutionUnitProperty = (CFNumberRef)CFDictionaryGetValue(tiffDictionary.get(), kCGImagePropertyTIFFResolutionUnit);
 
     if (!preferredWidthProperty || !preferredHeightProperty || !resolutionXProperty || !resolutionYProperty || !resolutionUnitProperty)
         return std::nullopt;
 
     int resolutionUnit;
     float sourceWidth, sourceHeight, preferredWidth, preferredHeight, resolutionWidth, resolutionHeight;
-    if (!CFNumberGetValue(widthProperty, kCFNumberFloat32Type, &sourceWidth)
-        || !CFNumberGetValue(heightProperty, kCFNumberFloat32Type, &sourceHeight)
-        || !CFNumberGetValue(preferredWidthProperty, kCFNumberFloat32Type, &preferredWidth)
-        || !CFNumberGetValue(preferredHeightProperty, kCFNumberFloat32Type, &preferredHeight)
-        || !CFNumberGetValue(resolutionXProperty, kCFNumberFloat32Type, &resolutionWidth)
-        || !CFNumberGetValue(resolutionYProperty, kCFNumberFloat32Type, &resolutionHeight)
-        || !CFNumberGetValue(resolutionUnitProperty, kCFNumberIntType, &resolutionUnit)) {
+    if (!CFNumberGetValue(widthProperty.get(), kCFNumberFloat32Type, &sourceWidth)
+        || !CFNumberGetValue(heightProperty.get(), kCFNumberFloat32Type, &sourceHeight)
+        || !CFNumberGetValue(preferredWidthProperty.get(), kCFNumberFloat32Type, &preferredWidth)
+        || !CFNumberGetValue(preferredHeightProperty.get(), kCFNumberFloat32Type, &preferredHeight)
+        || !CFNumberGetValue(resolutionXProperty.get(), kCFNumberFloat32Type, &resolutionWidth)
+        || !CFNumberGetValue(resolutionYProperty.get(), kCFNumberFloat32Type, &resolutionHeight)
+        || !CFNumberGetValue(resolutionUnitProperty.get(), kCFNumberIntType, &resolutionUnit)) {
         return std::nullopt;
     }
 
@@ -402,33 +402,33 @@ bool ImageDecoderCG::hasHDRGainMap() const
     //                      PixelFormat = 875836518;
     //                      Width = 1000;
     //              } );
-    auto fileContentsProperties = dynamic_cf_cast<CFDictionaryRef>(CFDictionaryGetValue(properties.get(), kCGImagePropertyFileContentsDictionary));
+    RetainPtr fileContentsProperties = dynamic_cf_cast<CFDictionaryRef>(CFDictionaryGetValue(properties.get(), kCGImagePropertyFileContentsDictionary));
     if (!fileContentsProperties)
         return false;
 
-    auto imagesInfoArray = dynamic_cf_cast<CFArrayRef>(CFDictionaryGetValue(fileContentsProperties, kCGImagePropertyImages));
-    if (!imagesInfoArray || !CFArrayGetCount(imagesInfoArray))
+    RetainPtr imagesInfoArray = dynamic_cf_cast<CFArrayRef>(CFDictionaryGetValue(fileContentsProperties.get(), kCGImagePropertyImages));
+    if (!imagesInfoArray || !CFArrayGetCount(imagesInfoArray.get()))
         return false;
 
-    auto imageInfo = dynamic_cf_cast<CFDictionaryRef>(CFArrayGetValueAtIndex(imagesInfoArray, 0));
+    RetainPtr imageInfo = dynamic_cf_cast<CFDictionaryRef>(CFArrayGetValueAtIndex(imagesInfoArray.get(), 0));
     if (!imageInfo)
         return false;
 
-    auto auxiliaryDataArray = dynamic_cf_cast<CFArrayRef>(CFDictionaryGetValue(imageInfo, kCGImagePropertyAuxiliaryData));
+    RetainPtr auxiliaryDataArray = dynamic_cf_cast<CFArrayRef>(CFDictionaryGetValue(imageInfo.get(), kCGImagePropertyAuxiliaryData));
     if (!auxiliaryDataArray)
         return false;
 
-    CFIndex count = CFArrayGetCount(auxiliaryDataArray);
+    CFIndex count = CFArrayGetCount(auxiliaryDataArray.get());
     for (CFIndex index = 0; index < count; ++index) {
-        auto auxiliaryData = dynamic_cf_cast<CFDictionaryRef>(CFArrayGetValueAtIndex(auxiliaryDataArray, index));
+        RetainPtr auxiliaryData = dynamic_cf_cast<CFDictionaryRef>(CFArrayGetValueAtIndex(auxiliaryDataArray.get(), index));
         if (!auxiliaryData)
             continue;
 
-        auto type = dynamic_cf_cast<CFStringRef>(CFDictionaryGetValue(auxiliaryData, kCGImagePropertyAuxiliaryDataType));
+        RetainPtr type = dynamic_cf_cast<CFStringRef>(CFDictionaryGetValue(auxiliaryData.get(), kCGImagePropertyAuxiliaryDataType));
         if (!type)
             continue;
 
-        if (CFStringCompare(type, kCGImageAuxiliaryDataTypeHDRGainMap, 0) == kCFCompareEqualTo || CFStringCompare(type, kCGImageAuxiliaryDataTypeISOGainMap, 0) == kCFCompareEqualTo)
+        if (CFStringCompare(type.get(), kCGImageAuxiliaryDataTypeHDRGainMap, 0) == kCFCompareEqualTo || CFStringCompare(type.get(), kCGImageAuxiliaryDataTypeISOGainMap, 0) == kCFCompareEqualTo)
             return true;
     }
 #endif
@@ -448,20 +448,20 @@ size_t ImageDecoderCG::primaryFrameIndex() const
 RepetitionCount ImageDecoderCG::repetitionCount() const
 {
     RetainPtr<CFDictionaryRef> properties = adoptCF(CGImageSourceCopyProperties(m_nativeDecoder.get(), imageSourceOptions().get()));
-    CFDictionaryRef animationProperties = animationPropertiesFromProperties(properties.get());
+    RetainPtr animationProperties = animationPropertiesFromProperties(properties.get());
 
     // Turns out we're not an animated image after all, so we don't animate.
     if (!animationProperties)
         return RepetitionCountNone;
 
-    CFNumberRef num = (CFNumberRef)CFDictionaryGetValue(animationProperties, WebCoreCGImagePropertyLoopCount);
+    RetainPtr num = (CFNumberRef)CFDictionaryGetValue(animationProperties.get(), WebCoreCGImagePropertyLoopCount);
 
     // No property means loop once.
     if (!num)
         return RepetitionCountOnce;
 
     RepetitionCount loopCount;
-    CFNumberGetValue(num, kCFNumberIntType, &loopCount);
+    CFNumberGetValue(num.get(), kCFNumberIntType, &loopCount);
 
     // A property with value 0 means loop forever.
     if (!loopCount)
@@ -475,19 +475,19 @@ std::optional<IntPoint> ImageDecoderCG::hotSpot() const
     auto properties = adoptCF(CGImageSourceCopyPropertiesAtIndex(m_nativeDecoder.get(), 0, imageSourceOptions().get()));
     if (!properties)
         return std::nullopt;
-    
+
     int x = -1, y = -1;
-    CFNumberRef num = (CFNumberRef)CFDictionaryGetValue(properties.get(), CFSTR("hotspotX"));
-    if (!num || !CFNumberGetValue(num, kCFNumberIntType, &x))
+    RetainPtr num = (CFNumberRef)CFDictionaryGetValue(properties.get(), CFSTR("hotspotX"));
+    if (!num || !CFNumberGetValue(num.get(), kCFNumberIntType, &x))
         return std::nullopt;
-    
+
     num = (CFNumberRef)CFDictionaryGetValue(properties.get(), CFSTR("hotspotY"));
-    if (!num || !CFNumberGetValue(num, kCFNumberIntType, &y))
+    if (!num || !CFNumberGetValue(num.get(), kCFNumberIntType, &y))
         return std::nullopt;
-    
+
     if (x < 0 || y < 0)
         return std::nullopt;
-    
+
     return IntPoint(x, y);
 }
 
@@ -553,7 +553,7 @@ Seconds ImageDecoderCG::frameDurationAtIndex(size_t index) const
 {
     RetainPtr<CFDictionaryRef> properties = nullptr;
     RetainPtr<CFDictionaryRef> frameProperties = adoptCF(CGImageSourceCopyPropertiesAtIndex(m_nativeDecoder.get(), index, imageSourceOptions().get()));
-    CFDictionaryRef animationProperties = animationPropertiesFromProperties(frameProperties.get());
+    RetainPtr animationProperties = animationPropertiesFromProperties(frameProperties.get());
 
     if (frameProperties && !animationProperties) {
         properties = adoptCF(CGImageSourceCopyProperties(m_nativeDecoder.get(), imageSourceOptions().get()));
@@ -565,10 +565,10 @@ Seconds ImageDecoderCG::frameDurationAtIndex(size_t index) const
     // Use the unclamped frame delay if it exists. Otherwise use the clamped frame delay.
     float value = 0;
     if (animationProperties) {
-        if (CFNumberRef num = (CFNumberRef)CFDictionaryGetValue(animationProperties, WebCoreCGImagePropertyUnclampedDelayTime))
-            CFNumberGetValue(num, kCFNumberFloatType, &value);
-        else if (CFNumberRef num = (CFNumberRef)CFDictionaryGetValue(animationProperties, WebCoreCGImagePropertyDelayTime))
-            CFNumberGetValue(num, kCFNumberFloatType, &value);
+        if (RetainPtr num = (CFNumberRef)CFDictionaryGetValue(animationProperties.get(), WebCoreCGImagePropertyUnclampedDelayTime))
+            CFNumberGetValue(num.get(), kCFNumberFloatType, &value);
+        else if (RetainPtr num = (CFNumberRef)CFDictionaryGetValue(animationProperties.get(), WebCoreCGImagePropertyDelayTime))
+            CFNumberGetValue(num.get(), kCFNumberFloatType, &value);
     }
 
     Seconds duration(value);

@@ -143,12 +143,12 @@ using namespace WebCore;
 
     // Observe both frame-changed and bounds-changed notifications because either one could leave
     // the highlight incorrectly positioned with respect to the target view. We need to do this for
-    // the entire superview hierarchy to handle scrolling, bars coming and going, etc. 
+    // the entire superview hierarchy to handle scrolling, bars coming and going, etc.
     // (without making concrete assumptions about the view hierarchy).
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    for (NSView *v = _targetView; v; v = [v superview]) {
-        [notificationCenter addObserver:self selector:@selector(_repositionHighlightWindow) name:NSViewFrameDidChangeNotification object:v];
-        [notificationCenter addObserver:self selector:@selector(_repositionHighlightWindow) name:NSViewBoundsDidChangeNotification object:v];
+    for (RetainPtr v = _targetView; v; v = [v.get() superview]) {
+        [notificationCenter addObserver:self selector:@selector(_repositionHighlightWindow) name:NSViewFrameDidChangeNotification object:v.get()];
+        [notificationCenter addObserver:self selector:@selector(_repositionHighlightWindow) name:NSViewBoundsDidChangeNotification object:v.get()];
     }
 #else
     ASSERT(_highlightLayer);

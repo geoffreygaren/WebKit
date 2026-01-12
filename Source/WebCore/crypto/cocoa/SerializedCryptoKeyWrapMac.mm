@@ -118,7 +118,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 ALLOW_DEPRECATED_DECLARATIONS_BEGIN
     RetainPtr<CFArrayRef> acls = adoptCF(SecAccessCopyMatchingACLList(accessRef, kSecACLAuthorizationExportClear));
 ALLOW_DEPRECATED_DECLARATIONS_END
-    SecACLRef acl = checked_cf_cast<SecACLRef>(CFArrayGetValueAtIndex(acls.get(), 0));
+    RetainPtr<SecACLRef> acl = checked_cf_cast<SecACLRef>(CFArrayGetValueAtIndex(acls.get(), 0));
 
     SecTrustedApplicationRef trustedAppRef;
 ALLOW_DEPRECATED_DECLARATIONS_BEGIN
@@ -131,7 +131,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     RetainPtr<SecTrustedApplicationRef> trustedApp = adoptCF(trustedAppRef);
 
 ALLOW_DEPRECATED_DECLARATIONS_BEGIN
-    status = SecACLSetContents(acl, (__bridge CFArrayRef)@[ (__bridge id)trustedApp.get() ], bridge_cast(localizedItemName.get()), kSecKeychainPromptRequirePassphase);
+    status = SecACLSetContents(acl.get(), (__bridge CFArrayRef)@[ (__bridge id)trustedApp.get() ], bridge_cast(localizedItemName.get()), kSecKeychainPromptRequirePassphase);
 ALLOW_DEPRECATED_DECLARATIONS_END
     if (status) {
         WTFLogAlways("Cannot set ACL for WebCrypto master key, error %d", (int)status);
@@ -142,7 +142,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     auto base64EncodedMasterKeyData = base64EncodeToVector(masterKeyData);
 
     // Cannot use kSecClassKey because of <rdar://problem/16068207>.
-    NSDictionary *attributes = @{
+    RetainPtr<NSDictionary> attributes = @{
         (id)kSecClass : (id)kSecClassGenericPassword,
         (id)kSecAttrSynchronizable : @NO,
 #if USE(KEYCHAIN_ACCESS_CONTROL_LISTS)
@@ -154,7 +154,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
         (id)kSecValueData : toNSData(base64EncodedMasterKeyData).autorelease(),
     };
 
-    status = SecItemAdd((CFDictionaryRef)attributes, nullptr);
+    status = SecItemAdd((CFDictionaryRef)attributes.get(), nullptr);
     if (status) {
         WTFLogAlways("Cannot store WebCrypto master key, error %d", (int)status);
         return std::nullopt;
@@ -251,14 +251,14 @@ ALLOW_DEPRECATED_DECLARATIONS_END
         return false;
     RELEASE_ASSERT(tagLength == expectedTagLengthAES);
 
-    auto dictionary = @{
+    RetainPtr<NSDictionary> dictionary = @{
         versionKey: [NSNumber numberWithUnsignedInteger:currentSerializationVersion],
         wrappedKEKKey: toNSData(wrappedKEK).autorelease(),
         encryptedKeyKey: toNSData(encryptedKey).autorelease(),
         tagKey: toNSData(std::span { tag }.first(tagLength)).get()
     };
 
-    NSData* serialization = [NSPropertyListSerialization dataWithPropertyList:dictionary format:NSPropertyListBinaryFormat_v1_0 options:0 error:nullptr];
+    NSData* serialization = [NSPropertyListSerialization dataWithPropertyList:dictionary.get() format:NSPropertyListBinaryFormat_v1_0 options:0 error:nullptr];
     if (!serialization)
         return false;
 
@@ -278,29 +278,29 @@ static std::optional<std::array<uint8_t, size>> createArrayFromData(NSData * dat
 
 std::optional<struct WrappedCryptoKey> readSerializedCryptoKey(const Vector<uint8_t>& wrappedKey)
 {
-    NSDictionary* dictionary = [NSPropertyListSerialization propertyListWithData:toNSDataNoCopy(wrappedKey.span(), FreeWhenDone::No).get() options:0 format:nullptr error:nullptr];
+    RetainPtr<NSDictionary> dictionary = [NSPropertyListSerialization propertyListWithData:toNSDataNoCopy(wrappedKey.span(), FreeWhenDone::No).get() options:0 format:nullptr error:nullptr];
     if (!dictionary)
         return std::nullopt;
 
-    id versionObject = [dictionary objectForKey:versionKey];
+    id versionObject = [dictionary.get() objectForKey:versionKey];
     if (![versionObject isKindOfClass:[NSNumber class]])
         return std::nullopt;
     if ([versionObject unsignedIntegerValue] > currentSerializationVersion)
         return std::nullopt;
 
-    id wrappedKEKObject = [dictionary objectForKey:wrappedKEKKey];
+    id wrappedKEKObject = [dictionary.get() objectForKey:wrappedKEKKey];
     if (![wrappedKEKObject isKindOfClass:[NSData class]])
         return std::nullopt;
     auto wrappedKEK = createArrayFromData<wrappedKekSize>(wrappedKEKObject);
     if (!wrappedKEK)
         return std::nullopt;
 
-    id encryptedKeyObject = [dictionary objectForKey:encryptedKeyKey];
+    id encryptedKeyObject = [dictionary.get() objectForKey:encryptedKeyKey];
     if (![encryptedKeyObject isKindOfClass:[NSData class]])
         return std::nullopt;
     auto encryptedKey = Vector<uint8_t>(span(encryptedKeyObject));
 
-    id tagObject = [dictionary objectForKey:tagKey];
+    id tagObject = [dictionary.get() objectForKey:tagKey];
     if (![tagObject isKindOfClass:[NSData class]])
         return std::nullopt;
     auto tag = createArrayFromData<expectedTagLengthAES>(tagObject);

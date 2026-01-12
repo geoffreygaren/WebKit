@@ -31,9 +31,9 @@ namespace TestWebKitAPI::Util {
 CocoaColor *pixelColor(CocoaImage *image, CGPoint point)
 {
 #if USE(APPKIT)
-    auto imageRef = [image CGImageForProposedRect:nullptr context:nil hints:nil];
-    auto *bitmap = [[NSBitmapImageRep alloc] initWithCGImage:imageRef];
-    auto *color = [bitmap colorAtX:point.x y:point.y];
+    RetainPtr imageRef = [image CGImageForProposedRect:nullptr context:nil hints:nil];
+    RetainPtr bitmap = adoptNS([[NSBitmapImageRep alloc] initWithCGImage:imageRef.get()]);
+    auto *color = [bitmap.get() colorAtX:point.x y:point.y];
     return color;
 #else
     image = [image.imageAsset imageWithTraitCollection:UITraitCollection.currentTraitCollection];
@@ -65,22 +65,22 @@ CocoaColor *toSRGBColor(CocoaColor *color)
 #endif
 }
 
-bool compareColors(CocoaColor *color1, CocoaColor *color2, float tolerance)
+bool compareColors(CocoaColor *color1Arg, CocoaColor *color2Arg, float tolerance)
 {
-    if (color1 == color2 || [color1 isEqual:color2])
+    if (color1Arg == color2Arg || [color1Arg isEqual:color2Arg])
         return true;
 
-    if (!color1 || !color2)
+    if (!color1Arg || !color2Arg)
         return false;
 
-    color1 = toSRGBColor(color1);
-    color2 = toSRGBColor(color2);
+    RetainPtr color1 = toSRGBColor(color1Arg);
+    RetainPtr color2 = toSRGBColor(color2Arg);
 
     CGFloat red1, green1, blue1, alpha1;
-    [color1 getRed:&red1 green:&green1 blue:&blue1 alpha:&alpha1];
+    [color1.get() getRed:&red1 green:&green1 blue:&blue1 alpha:&alpha1];
 
     CGFloat red2, green2, blue2, alpha2;
-    [color2 getRed:&red2 green:&green2 blue:&blue2 alpha:&alpha2];
+    [color2.get() getRed:&red2 green:&green2 blue:&blue2 alpha:&alpha2];
 
     return fabs(red1 - red2) < tolerance && fabs(green1 - green2) < tolerance && fabs(blue1 - blue2) < tolerance && fabs(alpha1 - alpha2) < tolerance;
 }

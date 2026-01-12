@@ -95,8 +95,8 @@ TEST(DatabaseTracker, DeleteOrigin)
     // tables, and an actual database on disk.
     // In this case, we should remove the origin's information from both the Origins
     // and Databases tables, and remove the database from disk.
-    NSString *webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
-    String databaseDirectoryPath(webSQLDirectory);
+    RetainPtr webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
+    String databaseDirectoryPath(webSQLDirectory.get());
 
     std::unique_ptr<DatabaseTracker> databaseTracker = DatabaseTracker::trackerWithDatabasePath(databaseDirectoryPath);
     SecurityOriginData origin("https"_s, "webkit.org"_s, 443);
@@ -140,8 +140,8 @@ TEST(DatabaseTracker, DeleteOriginWhenDatabaseDoesNotExist)
     // Test the case where there is an entry in both the Origins and Databases tables,
     // but not an actual database on disk.
     // The information should still be removed from the tables.
-    NSString *webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
-    String databaseDirectoryPath(webSQLDirectory);
+    RetainPtr webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
+    String databaseDirectoryPath(webSQLDirectory.get());
 
     std::unique_ptr<DatabaseTracker> databaseTracker = DatabaseTracker::trackerWithDatabasePath(databaseDirectoryPath);
     SecurityOriginData origin("https"_s, "webkit.org"_s, 443);
@@ -176,8 +176,8 @@ TEST(DatabaseTracker, DeleteOriginWhenDeletingADatabaseFails)
     // When we call deleteOrigin(), deleting one of these databases fails.
     // In this case, we shouldn't remove the information from either the Databases or
     // Origins tables.
-    NSString *webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
-    String databaseDirectoryPath(webSQLDirectory);
+    RetainPtr webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
+    String databaseDirectoryPath(webSQLDirectory.get());
 
     std::unique_ptr<DatabaseTracker> databaseTracker = DatabaseTracker::trackerWithDatabasePath(databaseDirectoryPath);
     SecurityOriginData origin("https"_s, "webkit.org"_s, 443);
@@ -233,8 +233,8 @@ TEST(DatabaseTracker, DeleteOriginWithMissingEntryInDatabasesTable)
     // the Databases table. There is an actual database on disk.
     // The information should still be removed from the Origins table, and the
     // database should be deleted from disk.
-    NSString *webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
-    String databaseDirectoryPath(webSQLDirectory);
+    RetainPtr webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
+    String databaseDirectoryPath(webSQLDirectory.get());
 
     std::unique_ptr<DatabaseTracker> databaseTracker = DatabaseTracker::trackerWithDatabasePath(databaseDirectoryPath);
     SecurityOriginData origin("https"_s, "webkit.org"_s, 443);
@@ -272,8 +272,8 @@ TEST(DatabaseTracker, DeleteDatabase)
     // Test the expected case. There is an entry in the Databases table
     // and a database on disk. After the deletion, the database should be deleted
     // from disk, and the information should be gone from the Databases table.
-    NSString *webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
-    String databaseDirectoryPath(webSQLDirectory);
+    RetainPtr webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
+    String databaseDirectoryPath(webSQLDirectory.get());
 
     std::unique_ptr<DatabaseTracker> databaseTracker = DatabaseTracker::trackerWithDatabasePath(databaseDirectoryPath);
     SecurityOriginData origin("https"_s, "webkit.org"_s, 443);
@@ -316,8 +316,8 @@ TEST(DatabaseTracker, DeleteDatabaseWhenDatabaseDoesNotExist)
 {
     // Test the case where we try to delete a database that doesn't exist on disk.
     // We should still remove the database information from the Databases table.
-    NSString *webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
-    String databaseDirectoryPath(webSQLDirectory);
+    RetainPtr webSQLDirectory = FileSystem::createTemporaryDirectory(@"WebSQL");
+    String databaseDirectoryPath(webSQLDirectory.get());
 
     std::unique_ptr<DatabaseTracker> databaseTracker = DatabaseTracker::trackerWithDatabasePath(databaseDirectoryPath);
     SecurityOriginData origin("https"_s, "webkit.org"_s, 443);

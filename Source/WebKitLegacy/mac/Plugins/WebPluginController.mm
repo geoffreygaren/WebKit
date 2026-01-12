@@ -616,12 +616,12 @@ static void installFlip4MacPlugInWorkaroundIfNecessary()
 {
     static bool hasInstalledFlip4MacPlugInWorkaround;
     if (!hasInstalledFlip4MacPlugInWorkaround) {
-        Class TSUpdateCheck = objc_lookUpClass("TSUpdateCheck");
+        RetainPtr TSUpdateCheck = objc_lookUpClass("TSUpdateCheck");
         if (!TSUpdateCheck)
             return;
 
 IGNORE_WARNINGS_BEGIN("undeclared-selector")
-        Method methodToPatch = class_getInstanceMethod(TSUpdateCheck, @selector(alertDidEnd:returnCode:contextInfo:));
+        Method methodToPatch = class_getInstanceMethod(TSUpdateCheck.get(), @selector(alertDidEnd:returnCode:contextInfo:));
 IGNORE_WARNINGS_END
         if (!methodToPatch)
             return;

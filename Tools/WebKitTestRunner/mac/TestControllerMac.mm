@@ -240,14 +240,14 @@ void TestController::configureContentExtensionForTest(const TestInvocation& test
     __block bool doneFetchingContentExtension = false;
     auto delegate = adoptNS([WKTRSessionDelegate new]);
     NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration] delegate:delegate.get() delegateQueue:[NSOperationQueue mainQueue]];
-    NSURLSessionDataTask *task = [session dataTaskWithRequest:[NSURLRequest requestWithURL:filterURL] completionHandler:^(NSData * data, NSURLResponse *response, NSError *error) {
+    RetainPtr task = [session dataTaskWithRequest:[NSURLRequest requestWithURL:filterURL] completionHandler:^(NSData * data, NSURLResponse *response, NSError *error) {
         ASSERT(data);
         ASSERT(response);
         ASSERT(!error);
         contentExtensionString = adoptNS([[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
         doneFetchingContentExtension = true;
     }];
-    [task resume];
+    [task.get() resume];
     platformRunUntil(doneFetchingContentExtension, noTimeout);
 
     __block bool doneCompiling = false;

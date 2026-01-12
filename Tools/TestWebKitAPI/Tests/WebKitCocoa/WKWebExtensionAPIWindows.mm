@@ -57,7 +57,7 @@ static auto *windowsManifest = @{
 
 TEST(WKWebExtensionAPIWindows, Errors)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.windows.get('bad'), /'windowId' value is invalid, because a number is expected/i)",
         @"browser.test.assertThrows(() => browser.windows.get(NaN), /'windowId' value is invalid, because a number is expected/i)",
         @"browser.test.assertThrows(() => browser.windows.get(Infinity), /'windowId' value is invalid, because a number is expected/i)",
@@ -97,12 +97,12 @@ TEST(WKWebExtensionAPIWindows, Errors)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIWindows, GetCurrent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const window = await browser.windows.getCurrent();",
 
         @"browser.test.assertEq(typeof window, 'object', 'The window should be an object');",
@@ -120,12 +120,12 @@ TEST(WKWebExtensionAPIWindows, GetCurrent)
         @"browser.test.notifyPass();"
     ]);
 
-    Util::loadAndRunExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIWindows, GetCurrentFromOptionsPage)
 {
-    auto *optionsScript = Util::constructScript(@[
+    RetainPtr optionsScript = Util::constructScript(@[
         @"const window = await browser.windows.getCurrent()",
 
         @"browser.test.assertEq(typeof window, 'object', 'The window should be')",
@@ -137,7 +137,7 @@ TEST(WKWebExtensionAPIWindows, GetCurrentFromOptionsPage)
     auto *resources = @{
         @"background.js": @"// Not Used",
         @"options.html": @"<script type='module' src='options.js'></script>",
-        @"options.js": optionsScript
+        @"options.js": optionsScript.get()
     };
 
     auto manager = Util::loadExtension(windowsManifest, resources);
@@ -160,7 +160,7 @@ TEST(WKWebExtensionAPIWindows, GetCurrentFromOptionsPage)
 
 TEST(WKWebExtensionAPIWindows, GetCurrentWindowAfterTabMove)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const initialWindow = await browser.windows.getCurrent()",
         @"browser.test.assertEq(typeof initialWindow, 'object', 'Initial window should be an object')",
         @"browser.test.assertEq(typeof initialWindow.id, 'number', 'Initial window ID should be a number')",
@@ -175,7 +175,7 @@ TEST(WKWebExtensionAPIWindows, GetCurrentWindowAfterTabMove)
         @"browser.test.sendMessage('Move Tab')",
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *newTab = [manager.get().defaultWindow openNewTab];
     auto *newWindow = [manager openNewWindow];
@@ -189,7 +189,7 @@ TEST(WKWebExtensionAPIWindows, GetCurrentWindowAfterTabMove)
 
 TEST(WKWebExtensionAPIWindows, GetLastFocused)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const window = await browser.windows.getLastFocused();",
 
         @"browser.test.assertEq(typeof window, 'object', 'The window should be an object');",
@@ -207,7 +207,7 @@ TEST(WKWebExtensionAPIWindows, GetLastFocused)
         @"browser.test.notifyPass();"
     ]);
 
-    auto manager = Util::parseExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::parseExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().internalDelegate.focusedWindow = ^id<WKWebExtensionWindow>(WKWebExtensionContext *) {
         return nil;
@@ -218,7 +218,7 @@ TEST(WKWebExtensionAPIWindows, GetLastFocused)
 
 TEST(WKWebExtensionAPIWindows, GetLastFocusedWithPrivateAccess)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const lastFocusedWindow = await browser.windows.getLastFocused()",
 
         @"browser.test.assertEq(typeof lastFocusedWindow, 'object', 'Last focused window should be an object')",
@@ -227,7 +227,7 @@ TEST(WKWebExtensionAPIWindows, GetLastFocusedWithPrivateAccess)
         @"browser.test.notifyPass()",
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().context.hasAccessToPrivateData = YES;
 
@@ -239,7 +239,7 @@ TEST(WKWebExtensionAPIWindows, GetLastFocusedWithPrivateAccess)
 
 TEST(WKWebExtensionAPIWindows, GetLastFocusedWithoutPrivateAccess)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const lastFocusedWindow = await browser.windows.getLastFocused()",
 
         @"browser.test.assertEq(typeof lastFocusedWindow, 'object', 'Last focused window should be an object')",
@@ -248,7 +248,7 @@ TEST(WKWebExtensionAPIWindows, GetLastFocusedWithoutPrivateAccess)
         @"browser.test.notifyPass()",
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().context.hasAccessToPrivateData = NO;
 
@@ -260,7 +260,7 @@ TEST(WKWebExtensionAPIWindows, GetLastFocusedWithoutPrivateAccess)
 
 TEST(WKWebExtensionAPIWindows, GetAll)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const windows = await browser.windows.getAll();",
         @"const windowOne = windows[0];",
 
@@ -281,7 +281,7 @@ TEST(WKWebExtensionAPIWindows, GetAll)
         @"browser.test.notifyPass();"
     ]);
 
-    auto manager = Util::parseExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::parseExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     EXPECT_FALSE(manager.get().context.hasAccessToPrivateData);
 
@@ -292,7 +292,7 @@ TEST(WKWebExtensionAPIWindows, GetAll)
 
 TEST(WKWebExtensionAPIWindows, GetAllWithPrivateAccess)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const windows = await browser.windows.getAll();",
         @"const windowOne = windows[0];",
         @"const windowTwo = windows[1];",
@@ -330,7 +330,7 @@ TEST(WKWebExtensionAPIWindows, GetAllWithPrivateAccess)
         @"browser.test.notifyPass();"
     ]);
 
-    auto manager = Util::parseExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::parseExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().context.hasAccessToPrivateData = YES;
 
@@ -350,7 +350,7 @@ TEST(WKWebExtensionAPIWindows, GetAllWithPrivateAccess)
 
 TEST(WKWebExtensionAPIWindows, CreatedEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.windows.onCreated.addListener((window) => {",
 
         @"  browser.test.assertEq(typeof window, 'object', 'The window should be an object');",
@@ -372,7 +372,7 @@ TEST(WKWebExtensionAPIWindows, CreatedEvent)
         @"browser.test.sendMessage('Open Window');"
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Open Window"];
 
@@ -382,7 +382,7 @@ TEST(WKWebExtensionAPIWindows, CreatedEvent)
 
 TEST(WKWebExtensionAPIWindows, FocusChangedEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"let focusedTwice = false;",
 
         @"browser.windows.onFocusChanged.addListener((windowId) => {",
@@ -404,7 +404,7 @@ TEST(WKWebExtensionAPIWindows, FocusChangedEvent)
         @"browser.test.sendMessage('Focus Window');"
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto *windowOne = manager.get().defaultWindow;
     auto *windowTwo = [manager openNewWindow];
@@ -426,7 +426,7 @@ TEST(WKWebExtensionAPIWindows, FocusChangedEvent)
 
 TEST(WKWebExtensionAPIWindows, RemovedEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.windows.onRemoved.addListener((windowId) => {",
         @"  browser.test.assertEq(typeof windowId, 'number', 'The window id should be a number');",
 
@@ -436,7 +436,7 @@ TEST(WKWebExtensionAPIWindows, RemovedEvent)
         @"browser.test.sendMessage('Close Window');"
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager openNewWindow];
 
@@ -449,7 +449,7 @@ TEST(WKWebExtensionAPIWindows, RemovedEvent)
 
 TEST(WKWebExtensionAPIWindows, RemoveListenerDuringEvent)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"function windowListener() {",
         @"  browser.windows.onCreated.removeListener(windowListener)",
         @"  browser.test.assertFalse(browser.windows.onCreated.hasListener(windowListener), 'Listener should be removed')",
@@ -463,7 +463,7 @@ TEST(WKWebExtensionAPIWindows, RemoveListenerDuringEvent)
         @"browser.test.sendMessage('Open Window')"
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     [manager runUntilTestMessage:@"Open Window"];
 
@@ -477,7 +477,7 @@ TEST(WKWebExtensionAPIWindows, RemoveListenerDuringEvent)
 
 TEST(WKWebExtensionAPIWindows, Create)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const windowOptions = {",
         @"  focused: true,",
         @"  left: 300,",
@@ -510,7 +510,7 @@ TEST(WKWebExtensionAPIWindows, Create)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     auto originalOpenNewWindow = manager.get().internalDelegate.openNewWindow;
 
@@ -544,7 +544,7 @@ TEST(WKWebExtensionAPIWindows, Create)
 
 TEST(WKWebExtensionAPIWindows, CreateWithRelativeURL)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const windowOptions = {",
         @"  url: 'test.html'",
         @"}",
@@ -564,7 +564,7 @@ TEST(WKWebExtensionAPIWindows, CreateWithRelativeURL)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript, @"test.html": @"Hello world!" });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get(), @"test.html": @"Hello world!" });
 
     auto originalOpenNewWindow = manager.get().internalDelegate.openNewWindow;
 
@@ -584,7 +584,7 @@ TEST(WKWebExtensionAPIWindows, CreateWithRelativeURL)
 
 TEST(WKWebExtensionAPIWindows, CreateWithRelativeURLs)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const windowOptions = {",
         @"  url: [ 'one.html', 'two.html' ]",
         @"}",
@@ -610,7 +610,7 @@ TEST(WKWebExtensionAPIWindows, CreateWithRelativeURLs)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript, @"one.html": @"Hello one!", @"two.html": @"Hello two!" });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get(), @"one.html": @"Hello one!", @"two.html": @"Hello two!" });
 
     auto originalOpenNewWindow = manager.get().internalDelegate.openNewWindow;
 
@@ -631,7 +631,7 @@ TEST(WKWebExtensionAPIWindows, CreateWithRelativeURLs)
 
 TEST(WKWebExtensionAPIWindows, CreateIncognitoWithoutPrivateAccess)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const windowOptions = {",
         @"  focused: true,",
         @"  left: 300,",
@@ -647,7 +647,7 @@ TEST(WKWebExtensionAPIWindows, CreateIncognitoWithoutPrivateAccess)
         @"browser.test.notifyPass();"
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     EXPECT_FALSE(manager.get().context.hasAccessToPrivateData);
     EXPECT_EQ(manager.get().windows.count, 1lu);
@@ -659,7 +659,7 @@ TEST(WKWebExtensionAPIWindows, CreateIncognitoWithoutPrivateAccess)
 
 TEST(WKWebExtensionAPIWindows, CreateIncognitoWithPrivateAccess)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const windowOptions = {",
         @"  focused: true,",
         @"  left: 300,",
@@ -691,7 +691,7 @@ TEST(WKWebExtensionAPIWindows, CreateIncognitoWithPrivateAccess)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().context.hasAccessToPrivateData = YES;
 
@@ -704,7 +704,7 @@ TEST(WKWebExtensionAPIWindows, CreateIncognitoWithPrivateAccess)
 
 TEST(WKWebExtensionAPIWindows, Update)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"const newWindow = await browser.windows.create();",
 
         @"browser.test.assertEq(newWindow.top, 50, 'The new window top position should be 50 initially');",
@@ -742,12 +742,12 @@ TEST(WKWebExtensionAPIWindows, Update)
         @"browser.test.notifyPass();"
     ]);
 
-    Util::loadAndRunExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIWindows, Remove)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Create a new window and verify the count
         @"const initialWindows = await browser.windows.getAll();",
         @"const newWindow = await browser.windows.create();",
@@ -764,18 +764,18 @@ TEST(WKWebExtensionAPIWindows, Remove)
         @"browser.test.notifyPass();"
     ]);
 
-    Util::loadAndRunExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIWindows, RemoveUnsupported)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertEq(browser.windows.remove, undefined)",
 
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::parseExtension(windowsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::parseExtension(windowsManifest, @{ @"background.js": backgroundScript.get() });
 
     manager.get().context.unsupportedAPIs = [NSSet setWithObject:@"browser.windows.remove"];
 

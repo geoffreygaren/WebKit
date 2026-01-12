@@ -155,19 +155,19 @@ static BOOL _PDFSelectionsAreEqual(PDFSelection *selectionA, PDFSelection *selec
 
 + (NSBundle *)PDFKitBundle
 {
-    static NSBundle *PDFKitBundle = nil;
-    if (PDFKitBundle == nil) {
+    static NeverDestroyed<RetainPtr<NSBundle>> PDFKitBundle;
+    if (!PDFKitBundle.get()) {
         NSString *PDFKitPath = [_NSPathForSystemFramework(@"Quartz.framework") stringByAppendingString:@"/Frameworks/PDFKit.framework"];
         if (PDFKitPath == nil) {
             LOG_ERROR("Couldn't find PDFKit.framework");
             return nil;
         }
-        PDFKitBundle = [NSBundle bundleWithPath:PDFKitPath];
-        if (![PDFKitBundle load]) {
+        PDFKitBundle.get() = [NSBundle bundleWithPath:PDFKitPath];
+        if (![PDFKitBundle->get() load]) {
             LOG_ERROR("Couldn't load PDFKit.framework");
         }
     }
-    return PDFKitBundle;
+    return PDFKitBundle->get();
 }
 
 + (NSArray *)supportedMIMETypes
@@ -270,7 +270,7 @@ static BOOL _PDFSelectionsAreEqual(PDFSelection *selectionA, PDFSelection *selec
     // This works together with setNextKeyView to splice our PDFSubview into
     // the key loop similar to the way NSScrollView does this.
     NSWindow *window = [self window];
-    id newFirstResponder = nil;
+    RetainPtr<id> newFirstResponder;
     
     if ([window keyViewSelectionDirection] == NSSelectingPrevious) {
         NSView *previousValidKeyView = [self previousValidKeyView];
@@ -284,8 +284,8 @@ static BOOL _PDFSelectionsAreEqual(PDFSelection *selectionA, PDFSelection *selec
     
     if (!newFirstResponder)
         return NO;
-    
-    if (![window makeFirstResponder:newFirstResponder])
+
+    if (![window makeFirstResponder:newFirstResponder.get()])
         return NO;
     
     [[dataSource webFrame] _clearSelectionInOtherFrames];
@@ -332,41 +332,41 @@ static BOOL _PDFSelectionsAreEqual(PDFSelection *selectionA, PDFSelection *selec
 
 - (void)_recursiveDisplayRectIfNeededIgnoringOpacity:(NSRect)rect isVisibleRect:(BOOL)isVisibleRect rectIsVisibleRectForView:(NSView *)visibleView topView:(BOOL)topView
 {
-    CGContextRef context = [[NSGraphicsContext currentContext] CGContext];
-    
-    bool allowsSmoothing = CGContextGetAllowsFontSmoothing(context);
-    bool allowsSubpixelQuantization = CGContextGetAllowsFontSubpixelQuantization(context);
-    
+    RetainPtr context = [[NSGraphicsContext currentContext] CGContext];
+
+    bool allowsSmoothing = CGContextGetAllowsFontSmoothing(context.get());
+    bool allowsSubpixelQuantization = CGContextGetAllowsFontSubpixelQuantization(context.get());
+
     [super _recursiveDisplayRectIfNeededIgnoringOpacity:rect isVisibleRect:isVisibleRect rectIsVisibleRectForView:visibleView topView:topView];
-    
-    CGContextSetAllowsFontSmoothing(context, allowsSmoothing);
-    CGContextSetAllowsFontSubpixelQuantization(context, allowsSubpixelQuantization);
+
+    CGContextSetAllowsFontSmoothing(context.get(), allowsSmoothing);
+    CGContextSetAllowsFontSubpixelQuantization(context.get(), allowsSubpixelQuantization);
 }
 
 - (void)_recursiveDisplayAllDirtyWithLockFocus:(BOOL)needsLockFocus visRect:(NSRect)visRect
 {
-    CGContextRef context = [[NSGraphicsContext currentContext] CGContext];
-    
-    bool allowsSmoothing = CGContextGetAllowsFontSmoothing(context);
-    bool allowsSubpixelQuantization = CGContextGetAllowsFontSubpixelQuantization(context);
-    
+    RetainPtr context = [[NSGraphicsContext currentContext] CGContext];
+
+    bool allowsSmoothing = CGContextGetAllowsFontSmoothing(context.get());
+    bool allowsSubpixelQuantization = CGContextGetAllowsFontSubpixelQuantization(context.get());
+
     [super _recursiveDisplayAllDirtyWithLockFocus:needsLockFocus visRect:visRect];
-    
-    CGContextSetAllowsFontSmoothing(context, allowsSmoothing);
-    CGContextSetAllowsFontSubpixelQuantization(context, allowsSubpixelQuantization);
+
+    CGContextSetAllowsFontSmoothing(context.get(), allowsSmoothing);
+    CGContextSetAllowsFontSubpixelQuantization(context.get(), allowsSubpixelQuantization);
 }
 
 - (void)_recursive:(BOOL)recurse displayRectIgnoringOpacity:(NSRect)displayRect inContext:(NSGraphicsContext *)graphicsContext topView:(BOOL)topView
 {
-    CGContextRef context = [graphicsContext CGContext];
-    
-    bool allowsSmoothing = CGContextGetAllowsFontSmoothing(context);
-    bool allowsSubpixelQuantization = CGContextGetAllowsFontSubpixelQuantization(context);
-    
+    RetainPtr context = [graphicsContext CGContext];
+
+    bool allowsSmoothing = CGContextGetAllowsFontSmoothing(context.get());
+    bool allowsSubpixelQuantization = CGContextGetAllowsFontSubpixelQuantization(context.get());
+
     [super _recursive:recurse displayRectIgnoringOpacity:displayRect inContext:graphicsContext topView:topView];
-    
-    CGContextSetAllowsFontSmoothing(context, allowsSmoothing);
-    CGContextSetAllowsFontSubpixelQuantization(context, allowsSubpixelQuantization);
+
+    CGContextSetAllowsFontSmoothing(context.get(), allowsSmoothing);
+    CGContextSetAllowsFontSubpixelQuantization(context.get(), allowsSubpixelQuantization);
 }
 
 - (void)_recursive:(BOOL)recurseX displayRectIgnoringOpacity:(NSRect)displayRect inGraphicsContext:(NSGraphicsContext *)graphicsContext CGContext:(CGContextRef)context topView:(BOOL)isTopView shouldChangeFontReferenceColor:(BOOL)shouldChangeFontReferenceColor
@@ -386,8 +386,8 @@ static BOOL _PDFSelectionsAreEqual(PDFSelection *selectionA, PDFSelection *selec
     NSMutableArray *items = [self _menuItemsFromPDFKitForEvent:theEvent];
     
     // Add in an "Open with <default PDF viewer>" item
-    NSString *appName = nil;
-    NSImage *appIcon = nil;
+    SUPPRESS_UNCOUNTED_LOCAL NSString *appName = nil; // autoreleased
+    SUPPRESS_UNCOUNTED_LOCAL NSImage *appIcon = nil; // autoreleased
     
     _applicationInfoForMIMEType([dataSource _responseMIMEType], &appName, &appIcon);
     if (!appName)
@@ -646,11 +646,11 @@ static BOOL _PDFSelectionsAreEqual(PDFSelection *selectionA, PDFSelection *selec
     if (range && !containsCrossingDocumentBoundaries(makeSimpleRange(*core(range)), *core([dataSource webFrame])->document()))
         return 0;
 
-    PDFSelection *previousMatch = nil;
+    RetainPtr<PDFSelection> previousMatch;
     auto matches = adoptNS([[NSMutableArray alloc] initWithCapacity:limit]);
 
     for (;;) {
-        PDFSelection *nextMatch = [self _nextMatchFor:string direction:YES caseSensitive:!(options & WebFindOptionsCaseInsensitive) wrap:NO fromSelection:previousMatch startInSelection:NO];
+        PDFSelection *nextMatch = [self _nextMatchFor:string direction:YES caseSensitive:!(options & WebFindOptionsCaseInsensitive) wrap:NO fromSelection:previousMatch.get() startInSelection:NO];
         if (!nextMatch)
             break;
         
@@ -710,11 +710,11 @@ static BOOL _PDFSelectionsAreEqual(PDFSelection *selectionA, PDFSelection *selec
 - (NSAttributedString *)attributedString
 {
     // changing the selection is a hack, but the only way to get an attr string is via PDFSelection
-    
+
     // must copy this selection object because we change the selection which seems to release it
     auto savedSelection = adoptNS([[PDFSubview currentSelection] copy]);
     [PDFSubview selectAll:nil];
-    NSAttributedString *result = [[PDFSubview currentSelection] attributedString];
+    RetainPtr result = [[PDFSubview currentSelection] attributedString];
     if (savedSelection) {
         [PDFSubview setCurrentSelection:savedSelection.get()];
     } else {
@@ -722,10 +722,10 @@ static BOOL _PDFSelectionsAreEqual(PDFSelection *selectionA, PDFSelection *selec
         // Otherwise, we could collapse this code with the case above.
         [PDFSubview clearSelection];
     }
-    
-    result = [self _scaledAttributedString:result];
-    
-    return result;
+
+    result = [self _scaledAttributedString:result.get()];
+
+    return result.autorelease();
 }
 
 - (NSString *)selectedString
@@ -911,21 +911,21 @@ static BOOL _PDFSelectionsAreEqual(PDFSelection *selectionA, PDFSelection *selec
 
 - (void)writeSelectionWithPasteboardTypes:(NSArray *)types toPasteboard:(NSPasteboard *)pasteboard
 {
-    NSAttributedString *attributedString = [self selectedAttributedString];
-    
-    if ([types containsObject:WebCore::legacyRTFDPasteboardTypeSingleton()]) {
-        NSData *RTFDData = [attributedString RTFDFromRange:NSMakeRange(0, [attributedString length]) documentAttributes:@{ }];
-        [pasteboard setData:RTFDData forType:WebCore::legacyRTFDPasteboardTypeSingleton()];
-    }        
-    
-    if ([types containsObject:WebCore::legacyRTFPasteboardTypeSingleton()]) {
-        if ([attributedString containsAttachments])
-            attributedString = WebCore::attributedStringByStrippingAttachmentCharacters(attributedString);
+    RetainPtr attributedString = [self selectedAttributedString];
 
-        NSData *RTFData = [attributedString RTFFromRange:NSMakeRange(0, [attributedString length]) documentAttributes:@{ }];
+    if ([types containsObject:WebCore::legacyRTFDPasteboardTypeSingleton()]) {
+        NSData *RTFDData = [attributedString.get() RTFDFromRange:NSMakeRange(0, [attributedString.get() length]) documentAttributes:@{ }];
+        [pasteboard setData:RTFDData forType:WebCore::legacyRTFDPasteboardTypeSingleton()];
+    }
+
+    if ([types containsObject:WebCore::legacyRTFPasteboardTypeSingleton()]) {
+        if ([attributedString.get() containsAttachments])
+            attributedString = WebCore::attributedStringByStrippingAttachmentCharacters(attributedString.get());
+
+        NSData *RTFData = [attributedString.get() RTFFromRange:NSMakeRange(0, [attributedString.get() length]) documentAttributes:@{ }];
         [pasteboard setData:RTFData forType:WebCore::legacyRTFPasteboardTypeSingleton()];
     }
-    
+
     if ([types containsObject:WebCore::legacyStringPasteboardTypeSingleton()])
         [pasteboard setString:[self selectedString] forType:WebCore::legacyStringPasteboardTypeSingleton()];
 }
@@ -1367,24 +1367,24 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 - (NSString *)_temporaryPDFDirectoryPath
 {
     // Returns nil if the temporary PDF directory didn't exist and couldn't be created
-    
-    static NSString *_temporaryPDFDirectoryPath = nil;
-    
-    if (!_temporaryPDFDirectoryPath) {
+
+    static NeverDestroyed<RetainPtr<NSString>> _temporaryPDFDirectoryPath;
+
+    if (!_temporaryPDFDirectoryPath.get()) {
         NSString *temporaryDirectoryTemplate = [NSTemporaryDirectory() stringByAppendingPathComponent:@"WebKitPDFs-XXXXXX"];
         auto cTemplate = adoptSystemMalloc(strdup([temporaryDirectoryTemplate fileSystemRepresentation]));
-        
+
         if (!mkdtemp(cTemplate.get())) {
             // This should never happen; if it does we'll fail silently on non-debug builds.
             ASSERT_NOT_REACHED();
         } else {
             // cTemplate has now been modified to be the just-created directory name. This directory has 700 permissions,
             // so only the current user can add to it or view its contents.
-            _temporaryPDFDirectoryPath = [[[NSFileManager defaultManager] stringWithFileSystemRepresentation:cTemplate.get() length:strlen(cTemplate.get())] retain];
+            _temporaryPDFDirectoryPath.get() = [[NSFileManager defaultManager] stringWithFileSystemRepresentation:cTemplate.get() length:strlen(cTemplate.get())];
         }
     }
-    
-    return _temporaryPDFDirectoryPath;
+
+    return _temporaryPDFDirectoryPath->get();
 }
 
 - (void)_trackFirstResponder

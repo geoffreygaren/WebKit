@@ -53,8 +53,8 @@ public:
 template <typename View>
 void AttributedStringTest_CustomFont::runSyncTest(View view)
 {
-    NSAttributedString *attrString = attributedString(view, NSMakeRange(0, 5));
-    EXPECT_WK_STREQ("Lorem", [attrString string]);
+    RetainPtr attrString = attributedString(view, NSMakeRange(0, 5));
+    EXPECT_WK_STREQ("Lorem", [attrString.get() string]);
 }
 
 TEST_F(AttributedStringTest_CustomFont, WebKit)
@@ -77,11 +77,11 @@ public:
 template <typename View>
 void AttributedStringTest_Strikethrough::runSyncTest(View view)
 {
-    NSAttributedString *attrString = attributedString(view, NSMakeRange(0, 5));
+    RetainPtr attrString = attributedString(view, NSMakeRange(0, 5));
 
-    EXPECT_WK_STREQ("Lorem", [attrString string]);
-    
-    NSDictionary *attributes = [attrString attributesAtIndex:0 effectiveRange:0];
+    EXPECT_WK_STREQ("Lorem", [attrString.get() string]);
+
+    NSDictionary *attributes = [attrString.get() attributesAtIndex:0 effectiveRange:0];
     ASSERT_NOT_NULL([attributes objectForKey:NSStrikethroughStyleAttributeName]);
     ASSERT_TRUE([[attributes objectForKey:NSStrikethroughStyleAttributeName] isKindOfClass:[NSNumber class]]);
     ASSERT_EQ(NSUnderlineStyleSingle, [(NSNumber *)[attributes objectForKey:NSStrikethroughStyleAttributeName] intValue]);

@@ -1907,9 +1907,9 @@ TEST(WKWebsiteDataStore, FetchAndDeleteMediaKeysData)
     NSURL *customMediaKeysStorageDirectory = [NSURL fileURLWithPath:[@"~/Library/WebKit/com.apple.WebKit.TestWebKitAPI/CustomWebsiteData/MediaKeys" stringByExpandingTildeInPath] isDirectory:YES];
     WebCore::SecurityOriginData origin("https"_s, "webkit.org"_s, 443);
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSURL *customWebKitDirectory = [customMediaKeysStorageDirectory URLByAppendingPathComponent:origin.databaseIdentifier().createNSString().get()];
-    [fileManager createDirectoryAtURL:customWebKitDirectory withIntermediateDirectories:YES attributes:nil error:nil];
-    NSURL *customMediaKeysStorageFile = [customWebKitDirectory URLByAppendingPathComponent:@"SecureStop.plist"];
+    RetainPtr customWebKitDirectory = [customMediaKeysStorageDirectory URLByAppendingPathComponent:origin.databaseIdentifier().createNSString().get()];
+    [fileManager createDirectoryAtURL:customWebKitDirectory.get() withIntermediateDirectories:YES attributes:nil error:nil];
+    NSURL *customMediaKeysStorageFile = [customWebKitDirectory.get() URLByAppendingPathComponent:@"SecureStop.plist"];
     [fileManager createFileAtPath:customMediaKeysStorageFile.path contents:nil attributes:nil];
     FileSystem::updateFileModificationTime(customMediaKeysStorageFile.path);
     NSURL *customVersionDirectory = [customMediaKeysStorageDirectory URLByAppendingPathComponent:@"v1"];

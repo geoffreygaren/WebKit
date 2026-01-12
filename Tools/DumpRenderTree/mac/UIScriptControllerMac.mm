@@ -225,7 +225,7 @@ void UIScriptControllerMac::sendEventStream(JSStringRef eventsJSON, JSValueRef c
     WebView *webView = [mainFrame webView];
 
     // didClearWindowObjectInStandardWorldForFrame stashed EventSendingController on this window property.
-    EventSendingController* eventSender = eventSenderFromView(webView);
+    RetainPtr eventSender = eventSenderFromView(webView);
     if (!eventSender) {
         ASSERT_NOT_REACHED();
         return;
@@ -234,8 +234,8 @@ void UIScriptControllerMac::sendEventStream(JSStringRef eventsJSON, JSValueRef c
     unsigned callbackID = m_context->prepareForAsyncTask(callback, CallbackTypeNonPersistent);
 
     auto jsonString = eventsJSON->string();
-    auto eventInfo = dynamic_objc_cast<NSDictionary>([NSJSONSerialization JSONObjectWithData:[jsonString.createNSString() dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers | NSJSONReadingMutableLeaves error:nil]);
-    if (!eventInfo || ![eventInfo isKindOfClass:[NSDictionary class]]) {
+    RetainPtr eventInfo = dynamic_objc_cast<NSDictionary>([NSJSONSerialization JSONObjectWithData:[jsonString.createNSString() dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers | NSJSONReadingMutableLeaves error:nil]);
+    if (!eventInfo || ![eventInfo.get() isKindOfClass:[NSDictionary class]]) {
         WTFLogAlways("JSON is not convertible to a dictionary");
         return;
     }
@@ -248,7 +248,7 @@ void UIScriptControllerMac::sendEventStream(JSStringRef eventsJSON, JSValueRef c
 
     auto currentTime = mach_absolute_time();
 
-    for (NSMutableDictionary *event in eventInfo[TopLevelEventInfoKey]) {
+    for (NSMutableDictionary *event in eventInfo.get()[TopLevelEventInfoKey]) {
 
         id eventType = event[EventTypeKey];
         if (!event[EventTypeKey]) {
@@ -290,7 +290,7 @@ void UIScriptControllerMac::sendEventStream(JSStringRef eventsJSON, JSValueRef c
                 deltaY = [event[DeltaYKey] floatValue];
 
             auto windowPoint = [webView convertPoint:CGPointMake(currentViewRelativeX, [webView frame].size.height - currentViewRelativeY) toView:nil];
-            [eventSender sendScrollEventAt:windowPoint deltaX:deltaX deltaY:deltaY units:kCGScrollEventUnitPixel wheelPhase:phase momentumPhase:momentumPhase timestamp:currentTime];
+            [eventSender.get() sendScrollEventAt:windowPoint deltaX:deltaX deltaY:deltaY units:kCGScrollEventUnitPixel wheelPhase:phase momentumPhase:momentumPhase timestamp:currentTime];
         }
 
         currentTime += nanosecondsEventInterval;

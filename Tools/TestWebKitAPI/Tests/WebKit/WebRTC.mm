@@ -139,7 +139,7 @@ TEST(WebKit2, RTCDataChannelPostMessage)
         { "/sw.js"_s, { {{ "Content-Type"_s, "application/javascript"_s }}, js } },
         { "/"_s, { main } },
     }, HTTPServer::Protocol::Https);
-    auto* request = server.request();
+    RetainPtr request = server.request();
 
     auto navigationDelegate = adoptNS([TestNavigationDelegate new]);
     [navigationDelegate setDidReceiveAuthenticationChallenge:^(WKWebView *, NSURLAuthenticationChallenge *challenge, void (^callback)(NSURLSessionAuthChallengeDisposition, NSURLCredential *)) {
@@ -158,7 +158,7 @@ TEST(WebKit2, RTCDataChannelPostMessage)
         isReady = true;
     }];
     isReady = false;
-    [webView1 loadRequest:request];
+    [webView1 loadRequest:request.get()];
     TestWebKitAPI::Util::run(&isReady);
 
     auto webView2 = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 320, 500) configuration:configuration.get()]);
@@ -170,7 +170,7 @@ TEST(WebKit2, RTCDataChannelPostMessage)
     }];
 
     isReady = false;
-    [webView2 loadRequest:request];
+    [webView2 loadRequest:request.get()];
     TestWebKitAPI::Util::run(&isReady);
 
     [messageHandler setMessageHandler:[](WKScriptMessage *message) {

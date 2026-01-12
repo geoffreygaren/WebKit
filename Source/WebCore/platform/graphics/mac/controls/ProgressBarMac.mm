@@ -113,7 +113,7 @@ void ProgressBarMac::draw(GraphicsContext& context, const FloatRoundedRect& bord
     if (!imageBuffer)
         return;
 
-    CGContextRef cgContext = imageBuffer->context().platformContext();
+    RetainPtr<CGContextRef> cgContext = imageBuffer->context().platformContext();
 
     Ref progressBarPart = owningProgressBarPart();
     auto controlSize = controlSizeForFont(style);
@@ -135,7 +135,7 @@ void ProgressBarMac::draw(GraphicsContext& context, const FloatRoundedRect& bord
         return nullptr;
     };
 
-    [[NSAppearance currentDrawingAppearance] _drawInRect:NSMakeRect(0, 0, inflatedRect.width(), inflatedRect.height()) context:cgContext options:@{
+    [[NSAppearance currentDrawingAppearance] _drawInRect:NSMakeRect(0, 0, inflatedRect.width(), inflatedRect.height()) context:cgContext.get() options:@{
         (__bridge NSString *)kCUIWidgetKey: (__bridge NSString *)(isIndeterminate ? kCUIWidgetProgressIndeterminateBar : kCUIWidgetProgressBar),
         (__bridge NSString *)kCUIValueKey: @(isIndeterminate ? 1 : std::min(nextafter(1.0, -1), progressBarPart->position())),
         (__bridge NSString *)kCUISizeKey: (__bridge NSString *)coreUISizeForProgressBarSize(controlSize),

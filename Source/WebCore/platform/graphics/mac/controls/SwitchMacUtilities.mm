@@ -124,13 +124,13 @@ RefPtr<ImageBuffer> trackMaskImage(GraphicsContext& context, FloatSize trackRect
     if (!maskImage)
         return nullptr;
 
-    auto cgContext = maskImage->context().platformContext();
+    RetainPtr cgContext = maskImage->context().platformContext();
 
     auto coreUIDirection = (__bridge NSString *)(isRTL ? kCUIUserInterfaceLayoutDirectionRightToLeft : kCUIUserInterfaceLayoutDirectionLeftToRight);
 
-    CGContextStateSaver stateSaver(cgContext);
+    CGContextStateSaver stateSaver(cgContext.get());
 
-    [[NSAppearance currentDrawingAppearance] _drawInRect:drawingTrackRect context:cgContext options:@{
+    [[NSAppearance currentDrawingAppearance] _drawInRect:drawingTrackRect context:cgContext.get() options:@{
         (__bridge NSString *)kCUIWidgetKey: (__bridge NSString *)kCUIWidgetSwitchFillMask,
         (__bridge NSString *)kCUISizeKey: coreUISize,
         (__bridge NSString *)kCUIUserInterfaceLayoutDirectionKey: coreUIDirection,

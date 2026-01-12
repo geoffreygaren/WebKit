@@ -271,7 +271,7 @@ TEST(WKNavigation, ProcessCrashDuringCallback)
     callbackCount = 0;
     calledAllCallbacks = false;
 
-    __block WKWebView *view = webView.get();
+    __block RetainPtr view = webView.get();
     [webView _getContentsAsStringWithCompletionHandler:^(NSString *contents, NSError *error) {
         if (!!error)
             EXPECT_TRUE(error.code == WKErrorWebContentProcessTerminated || error.code == WKErrorWebViewInvalidated);
@@ -289,7 +289,7 @@ TEST(WKNavigation, ProcessCrashDuringCallback)
     [webView _getContentsAsStringWithCompletionHandler:^(NSString *contents, NSError *error) {
         if (!!error)
             EXPECT_TRUE(error.code == WKErrorWebContentProcessTerminated || error.code == WKErrorWebViewInvalidated);
-        [view _close]; // Calling _close will also invalidate all callbacks.
+        [view.get() _close]; // Calling _close will also invalidate all callbacks.
         ++callbackCount;
         if (callbackCount == 6)
             calledAllCallbacks = true;
@@ -587,13 +587,13 @@ TEST(WKNavigation, CrashRecoveryRightAfterLoadRequest)
 
     // Issue a kill and then a loadRequest.
     kill(webProcessPID, 9);
-    auto request = server.request("/index.html"_s);
-    [webView loadRequest:[NSURLRequest requestWithURL:request.URL]];
+    RetainPtr request = server.request("/index.html"_s);
+    [webView loadRequest:[NSURLRequest requestWithURL:request.get().URL]];
 
     // Navigation should complete.
     TestWebKitAPI::Util::run(&finishedLoad);
 
-    EXPECT_WK_STREQ([webView URL].absoluteString, request.URL.absoluteString);
+    EXPECT_WK_STREQ([webView URL].absoluteString, request.get().URL.absoluteString);
     EXPECT_EQ([webView backForwardList].backList.count, 0U);
     EXPECT_EQ([webView backForwardList].forwardList.count, 0U);
 }

@@ -34,6 +34,7 @@
 #import <WebCore/WebCoreObjCExtras.h>
 #import <WebCore/WebScriptObjectPrivate.h>
 #import <wtf/GetPtr.h>
+#import <wtf/RetainPtr.h>
 #import <wtf/URL.h>
 
 #define IMPL reinterpret_cast<WebCore::Blob*>(_internal)
@@ -69,8 +70,8 @@ DOMBlob *kit(WebCore::Blob* value)
     WebCoreThreadViolationCheckRoundOne();
     if (!value)
         return nil;
-    if (DOMBlob *wrapper = getDOMWrapper(value))
-        return retainPtr(wrapper).autorelease();
+    if (RetainPtr<DOMBlob> wrapper = getDOMWrapper(value))
+        return wrapper.autorelease();
     auto wrapper = adoptNS([[DOMBlob alloc] _init]);
     wrapper->_internal = reinterpret_cast<DOMObjectInternal*>(value);
     value->ref();

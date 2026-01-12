@@ -264,17 +264,17 @@ TEST(WKWebExtension, MultipleIconSizes)
         selector64 = @selector(blackColor);
     }
 
-    auto *icon16 = Util::makePNGData(CGSizeMake(16, 16), selector16);
-    auto *icon32 = Util::makePNGData(CGSizeMake(32, 32), selector32);
-    auto *icon64 = Util::makePNGData(CGSizeMake(64, 64), selector64);
+    RetainPtr icon16 = Util::makePNGData(CGSizeMake(16, 16), selector16);
+    RetainPtr icon32 = Util::makePNGData(CGSizeMake(32, 32), selector32);
+    RetainPtr icon64 = Util::makePNGData(CGSizeMake(64, 64), selector64);
 
     auto *resources = @{
-        @"icon-16.png": icon16,
-        @"icon-32.png": icon32,
-        @"icon-64.png": icon64,
-        @"action-icon-16.png": icon16,
-        @"action-icon-32.png": icon32,
-        @"action-icon-64.png": icon64,
+        @"icon-16.png": icon16.get(),
+        @"icon-32.png": icon32.get(),
+        @"icon-64.png": icon64.get(),
+        @"action-icon-16.png": icon16.get(),
+        @"action-icon-32.png": icon32.get(),
+        @"action-icon-64.png": icon64.get(),
     };
 
     auto testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:resources];
@@ -321,14 +321,14 @@ TEST(WKWebExtension, IconErrorsOnce)
         }
     };
 
-    auto *icon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(blackColor));
-    auto *icon32 = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
+    RetainPtr icon16 = Util::makePNGData(CGSizeMake(16, 16), @selector(blackColor));
+    RetainPtr icon32 = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
 
     auto *resources = @{
-        @"icon-16.png": icon16,
-        @"icon-32.png": icon32,
-        @"action-icon-16.png": icon16,
-        @"action-icon-32.png": icon32,
+        @"icon-16.png": icon16.get(),
+        @"icon-32.png": icon32.get(),
+        @"action-icon-16.png": icon16.get(),
+        @"action-icon-32.png": icon32.get(),
     };
 
     auto testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:resources];
@@ -444,16 +444,16 @@ TEST(WKWebExtension, MultipleIconVariants)
         ]
     };
 
-    auto *dark16Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
-    auto *dark32Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(whiteColor));
-    auto *light16Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(blackColor));
-    auto *light32Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(blackColor));
+    RetainPtr dark16Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
+    RetainPtr dark32Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(whiteColor));
+    RetainPtr light16Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(blackColor));
+    RetainPtr light32Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(blackColor));
 
     auto *resources = @{
-        @"dark-32.png": dark16Icon,
-        @"dark-64.png": dark32Icon,
-        @"light-32.png": light16Icon,
-        @"light-64.png": light32Icon,
+        @"dark-32.png": dark16Icon.get(),
+        @"dark-64.png": dark32Icon.get(),
+        @"light-32.png": light16Icon.get(),
+        @"light-64.png": light32Icon.get(),
     };
 
     auto testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:resources];
@@ -498,10 +498,10 @@ TEST(WKWebExtension, SingleIconVariant)
         ]
     };
 
-    auto *icon32 = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
+    RetainPtr icon32 = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
 
     auto *resources = @{
-        @"icon-32.png": icon32,
+        @"icon-32.png": icon32.get(),
     };
 
     auto testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:resources];
@@ -586,12 +586,12 @@ TEST(WKWebExtension, IconsAndIconVariantsSpecified)
         ]
     };
 
-    auto *iconLegacy = Util::makePNGData(CGSizeMake(32, 32), @selector(blackColor));
-    auto *iconVariant = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
+    RetainPtr iconLegacy = Util::makePNGData(CGSizeMake(32, 32), @selector(blackColor));
+    RetainPtr iconVariant = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
 
     auto *resources = @{
-        @"icon-legacy.png": iconLegacy,
-        @"icon-variant.png": iconVariant,
+        @"icon-legacy.png": iconLegacy.get(),
+        @"icon-variant.png": iconVariant.get(),
     };
 
     auto testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:resources];
@@ -625,16 +625,16 @@ TEST(WKWebExtension, ActionIconVariantsMultiple)
         }
     };
 
-    auto *dark32Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
-    auto *dark64Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(whiteColor));
-    auto *light32Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(blackColor));
-    auto *light64Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(blackColor));
+    RetainPtr dark32Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
+    RetainPtr dark64Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(whiteColor));
+    RetainPtr light32Icon = Util::makePNGData(CGSizeMake(32, 32), @selector(blackColor));
+    RetainPtr light64Icon = Util::makePNGData(CGSizeMake(64, 64), @selector(blackColor));
 
     auto *resources = @{
-        @"action-dark-32.png": dark32Icon,
-        @"action-dark-64.png": dark64Icon,
-        @"action-light-32.png": light32Icon,
-        @"action-light-64.png": light64Icon,
+        @"action-dark-32.png": dark32Icon.get(),
+        @"action-dark-64.png": dark64Icon.get(),
+        @"action-light-32.png": light32Icon.get(),
+        @"action-light-64.png": light64Icon.get(),
     };
 
     auto testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:resources];
@@ -681,10 +681,10 @@ TEST(WKWebExtension, ActionIconSingleVariant)
         }
     };
 
-    auto *icon32 = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
+    RetainPtr icon32 = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
 
     auto *resources = @{
-        @"action-icon-32.png": icon32,
+        @"action-icon-32.png": icon32.get(),
     };
 
     auto testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:resources];
@@ -771,12 +771,12 @@ TEST(WKWebExtension, ActionIconsAndIconVariantsSpecified)
         }
     };
 
-    auto *iconLegacy = Util::makePNGData(CGSizeMake(32, 32), @selector(blackColor));
-    auto *iconVariant = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
+    RetainPtr iconLegacy = Util::makePNGData(CGSizeMake(32, 32), @selector(blackColor));
+    RetainPtr iconVariant = Util::makePNGData(CGSizeMake(32, 32), @selector(whiteColor));
 
     auto *resources = @{
-        @"action-icon-legacy.png": iconLegacy,
-        @"action-icon-variant.png": iconVariant,
+        @"action-icon-legacy.png": iconLegacy.get(),
+        @"action-icon-variant.png": iconVariant.get(),
     };
 
     auto testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:resources];
@@ -908,22 +908,22 @@ TEST(WKWebExtension, ActionParsing)
     EXPECT_NULL(testExtension.displayActionLabel);
     EXPECT_NULL([testExtension actionIconForSize:NSMakeSize(16, 16)]);
 
-    auto *imageData = Util::makePNGData(CGSizeMake(16, 16), @selector(greenColor));
+    RetainPtr imageData = Util::makePNGData(CGSizeMake(16, 16), @selector(greenColor));
 
     testManifestDictionary = @{ @"manifest_version": @3, @"name": @"Test", @"description": @"Test", @"version": @"1.0", @"action": @{ @"default_title": @"Button Title", @"default_icon": @"test.png" } };
-    testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:@{ @"test.png": imageData }];
+    testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:@{ @"test.png": imageData.get() }];
     EXPECT_NS_EQUAL(testExtension.errors, @[ ]);
     EXPECT_NS_EQUAL(testExtension.displayActionLabel, @"Button Title");
     EXPECT_NOT_NULL([testExtension actionIconForSize:NSMakeSize(16, 16)]);
 
     testManifestDictionary = @{ @"manifest_version": @3, @"name": @"Test", @"description": @"Test", @"version": @"1.0", @"action": @{ @"default_title": @"Button Title", @"default_icon": @{ @"16": @"test.png" } } };
-    testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:@{ @"test.png": imageData }];
+    testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:@{ @"test.png": imageData.get() }];
     EXPECT_NS_EQUAL(testExtension.errors, @[ ]);
     EXPECT_NS_EQUAL(testExtension.displayActionLabel, @"Button Title");
     EXPECT_NOT_NULL([testExtension actionIconForSize:NSMakeSize(16, 16)]);
 
     testManifestDictionary = @{ @"manifest_version": @3, @"name": @"Test", @"description": @"Test", @"version": @"1.0", @"icons": @{ @"16": @"test.png" }, @"action": @{ @"default_title": @"Button Title" } };
-    testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:@{ @"test.png": imageData }];
+    testExtension = [[WKWebExtension alloc] _initWithManifestDictionary:testManifestDictionary resources:@{ @"test.png": imageData.get() }];
     EXPECT_NS_EQUAL(testExtension.errors, @[ ]);
     EXPECT_NS_EQUAL(testExtension.displayActionLabel, @"Button Title");
     EXPECT_NOT_NULL([testExtension actionIconForSize:NSMakeSize(16, 16)]);
@@ -2300,9 +2300,9 @@ TEST(WKWebExtension, LoadFromDirectory)
     [manager load];
     [manager runUntilTestMessage:@"Load Tab"];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -2324,9 +2324,9 @@ TEST(WKWebExtension, LoadFromDirectoryWithoutTrailingSlash)
     [manager load];
     [manager runUntilTestMessage:@"Load Tab"];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -2346,9 +2346,9 @@ TEST(WKWebExtension, LoadFromZipArchiveWithoutParentDirectory)
     [manager load];
     [manager runUntilTestMessage:@"Load Tab"];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -2368,9 +2368,9 @@ TEST(WKWebExtension, LoadFromZipArchiveWithParentDirectory)
     [manager load];
     [manager runUntilTestMessage:@"Load Tab"];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -2390,9 +2390,9 @@ TEST(WKWebExtension, LoadFromChromeExtensionArchive)
     [manager load];
     [manager runUntilTestMessage:@"Load Tab"];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -2415,9 +2415,9 @@ TEST(WKWebExtension, LoadFromMacAppExtensionBundle)
     [manager load];
     [manager runUntilTestMessage:@"Load Tab"];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -2440,9 +2440,9 @@ TEST(WKWebExtension, LoadFromiOSAppExtensionBundle)
     [manager load];
     [manager runUntilTestMessage:@"Load Tab"];
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -2459,7 +2459,7 @@ TEST(WKWebExtension, LoadWithBadURL)
 
 TEST(WKWebExtension, ContentScriptImport)
 {
-    static auto *pageScript = Util::constructScript(@[
+    static NeverDestroyed<RetainPtr<NSString>> pageScript = Util::constructScript(@[
         @"const registration = await navigator.serviceWorker.register('./service-worker.js')",
         @"let worker = registration.installing",
 
@@ -2469,7 +2469,7 @@ TEST(WKWebExtension, ContentScriptImport)
         @"})",
     ]);
 
-    static auto *serviceWorkerScript = Util::constructScript(@[
+    static NeverDestroyed<RetainPtr<NSString>> serviceWorkerScript = Util::constructScript(@[
         @"self.addEventListener('install', (event) => self.skipWaiting())",
         @"self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()))",
 
@@ -2487,8 +2487,8 @@ TEST(WKWebExtension, ContentScriptImport)
 
     TestWebKitAPI::HTTPServer server({
         { "/"_s, { { { "Content-Type"_s, "text/html"_s } }, @"<script type='module' src='page.js'></script>" } },
-        { "/page.js"_s, { { { "Content-Type"_s, "application/javascript"_s } }, pageScript } },
-        { "/service-worker.js"_s, { { { "Content-Type"_s, "application/javascript"_s } }, serviceWorkerScript } },
+        { "/page.js"_s, { { { "Content-Type"_s, "application/javascript"_s } }, pageScript->get() } },
+        { "/service-worker.js"_s, { { { "Content-Type"_s, "application/javascript"_s } }, serviceWorkerScript->get() } },
         { "/bad.js"_s, { { { "Content-Type"_s, "application/javascript"_s } }, badScript } },
         { "/good.js"_s, { { { "Content-Type"_s, "application/javascript"_s } }, goodScript } },
     }, TestWebKitAPI::HTTPServer::Protocol::Http);
@@ -2511,7 +2511,7 @@ TEST(WKWebExtension, ContentScriptImport)
         }]
     };
 
-    static auto *contentScript = Util::constructScript(@[
+    static NeverDestroyed<RetainPtr<NSString>> contentScript = Util::constructScript(@[
         @"window.addEventListener('message', (event) => {",
         @"  browser.test.assertEq(event.data, 'ready', 'Expected message to be ready')",
         [NSString stringWithFormat:@"  import('%@')", server.requestWithLocalhost("/good.js"_s).URL.absoluteString],
@@ -2522,17 +2522,17 @@ TEST(WKWebExtension, ContentScriptImport)
 
     auto *resources = @{
         @"background.js": backgroundScript,
-        @"content.js": contentScript
+        @"content.js": contentScript->get()
     };
 
     auto manager = Util::loadExtension(manifest, resources);
 
-    auto *urlRequest = server.requestWithLocalhost();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.requestWithLocalhost();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager runUntilTestMessage:@"Load Tab"];
 
-    [manager.get().defaultTab.webView loadRequest:urlRequest];
+    [manager.get().defaultTab.webView loadRequest:urlRequest.get()];
 
     [manager run];
 }
@@ -2562,11 +2562,11 @@ TEST(WKWebExtension, ContentScriptNotInjectedForExcludedMatchPattern)
         }]
     };
 
-    static auto *contentScript = Util::constructScript(@[
+    static NeverDestroyed<RetainPtr<NSString>> contentScript = Util::constructScript(@[
         @"browser.runtime.sendMessage('Hello from content script')"
     ]);
 
-    static auto *backgroundScript = Util::constructScript(@[
+    static NeverDestroyed<RetainPtr<NSString>> backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender) => {",
         @"  browser.test.notifyFail('Content script should not have been injected.')",
         @"})",
@@ -2579,8 +2579,8 @@ TEST(WKWebExtension, ContentScriptNotInjectedForExcludedMatchPattern)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"content.js": contentScript
+        @"background.js": backgroundScript->get(),
+        @"content.js": contentScript->get()
     };
 
     auto manager = Util::loadExtension(manifest, resources);
@@ -2618,15 +2618,15 @@ TEST(WKWebExtension, MultipleContentScriptsInjectedWhenMatched)
         }]
     };
 
-    static auto *scriptA = Util::constructScript(@[
+    static NeverDestroyed<RetainPtr<NSString>> scriptA = Util::constructScript(@[
         @"browser.runtime.sendMessage('Script A ran')"
     ]);
 
-    static auto *scriptB = Util::constructScript(@[
+    static NeverDestroyed<RetainPtr<NSString>> scriptB = Util::constructScript(@[
         @"browser.runtime.sendMessage('Script B ran')"
     ]);
 
-    static auto *backgroundScript = Util::constructScript(@[
+    static NeverDestroyed<RetainPtr<NSString>> backgroundScript = Util::constructScript(@[
         @"let seen = new Set()",
 
         @"browser.runtime.onMessage.addListener((message, sender) => {",
@@ -2639,9 +2639,9 @@ TEST(WKWebExtension, MultipleContentScriptsInjectedWhenMatched)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"scriptA.js": scriptA,
-        @"scriptB.js": scriptB
+        @"background.js": backgroundScript->get(),
+        @"scriptA.js": scriptA->get(),
+        @"scriptB.js": scriptB->get()
     };
 
     auto manager = Util::loadExtension(manifest, resources);
@@ -2680,15 +2680,15 @@ TEST(WKWebExtension, MultipleContentScriptsNotInjectedWhenNotMatched)
         }]
     };
 
-    static auto *scriptA = Util::constructScript(@[
+    static NeverDestroyed<RetainPtr<NSString>> scriptA = Util::constructScript(@[
         @"browser.runtime.sendMessage('Script A ran')"
     ]);
 
-    static auto *scriptB = Util::constructScript(@[
+    static NeverDestroyed<RetainPtr<NSString>> scriptB = Util::constructScript(@[
         @"browser.runtime.sendMessage('Script B ran')"
     ]);
 
-    static auto *backgroundScript = Util::constructScript(@[
+    static NeverDestroyed<RetainPtr<NSString>> backgroundScript = Util::constructScript(@[
         @"browser.runtime.onMessage.addListener((message, sender) => {",
         @"  browser.test.notifyFail(`No content scripts should have injected, but got: ${message}`)",
         @"})",
@@ -2699,9 +2699,9 @@ TEST(WKWebExtension, MultipleContentScriptsNotInjectedWhenNotMatched)
     ]);
 
     auto *resources = @{
-        @"background.js": backgroundScript,
-        @"scriptA.js": scriptA,
-        @"scriptB.js": scriptB
+        @"background.js": backgroundScript->get(),
+        @"scriptA.js": scriptA->get(),
+        @"scriptB.js": scriptB->get()
     };
 
     auto manager = Util::loadExtension(manifest, resources);

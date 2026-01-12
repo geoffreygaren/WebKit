@@ -605,17 +605,17 @@ bool PathCG::strokeContains(const FloatPoint& point, NOESCAPE const Function<voi
 {
     ASSERT(strokeStyleApplier);
 
-    CGContextRef context = scratchContext();
+    RetainPtr context = scratchContext();
 
-    CGContextSaveGState(context);
-    CGContextBeginPath(context);
-    CGContextAddPath(context, platformPath());
+    CGContextSaveGState(context.get());
+    CGContextBeginPath(context.get());
+    CGContextAddPath(context.get(), platformPath());
 
-    GraphicsContextCG graphicsContext(context);
+    GraphicsContextCG graphicsContext(context.get());
     strokeStyleApplier(graphicsContext);
 
-    bool hitSuccess = CGContextPathContainsPoint(context, point, kCGPathStroke);
-    CGContextRestoreGState(context);
+    bool hitSuccess = CGContextPathContainsPoint(context.get(), point, kCGPathStroke);
+    CGContextRestoreGState(context.get());
 
     return hitSuccess;
 }
@@ -640,20 +640,20 @@ FloatRect PathCG::boundingRect() const
 
 FloatRect PathCG::strokeBoundingRect(NOESCAPE const Function<void(GraphicsContext&)>& strokeStyleApplier) const
 {
-    CGContextRef context = scratchContext();
+    RetainPtr context = scratchContext();
 
-    CGContextSaveGState(context);
-    CGContextBeginPath(context);
-    CGContextAddPath(context, platformPath());
+    CGContextSaveGState(context.get());
+    CGContextBeginPath(context.get());
+    CGContextAddPath(context.get(), platformPath());
 
     if (strokeStyleApplier) {
-        GraphicsContextCG graphicsContext(context);
+        GraphicsContextCG graphicsContext(context.get());
         strokeStyleApplier(graphicsContext);
     }
 
-    CGContextReplacePathWithStrokedPath(context);
-    CGRect box = CGContextIsPathEmpty(context) ? CGRectZero : CGContextGetPathBoundingBox(context);
-    CGContextRestoreGState(context);
+    CGContextReplacePathWithStrokedPath(context.get());
+    CGRect box = CGContextIsPathEmpty(context.get()) ? CGRectZero : CGContextGetPathBoundingBox(context.get());
+    CGContextRestoreGState(context.get());
 
     return zeroRectIfNull(box);
 }

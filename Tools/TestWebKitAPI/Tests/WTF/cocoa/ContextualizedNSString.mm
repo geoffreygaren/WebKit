@@ -230,22 +230,22 @@ TEST(WTF_ContextualizedNSString, cfString)
     auto context = "abc"_str;
     auto contents = "def"_str;
     auto contextualizedString = adoptNS([[WTFContextualizedNSString alloc] initWithContext:context contents:contents]);
-    auto contextualizedCFString = bridge_cast(static_cast<NSString *>(contextualizedString.get()));
+    RetainPtr contextualizedCFString = bridge_cast(static_cast<NSString *>(contextualizedString.get()));
 
-    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString, 0), 'a');
-    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString, 1), 'b');
-    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString, 2), 'c');
-    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString, 3), 'd');
-    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString, 4), 'e');
-    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString, 5), 'f');
+    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString.get(), 0), 'a');
+    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString.get(), 1), 'b');
+    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString.get(), 2), 'c');
+    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString.get(), 3), 'd');
+    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString.get(), 4), 'e');
+    EXPECT_EQ(CFStringGetCharacterAtIndex(contextualizedCFString.get(), 5), 'f');
 
-    EXPECT_NE(CFStringFind(contextualizedCFString, CFSTR("ab"), 0).location, kCFNotFound);
-    EXPECT_NE(CFStringFind(contextualizedCFString, CFSTR("bcd"), 0).location, kCFNotFound);
-    EXPECT_NE(CFStringFind(contextualizedCFString, CFSTR("de"), 0).location, kCFNotFound);
-    EXPECT_EQ(CFStringFind(contextualizedCFString, CFSTR("AB"), 0).location, kCFNotFound);
-    EXPECT_NE(CFStringFind(contextualizedCFString, CFSTR("AB"), kCFCompareCaseInsensitive).location, kCFNotFound);
+    EXPECT_NE(CFStringFind(contextualizedCFString.get(), CFSTR("ab"), 0).location, kCFNotFound);
+    EXPECT_NE(CFStringFind(contextualizedCFString.get(), CFSTR("bcd"), 0).location, kCFNotFound);
+    EXPECT_NE(CFStringFind(contextualizedCFString.get(), CFSTR("de"), 0).location, kCFNotFound);
+    EXPECT_EQ(CFStringFind(contextualizedCFString.get(), CFSTR("AB"), 0).location, kCFNotFound);
+    EXPECT_NE(CFStringFind(contextualizedCFString.get(), CFSTR("AB"), kCFCompareCaseInsensitive).location, kCFNotFound);
 
-    EXPECT_EQ(CFStringGetLength(contextualizedCFString), 6);
+    EXPECT_EQ(CFStringGetLength(contextualizedCFString.get()), 6);
 }
 
 TEST(WTF_ContextualizedNSString, tokenizer)
@@ -253,14 +253,14 @@ TEST(WTF_ContextualizedNSString, tokenizer)
     auto context = "th"_str;
     auto contents = "is is some text"_str;
     auto contextualizedString = adoptNS([[WTFContextualizedNSString alloc] initWithContext:context contents:contents]);
-    auto contextualizedCFString = bridge_cast(static_cast<NSString *>(contextualizedString.get()));
+    RetainPtr contextualizedCFString = bridge_cast(static_cast<NSString *>(contextualizedString.get()));
 
     auto locale = adoptCF(CFLocaleCreate(kCFAllocatorDefault, CFSTR("en_US")));
-    auto tokenizer = adoptCF(CFStringTokenizerCreate(kCFAllocatorDefault, contextualizedCFString, CFRangeMake(0, CFStringGetLength(contextualizedCFString)), kCFStringTokenizerUnitWord, locale.get()));
+    auto tokenizer = adoptCF(CFStringTokenizerCreate(kCFAllocatorDefault, contextualizedCFString.get(), CFRangeMake(0, CFStringGetLength(contextualizedCFString.get())), kCFStringTokenizerUnitWord, locale.get()));
 
     CFIndex indices[] = { 4, 7, 12, 17 };
     unsigned index = 0;
-    for (CFIndex i = 0; i < CFStringGetLength(contextualizedCFString); ++index) {
+    for (CFIndex i = 0; i < CFStringGetLength(contextualizedCFString.get()); ++index) {
         CFStringTokenizerGoToTokenAtIndex(tokenizer.get(), i);
         auto range = CFStringTokenizerGetCurrentTokenRange(tokenizer.get());
         ASSERT_NE(range.location, kCFNotFound);

@@ -60,7 +60,7 @@
         _operationQueue.get().maxConcurrentOperationCount = 4;
     }
 
-    NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
+    RetainPtr operation = [NSBlockOperation blockOperationWithBlock:^{
         dispatch_async(mainDispatchQueueSingleton(), ^{
             [_fileLoadOperations removeObjectForKey:urlSchemeTask];
         });
@@ -96,9 +96,9 @@
         [urlSchemeTask didReceiveData:fileData];
         [urlSchemeTask didFinish];
     }];
-    
-    [_fileLoadOperations setObject:operation forKey:urlSchemeTask];
-    [_operationQueue addOperation:operation];
+
+    [_fileLoadOperations setObject:operation.get() forKey:urlSchemeTask];
+    [_operationQueue addOperation:operation.get()];
 }
 
 - (void)webView:(WKWebView *)webView stopURLSchemeTask:(id <WKURLSchemeTask>)urlSchemeTask

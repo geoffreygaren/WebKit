@@ -52,6 +52,7 @@
 #import <WebKitLegacy/DOMPrivate.h>
 #import <pal/system/mac/DefaultSearchProvider.h>
 #import <wtf/Assertions.h>
+#import <wtf/RetainPtr.h>
 
 @implementation WebDefaultUIDelegate (WebContextMenu)
 
@@ -61,8 +62,8 @@
     [menuItem setTag:tag];
     [menuItem setTarget:target]; // can be nil
     [menuItem setRepresentedObject:representedObject];
-    
-    NSString *title = nil;
+
+    RetainPtr<NSString> title;
     SEL action = NULL;
     
     switch(tag) {
@@ -106,7 +107,7 @@
     }
 
     if (title)
-        [menuItem setTitle:title];
+        [menuItem setTitle:title.get()];
 
     [menuItem setAction:action];
     

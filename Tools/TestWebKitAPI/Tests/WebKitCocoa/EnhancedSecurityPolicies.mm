@@ -974,14 +974,14 @@ static RetainPtr<NSString> emptyEnhancedSecuritySitesPath()
 {
     NSFileManager *defaultFileManager = NSFileManager.defaultManager;
 
-    NSURL *enhancedSecurityFile = enhancedSecuritySitesPath();
-    NSURL *enhancedSecurityDirectory = [enhancedSecurityFile URLByDeletingLastPathComponent];
+    RetainPtr enhancedSecurityFile = enhancedSecuritySitesPath();
+    NSURL *enhancedSecurityDirectory = [enhancedSecurityFile.get() URLByDeletingLastPathComponent];
 
     [defaultFileManager removeItemAtPath:enhancedSecurityDirectory.path error:nil];
-    EXPECT_FALSE([defaultFileManager fileExistsAtPath:enhancedSecurityFile.path]);
+    EXPECT_FALSE([defaultFileManager fileExistsAtPath:enhancedSecurityFile.get().path]);
     [defaultFileManager createDirectoryAtURL:enhancedSecurityDirectory withIntermediateDirectories:YES attributes:nil error:nil];
 
-    return enhancedSecurityFile.path;
+    return enhancedSecurityFile.get().path;
 }
 
 static void createEnhancedSecuritySitesTable(WebCore::SQLiteDatabase& database)

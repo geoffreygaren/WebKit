@@ -491,7 +491,7 @@ void EventSenderProxy::mouseForceClick()
         clickCount:m_clickCount
         pressure:0.0];
 
-    NSView *targetView = [m_testController->mainWebView()->platformView() hitTest:[preForceClick.get() locationInWindow]];
+    RetainPtr targetView = [m_testController->mainWebView()->platformView() hitTest:[preForceClick.get() locationInWindow]];
     targetView = targetView ? targetView : m_testController->mainWebView()->platformView();
     ASSERT(targetView);
 
@@ -506,7 +506,7 @@ void EventSenderProxy::mouseForceClick()
     [NSApp _setCurrentEvent:nil];
     // WKView caches the most recent pressure event, so send it a nil event to clear the cache.
     IGNORE_NULL_CHECK_WARNINGS_BEGIN
-    [targetView pressureChangeWithEvent:nil];
+    [targetView.get() pressureChangeWithEvent:nil];
     IGNORE_NULL_CHECK_WARNINGS_END
 }
 
@@ -527,7 +527,7 @@ void EventSenderProxy::startAndCancelMouseForceClick()
         clickCount:m_clickCount
         pressure:0.0];
 
-    NSView *targetView = [m_testController->mainWebView()->platformView() hitTest:[beginPressure.get() locationInWindow]];
+    RetainPtr targetView = [m_testController->mainWebView()->platformView() hitTest:[beginPressure.get() locationInWindow]];
     targetView = targetView ? targetView : m_testController->mainWebView()->platformView();
     ASSERT(targetView);
 
@@ -541,7 +541,7 @@ void EventSenderProxy::startAndCancelMouseForceClick()
     [NSApp _setCurrentEvent:nil];
     // WKView caches the most recent pressure event, so send it a nil event to clear the cache.
     IGNORE_NULL_CHECK_WARNINGS_BEGIN
-    [targetView pressureChangeWithEvent:nil];
+    [targetView.get() pressureChangeWithEvent:nil];
     IGNORE_NULL_CHECK_WARNINGS_END
 }
 
@@ -553,7 +553,7 @@ void EventSenderProxy::mouseForceDown()
     auto preForceClick = pressureChangeEvent(1, PressureChangeDirection::Increasing);
     auto forceMouseDown = pressureChangeEvent(2, PressureChangeDirection::Increasing);
 
-    NSView *targetView = [m_testController->mainWebView()->platformView() hitTest:[beginPressure locationInWindow]];
+    RetainPtr targetView = [m_testController->mainWebView()->platformView() hitTest:[beginPressure locationInWindow]];
     targetView = targetView ? targetView : m_testController->mainWebView()->platformView();
     ASSERT(targetView);
 
@@ -566,7 +566,7 @@ void EventSenderProxy::mouseForceDown()
     [NSApp _setCurrentEvent:nil];
     // WKView caches the most recent pressure event, so send it a nil event to clear the cache.
     IGNORE_NULL_CHECK_WARNINGS_BEGIN
-    [targetView pressureChangeWithEvent:nil];
+    [targetView.get() pressureChangeWithEvent:nil];
     IGNORE_NULL_CHECK_WARNINGS_END
 }
 
@@ -582,14 +582,14 @@ void EventSenderProxy::mouseForceUp()
     [NSApp sendEvent:stageTwoEvent.get()];
     [NSApp sendEvent:stageOneEvent.get()];
 
-    NSView *targetView = [m_testController->mainWebView()->platformView() hitTest:[beginPressure locationInWindow]];
+    RetainPtr targetView = [m_testController->mainWebView()->platformView() hitTest:[beginPressure locationInWindow]];
     targetView = targetView ? targetView : m_testController->mainWebView()->platformView();
     ASSERT(targetView);
 
     [NSApp _setCurrentEvent:nil];
     // WKView caches the most recent pressure event, so send it a nil event to clear the cache.
     IGNORE_NULL_CHECK_WARNINGS_BEGIN
-    [targetView pressureChangeWithEvent:nil];
+    [targetView.get() pressureChangeWithEvent:nil];
     IGNORE_NULL_CHECK_WARNINGS_END
 }
 
@@ -600,7 +600,7 @@ void EventSenderProxy::mouseForceChanged(float force)
     auto beginPressure = beginPressureEvent(stage);
     auto pressureChangedEvent = pressureChangeEvent(stage, pressure, PressureChangeDirection::Increasing);
 
-    NSView *targetView = [m_testController->mainWebView()->platformView() hitTest:[beginPressure locationInWindow]];
+    RetainPtr targetView = [m_testController->mainWebView()->platformView() hitTest:[beginPressure locationInWindow]];
     targetView = targetView ? targetView : m_testController->mainWebView()->platformView();
     ASSERT(targetView);
 
@@ -609,29 +609,29 @@ void EventSenderProxy::mouseForceChanged(float force)
 
     // WKView caches the most recent pressure event, so send it a nil event to clear the cache.
     IGNORE_NULL_CHECK_WARNINGS_BEGIN
-    [targetView pressureChangeWithEvent:nil];
+    [targetView.get() pressureChangeWithEvent:nil];
     IGNORE_NULL_CHECK_WARNINGS_END
 }
 
 void EventSenderProxy::mouseMoveTo(double x, double y, WKStringRef pointerType)
 {
-    NSView *view = m_testController->mainWebView()->platformView();
-    NSPoint newMousePosition = [view convertPoint:NSMakePoint(x, y) toView:nil];
+    RetainPtr view = m_testController->mainWebView()->platformView();
+    NSPoint newMousePosition = [view.get() convertPoint:NSMakePoint(x, y) toView:nil];
     bool isDrag = m_leftMouseButtonDown;
     NSEvent *event = [NSEvent mouseEventWithType:(isDrag ? NSEventTypeLeftMouseDragged : NSEventTypeMouseMoved)
                                         location:newMousePosition
-                                   modifierFlags:0 
+                                   modifierFlags:0
                                        timestamp:absoluteTimeForEventTime(currentEventTime())
-                                    windowNumber:view.window.windowNumber
-                                         context:[NSGraphicsContext currentContext] 
-                                     eventNumber:++m_eventNumber 
-                                      clickCount:(m_leftMouseButtonDown ? m_clickCount : 0) 
+                                    windowNumber:view.get().window.windowNumber
+                                         context:[NSGraphicsContext currentContext]
+                                     eventNumber:++m_eventNumber
+                                      clickCount:(m_leftMouseButtonDown ? m_clickCount : 0)
                                         pressure:0];
 
-    CGEventRef cgEvent = event.CGEvent;
-    CGEventSetIntegerValueField(cgEvent, kCGMouseEventDeltaX, newMousePosition.x - m_position.x);
-    CGEventSetIntegerValueField(cgEvent, kCGMouseEventDeltaY, -1 * (newMousePosition.y - m_position.y));
-    event = [NSEvent eventWithCGEvent:cgEvent];
+    RetainPtr<CGEventRef> cgEvent = event.CGEvent;
+    CGEventSetIntegerValueField(cgEvent.get(), kCGMouseEventDeltaX, newMousePosition.x - m_position.x);
+    CGEventSetIntegerValueField(cgEvent.get(), kCGMouseEventDeltaY, -1 * (newMousePosition.y - m_position.y));
+    event = [NSEvent eventWithCGEvent:cgEvent.get()];
     m_position.x = newMousePosition.x;
     m_position.y = newMousePosition.y;
 
@@ -866,15 +866,15 @@ void EventSenderProxy::sendWheelEvent(EventTimestamp timestamp, double windowX, 
 void EventSenderProxy::smartMagnify()
 {
     auto* mainWebView = m_testController->mainWebView();
-    NSView *platformView = mainWebView->platformView();
+    RetainPtr platformView = mainWebView->platformView();
 
     auto event = adoptNS([[EventSenderSyntheticEvent alloc] initSmartMagnifyEventAtLocation:NSMakePoint(m_position.x, m_position.y)
         globalLocation:([mainWebView->platformWindow() convertRectToScreen:NSMakeRect(m_position.x, m_position.y, 1, 1)].origin)
         time:absoluteTimeForEventTime(currentEventTime())
         eventNumber:++m_eventNumber
-        window:platformView.window]);
+        window:platformView.get().window]);
 
-    if (NSView *targetView = [platformView hitTest:[event locationInWindow]]) {
+    if (NSView *targetView = [platformView.get() hitTest:[event locationInWindow]]) {
         [NSApp _setCurrentEvent:event.get()];
         [targetView smartMagnifyWithEvent:event.get()];
         [NSApp _setCurrentEvent:nil];

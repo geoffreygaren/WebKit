@@ -41,7 +41,7 @@
 #import <QuartzCore/CALayer.h>
 #endif
 
-CFMutableArrayRef openWindowsRef = 0;
+SUPPRESS_UNRETAINED_LOCAL CFMutableArrayRef openWindowsRef = 0;
 
 static CFArrayCallBacks NonRetainingArrayCallbacks = {
     0,

@@ -225,8 +225,8 @@ static RetainPtr<NSMutableDictionary> localPasteboards WTF_GUARDED_BY_LOCK(local
     auto item = adoptNS([[NSPasteboardItem alloc] init]);
     for (NSString *type in _typesArray.get()) {
         NSPasteboardType modernPasteboardType = [NSPasteboard _modernPasteboardType:type];
-        if (NSData *dataForType = [_dataByType objectForKey:type] ?: [_dataByType objectForKey:modernPasteboardType])
-            [item setData:dataForType forType:modernPasteboardType];
+        if (RetainPtr dataForType = [_dataByType objectForKey:type] ?: [_dataByType objectForKey:modernPasteboardType])
+            [item setData:dataForType.get() forType:modernPasteboardType];
     }
     return @[ item.get() ];
 }

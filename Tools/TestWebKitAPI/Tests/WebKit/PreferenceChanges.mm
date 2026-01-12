@@ -517,9 +517,9 @@ static bool sharedInstanceCalled = false;
 
 static WKPreferenceObserver *sharedInstanceMethodOverride(id self, SEL selector)
 {
-    WKPreferenceObserver *observer = wtfCallIMP<WKPreferenceObserver *>(sharedInstanceMethodOriginal, self, selector);
+    RetainPtr observer = wtfCallIMP<WKPreferenceObserver *>(sharedInstanceMethodOriginal, self, selector);
     sharedInstanceCalled = true;
-    return observer;
+    return observer.autorelease();
 }
 
 TEST(WebKit, PreferenceObserverStartedOnActivation)

@@ -906,9 +906,9 @@ NSEventMask __simulated_forceClickAssociatedEventsMask(id self, SEL _cmd)
     if (simulatePressure)
         modifierFlags |= NSEventMaskPressure;
 
-    NSEvent *event = [NSEvent mouseEventWithType:mouseEventType location:point modifierFlags:modifierFlags timestamp:_webView.eventTimestamp windowNumber:self.windowNumber context:[NSGraphicsContext currentContext] eventNumber:++gEventNumber clickCount:clickCount pressure:simulatePressure];
+    RetainPtr event = [NSEvent mouseEventWithType:mouseEventType location:point modifierFlags:modifierFlags timestamp:_webView.eventTimestamp windowNumber:self.windowNumber context:[NSGraphicsContext currentContext] eventNumber:++gEventNumber clickCount:clickCount pressure:simulatePressure];
     if (!simulatePressure) {
-        [self sendEvent:event];
+        [self sendEvent:event.get()];
         return;
     }
 
@@ -916,7 +916,7 @@ NSEventMask __simulated_forceClickAssociatedEventsMask(id self, SEL _cmd)
     Method associatedEventsMaskMethod = class_getInstanceMethod([NSEvent class], @selector(associatedEventsMask));
     IMP originalAssociatedEventsMaskImpl = method_setImplementation(associatedEventsMaskMethod, simulatedAssociatedEventsMaskImpl);
     @try {
-        [self sendEvent:event];
+        [self sendEvent:event.get()];
     } @finally {
         // In the case where event sending raises an exception, we still want to restore the original implementation
         // to prevent subsequent event sending tests from being affected.
@@ -1805,12 +1805,12 @@ static NSMenuItem *itemMatchingFilter(NSMenu *menu, MenuItemFilter filter)
         if (!activeMenu)
             return;
 
-        auto *item = itemMatchingFilter(activeMenu, filter.get());
+        RetainPtr item = itemMatchingFilter(activeMenu, filter.get());
         if (!item)
             return;
 
-        auto *itemMenu = item.menu;
-        [itemMenu performActionForItemAtIndex:[itemMenu indexOfItem:item]];
+        auto *itemMenu = [item.get() menu];
+        [itemMenu performActionForItemAtIndex:[itemMenu indexOfItem:item.get()]];
         [activeMenu cancelTracking];
         [timer invalidate];
         selectedItem = true;

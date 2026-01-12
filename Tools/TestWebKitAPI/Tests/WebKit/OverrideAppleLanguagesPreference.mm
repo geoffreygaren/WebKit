@@ -108,9 +108,9 @@ static bool preferenceObserverPreferenceDidChangeCalled = false;
 
 static WKPreferenceObserver *sharedInstanceMethodOverride(id self, SEL selector)
 {
-    WKPreferenceObserver *observer = wtfCallIMP<WKPreferenceObserver *>(sharedInstanceMethodOriginal, self, selector);
+    RetainPtr observer = wtfCallIMP<WKPreferenceObserver *>(sharedInstanceMethodOriginal, self, selector);
     preferenceObserverSharedInstanceCalled = true;
-    return observer;
+    return observer.autorelease();
 }
 
 static WKPreferenceObserver *preferenceDidChangeMethodOverride(id self, SEL selector, NSString *domain, NSString *key, NSString *encodedValue)
@@ -118,8 +118,8 @@ static WKPreferenceObserver *preferenceDidChangeMethodOverride(id self, SEL sele
     NSLog(@"preferenceDidChangeMethodOverride: domain=%@, key=%@, encodedValue=%@", domain, key, encodedValue);
     if ([key isEqualToString:@"AppleLanguages"])
         preferenceObserverPreferenceDidChangeCalled = true;
-    WKPreferenceObserver *observer = wtfCallIMP<WKPreferenceObserver *>(preferenceDidChangeMethodOriginal, self, selector, domain, key, encodedValue);
-    return observer;
+    RetainPtr observer = wtfCallIMP<WKPreferenceObserver *>(preferenceDidChangeMethodOriginal, self, selector, domain, key, encodedValue);
+    return observer.autorelease();
 }
 
 // FIXME: This test times out on Apple Silicon (webkit.org/b/222619) and is a flaky failure on Intel (webkit.org/b/228309)

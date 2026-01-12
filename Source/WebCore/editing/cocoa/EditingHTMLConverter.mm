@@ -358,16 +358,17 @@ static void updateAttributes(const Node* node, const RenderStyle& style, OptionS
         [attributes removeObjectForKey:NSStrikethroughStyleAttributeName];
 
     CheckedRef fontCascade = style.fontCascade();
-    if (auto ctFont = fontCascade->primaryFont()->ctFont())
-        [attributes setObject:(__bridge PlatformFont *)ctFont forKey:NSFontAttributeName];
+    Ref primaryFont = fontCascade->primaryFont();
+    if (RetainPtr ctFont = primaryFont->ctFont())
+        [attributes setObject:(__bridge PlatformFont *)ctFont.get() forKey:NSFontAttributeName];
     else {
-        auto size = fontCascade->primaryFont()->platformData().size();
+        auto size = primaryFont->platformData().size();
 #if PLATFORM(IOS_FAMILY)
-        PlatformFont *platformFont = [PlatformFontClass systemFontOfSize:size];
+        RetainPtr platformFont = [PlatformFontClass systemFontOfSize:size];
 #else
-        PlatformFont *platformFont = [[NSFontManager sharedFontManager] convertFont:WebDefaultFont() toSize:size];
+        RetainPtr platformFont = [[NSFontManager sharedFontManager] convertFont:WebDefaultFont() toSize:size];
 #endif
-        [attributes setObject:platformFont forKey:NSFontAttributeName];
+        [attributes setObject:platformFont.get() forKey:NSFontAttributeName];
     }
 
     auto textAlignment = NSTextAlignmentNatural;

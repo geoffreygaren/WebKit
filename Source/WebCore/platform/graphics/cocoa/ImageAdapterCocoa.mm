@@ -142,11 +142,11 @@ NSImage* ImageAdapter::nsImage()
     if (m_nsImage)
         return m_nsImage.get();
 
-    CFDataRef data = tiffRepresentation();
+    RetainPtr<CFDataRef> data = retainPtr(tiffRepresentation());
     if (!data)
         return nullptr;
 
-    m_nsImage = adoptNS([[NSImage alloc] initWithData:(__bridge NSData *)data]);
+    m_nsImage = adoptNS([[NSImage alloc] initWithData:(__bridge NSData *)data.get()]);
     return m_nsImage.get();
 }
 

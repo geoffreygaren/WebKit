@@ -117,12 +117,12 @@ TEST(WebKit, NavigateDuringDeviceEnumeration)
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     auto processPoolConfig = adoptNS([[_WKProcessPoolConfiguration alloc] init]);
     initializeMediaCaptureConfiguration(configuration.get());
-    WKWebView *webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 320, 500) configuration:configuration.get() processPoolConfiguration:processPoolConfig.get()]).leakRef();
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 320, 500) configuration:configuration.get() processPoolConfiguration:processPoolConfig.get()]);
     auto delegate = adoptNS([[NavigationWhileGetUserMediaPromptDisplayedUIDelegate alloc] init]);
-    [webView setUIDelegate:delegate.get()];
+    [webView.get() setUIDelegate:delegate.get()];
 
     okToProceed = false;
-    [webView loadTestPageNamed:@"enumerateMediaDevices"];
+    [webView.get() loadTestPageNamed:@"enumerateMediaDevices"];
     TestWebKitAPI::Util::run(&okToProceed);
 }
 

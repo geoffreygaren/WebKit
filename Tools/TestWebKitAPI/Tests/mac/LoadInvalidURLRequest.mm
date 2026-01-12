@@ -51,8 +51,8 @@ static bool didFailProvisionalLoad;
     EXPECT_EQ(error.code, WebKitErrorCannotShowURL);
 
     static char literal[] = "https://www.example.com$/";
-    NSURL *failedURL = WTF::URLWithData([NSData dataWithBytes:literal length:strlen(literal)], nil);
-    EXPECT_TRUE([error.userInfo[NSURLErrorFailingURLErrorKey] isEqual:failedURL]);
+    RetainPtr failedURL = WTF::URLWithData([NSData dataWithBytes:literal length:strlen(literal)], nil);
+    EXPECT_TRUE([error.userInfo[NSURLErrorFailingURLErrorKey] isEqual:failedURL.get()]);
 
     didFailProvisionalLoad = true;
     didFinishTest = true;

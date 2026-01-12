@@ -34,6 +34,7 @@
 #import <sys/stat.h>
 #import <wtf/Assertions.h>
 #import <wtf/FileSystem.h>
+#import <wtf/RetainPtr.h>
 
 @implementation NSFileManager (WebNSFileManagerExtras)
 
@@ -60,8 +61,8 @@ static BOOL fileExists(NSString *path)
 - (NSString *)_webkit_pathWithUniqueFilenameForPath:(NSString *)path
 {
     // "Fix" the filename of the path.
-    NSString *filename = filenameByFixingIllegalCharacters([path lastPathComponent]);
-    path = [[path stringByDeletingLastPathComponent] stringByAppendingPathComponent:filename];
+    RetainPtr filename = filenameByFixingIllegalCharacters([path lastPathComponent]);
+    path = [[path stringByDeletingLastPathComponent] stringByAppendingPathComponent:filename.get()];
 
     if (fileExists(path)) {
         // Don't overwrite existing file by appending "-n", "-n.ext" or "-n.ext.ext" to the filename.
@@ -80,9 +81,11 @@ static BOOL fileExists(NSString *path)
 
         for (unsigned i = 1; ; i++) {
             NSString *pathWithAppendedNumber = [NSString stringWithFormat:@"%@-%d", pathWithoutExtensions, i];
-            path = [extensions length] ? [pathWithAppendedNumber stringByAppendingPathExtension:extensions] : pathWithAppendedNumber;
-            if (!fileExists(path))
+            RetainPtr candidatePath = [extensions length] ? [pathWithAppendedNumber stringByAppendingPathExtension:extensions] : pathWithAppendedNumber;
+            if (!fileExists(candidatePath.get())) {
+                path = candidatePath.get();
                 break;
+            }
         }
     }
 

@@ -659,13 +659,13 @@ void SourceBufferPrivateAVFObjC::enqueueSample(Ref<MediaSampleAVFObjC>&& sample,
 
     PlatformSample platformSample = sample->platformSample();
 
-    CMFormatDescriptionRef formatDescription = PAL::CMSampleBufferGetFormatDescription(platformSample.cmSampleBuffer());
+    RetainPtr formatDescription = PAL::CMSampleBufferGetFormatDescription(platformSample.cmSampleBuffer());
     ASSERT(formatDescription);
     if (!formatDescription) {
         ERROR_LOG(logSiteIdentifier, "Received sample with a null formatDescription. Bailing.");
         return;
     }
-    auto mediaType = PAL::CMFormatDescriptionGetMediaType(formatDescription);
+    auto mediaType = PAL::CMFormatDescriptionGetMediaType(formatDescription.get());
 
     if (auto trackIdentifier = trackIdentifierFor(trackId))
         protectedRenderer()->enqueueSample(*trackIdentifier, sample, mediaType == kCMMediaType_Video ? minimumUpcomingPresentationTimeForTrackID(trackId) : std::optional<MediaTime> { });

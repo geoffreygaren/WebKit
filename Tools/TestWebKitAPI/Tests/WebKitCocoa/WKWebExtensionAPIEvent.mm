@@ -35,7 +35,7 @@ static auto *eventManifest = @{ @"manifest_version": @3, @"background": @{ @"scr
 
 TEST(WKWebExtensionAPIEvent, Errors)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.assertThrows(() => browser.runtime.onStartup.addListener('bad'), /'listener' value is invalid, because a function is expected/i)",
         @"browser.test.assertThrows(() => browser.runtime.onStartup.removeListener('bad'), /'listener' value is invalid, because a function is expected/i)",
         @"browser.test.assertThrows(() => browser.runtime.onStartup.hasListener('bad'), /'listener' value is invalid, because a function is expected/i)",
@@ -43,12 +43,12 @@ TEST(WKWebExtensionAPIEvent, Errors)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(eventManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(eventManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIEvent, TestEventListener)
 {
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Setup
         @"function listener() { }",
         @"browser.test.assertFalse(browser.runtime.onStartup.hasListener(listener), 'Should not have listener')",
@@ -64,7 +64,7 @@ TEST(WKWebExtensionAPIEvent, TestEventListener)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(eventManifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(eventManifest, @{ @"background.js": backgroundScript.get() });
 }
 
 } // namespace TestWebKitAPI

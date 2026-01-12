@@ -138,14 +138,14 @@ static void drawPattern(void *overlayPtr, CGContextRef ctx)
 {
     WebViewVisualIdentificationOverlay *overlay = (WebViewVisualIdentificationOverlay *)overlayPtr;
 
-    auto attributes = @{
+    RetainPtr<NSDictionary> attributes = @{
         (id)kCTFontAttributeName : (id)createIdentificationFont().get(),
         (id)kCTForegroundColorFromContextAttributeName : @YES
     };
-    auto attributedString = adoptCF(CFAttributedStringCreate(kCFAllocatorDefault, (__bridge CFStringRef)overlay->_kind.get(), (__bridge CFDictionaryRef)attributes));
+    auto attributedString = adoptCF(CFAttributedStringCreate(kCFAllocatorDefault, (__bridge CFStringRef)overlay->_kind.get(), (__bridge CFDictionaryRef)attributes.get()));
     auto line = adoptCF(CTLineCreateWithAttributedString(attributedString.get()));
 
-    CGSize textSize = [overlay->_kind sizeWithAttributes:attributes];
+    CGSize textSize = [overlay->_kind sizeWithAttributes:attributes.get()];
 
 #if PLATFORM(IOS_FAMILY)
     CGContextScaleCTM(ctx, 1, -1);

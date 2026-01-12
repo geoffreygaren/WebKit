@@ -117,26 +117,26 @@ static bool scheduledWithCustomRunLoopMode(const std::optional<SchedulePairHashS
     [super dealloc];
 }
 
-- (NSURLRequest *)connection:(NSURLConnection *)connection willSendRequest:(NSURLRequest *)newRequest redirectResponse:(NSURLResponse *)redirectResponse
+- (NSURLRequest *)connection:(NSURLConnection *)connection willSendRequest:(NSURLRequest *)newRequest redirectResponse:(NSURLResponse *)redirectResponseArg
 {
     ASSERT(!isMainThread());
     UNUSED_PARAM(connection);
 
-    redirectResponse = synthesizeRedirectResponseIfNecessary([connection currentRequest], newRequest, redirectResponse);
+    RetainPtr redirectResponse = synthesizeRedirectResponseIfNecessary([connection currentRequest], newRequest, redirectResponseArg);
 
     // See <rdar://problem/5380697>. This is a workaround for a behavior change in CFNetwork where willSendRequest gets called more often.
-    if (!redirectResponse)
+    if (!redirectResponse.get())
         return newRequest;
 
 #if !LOG_DISABLED
-    if ([redirectResponse isKindOfClass:[NSHTTPURLResponse class]])
-        LOG(Network, "Handle %p delegate connection:%p willSendRequest:%@ redirectResponse:%d, Location:<%@>", m_handle.get(), connection, [newRequest description], static_cast<int>([(id)redirectResponse statusCode]), [[(id)redirectResponse allHeaderFields] objectForKey:@"Location"]);
+    if ([redirectResponse.get() isKindOfClass:[NSHTTPURLResponse class]])
+        LOG(Network, "Handle %p delegate connection:%p willSendRequest:%@ redirectResponse:%d, Location:<%@>", m_handle.get(), connection, [newRequest description], static_cast<int>([(id)redirectResponse.get() statusCode]), [[(id)redirectResponse.get() allHeaderFields] objectForKey:@"Location"]);
     else
         LOG(Network, "Handle %p delegate connection:%p willSendRequest:%@ redirectResponse:non-HTTP", m_handle.get(), connection, [newRequest description]);
 #endif
 
     auto protectedSelf = retainPtr(self);
-    auto work = [protectedSelf, newRequest = retainPtr(newRequest), redirectResponse = retainPtr(redirectResponse)] mutable {
+    auto work = [protectedSelf, newRequest = retainPtr(newRequest), redirectResponse] mutable {
         if (!protectedSelf->m_handle) {
             protectedSelf->m_requestResult = nullptr;
             protectedSelf->m_semaphore.signal();

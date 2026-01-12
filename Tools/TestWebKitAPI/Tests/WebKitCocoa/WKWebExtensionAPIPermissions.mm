@@ -51,7 +51,7 @@ TEST(WKWebExtensionAPIPermissions, Errors)
         @"host_permissions": @[ @"*://*.apple.com/*" ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await browser.test.assertRejects(browser.permissions.remove({ permissions: ['webRequest'] }), /only permissions specified in the manifest may be removed/i)",
         @"await browser.test.assertRejects(browser.permissions.remove({ origins: ['https://example.com/'] }), /only permissions specified in the manifest may be removed/i)",
 
@@ -78,7 +78,7 @@ TEST(WKWebExtensionAPIPermissions, Errors)
         @"browser.test.notifyPass()"
     ]);
 
-    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript });
+    Util::loadAndRunExtension(manifest, @{ @"background.js": backgroundScript.get() });
 }
 
 TEST(WKWebExtensionAPIPermissions, Basics)
@@ -91,7 +91,7 @@ TEST(WKWebExtensionAPIPermissions, Basics)
         @"host_permissions": @[ @"*://*.apple.com/*" ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // contains() should return true for all named permissions and granted match patterns.
         @"browser.test.assertTrue(await browser.permissions.contains({'permissions': ['alarms', 'activeTab']}))",
         @"browser.test.assertTrue(await browser.permissions.contains({'origins': ['*://webkit.org/*']}))",
@@ -117,7 +117,7 @@ TEST(WKWebExtensionAPIPermissions, Basics)
         @"browser.test.notifyPass()"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     // Grant "permissions" in the manifest.
     for (NSString *permission in manager.get().extension.requestedPermissions)
@@ -143,13 +143,13 @@ TEST(WKWebExtensionAPIPermissions, AcceptPermissionsRequest)
         @"host_permissions": @[ @"*://*.apple.com/*" ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.runWithUserGesture(async () => {",
         @"  browser.test.assertTrue(await browser.permissions.request({'permissions': ['declarativeNetRequest'], 'origins': ['*://*.apple.com/*']}))",
         @"})"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -190,13 +190,13 @@ TEST(WKWebExtensionAPIPermissions, DenyPermissionsRequest)
         @"optional_host_permissions": @[ @"*://*.apple.com/*" ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.runWithUserGesture(async () => {",
         @"  browser.test.assertFalse(await browser.permissions.request({'permissions': ['declarativeNetRequest'], 'origins': ['*://*.apple.com/*']}))",
         @"})"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -228,13 +228,13 @@ TEST(WKWebExtensionAPIPermissions, AcceptPermissionsDenyMatchPatternsRequest)
         @"optional_host_permissions": @[ @"*://*.apple.com/*" ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.runWithUserGesture(async () => {",
         @"  browser.test.assertFalse(await browser.permissions.request({'permissions': ['declarativeNetRequest'], 'origins': ['*://*.apple.com/*']}))",
         @"})"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -267,13 +267,13 @@ TEST(WKWebExtensionAPIPermissions, RequestPermissionsOnly)
         @"optional_host_permissions": @[ @"*://*.apple.com/*" ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.runWithUserGesture(async () => {",
         @"  browser.test.assertTrue(await browser.permissions.request({'permissions': ['declarativeNetRequest']}))",
         @"})"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -308,13 +308,13 @@ TEST(WKWebExtensionAPIPermissions, RequestMatchPatternsOnly)
         @"optional_host_permissions": @[ @"*://*.apple.com/*" ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.runWithUserGesture(async () => {",
         @"  browser.test.assertTrue(await browser.permissions.request({'origins': ['*://*.apple.com/*']}))",
         @"})"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -348,13 +348,13 @@ TEST(WKWebExtensionAPIPermissions, RequestAllURLsMatchPattern)
         @"optional_host_permissions": @[ @"<all_urls>" ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.runWithUserGesture(async () => {",
         @"  browser.test.assertTrue(await browser.permissions.request({'origins': ['<all_urls>']}))",
         @"})"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -389,7 +389,7 @@ TEST(WKWebExtensionAPIPermissions, ImplicitAllHostsAndURLsPermissions)
         @"permissions": @[ @"tabs" ],
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.onMessage.addListener(async (message, data) => {",
         @"  if (message != 'Run test') return",
 
@@ -402,7 +402,7 @@ TEST(WKWebExtensionAPIPermissions, ImplicitAllHostsAndURLsPermissions)
         @"browser.test.sendMessage('Loaded')",
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:WKWebExtensionMatchPattern.allHostsAndSchemesMatchPattern];
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
@@ -422,7 +422,7 @@ TEST(WKWebExtensionAPIPermissions, AllHostsHostPermissions)
         @"host_permissions": @[ @"*://*/*" ],
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.onMessage.addListener(async (message, data) => {",
         @"  if (message != 'Run test') return",
 
@@ -437,7 +437,7 @@ TEST(WKWebExtensionAPIPermissions, AllHostsHostPermissions)
         @"browser.test.sendMessage('Loaded')",
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     WKWebExtensionMatchPattern *allHostsMatchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*/*"];
     WKWebExtensionMatchPattern *allURLsMatchPattern = [WKWebExtensionMatchPattern allURLsMatchPattern];
@@ -467,7 +467,7 @@ TEST(WKWebExtensionAPIPermissions, AllURLsHostPermissions)
         @"host_permissions": @[ @"<all_urls>" ],
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.onMessage.addListener(async (message, data) => {",
         @"  if (message != 'Run test') return",
 
@@ -482,7 +482,7 @@ TEST(WKWebExtensionAPIPermissions, AllURLsHostPermissions)
         @"browser.test.sendMessage('Loaded')",
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     WKWebExtensionMatchPattern *allHostsMatchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*/*"];
     WKWebExtensionMatchPattern *allURLsMatchPattern = [WKWebExtensionMatchPattern allURLsMatchPattern];
@@ -512,7 +512,7 @@ TEST(WKWebExtensionAPIPermissions, AllHostsOptionalHostPermissions)
         @"optional_host_permissions": @[ @"*://*/*" ],
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.onMessage.addListener(async (message, data) => {",
         @"  if (message != 'Run test') return",
 
@@ -527,7 +527,7 @@ TEST(WKWebExtensionAPIPermissions, AllHostsOptionalHostPermissions)
         @"browser.test.sendMessage('Loaded')",
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     WKWebExtensionMatchPattern *allHostsMatchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*/*"];
     WKWebExtensionMatchPattern *allURLsMatchPattern = [WKWebExtensionMatchPattern allURLsMatchPattern];
@@ -557,7 +557,7 @@ TEST(WKWebExtensionAPIPermissions, AllURLsOptionalHostPermissions)
         @"optional_host_permissions": @[ @"<all_urls>" ],
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.onMessage.addListener(async (message, data) => {",
         @"  if (message != 'Run test') return",
 
@@ -572,7 +572,7 @@ TEST(WKWebExtensionAPIPermissions, AllURLsOptionalHostPermissions)
         @"browser.test.sendMessage('Loaded')",
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     WKWebExtensionMatchPattern *allHostsMatchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*/*"];
     WKWebExtensionMatchPattern *allURLsMatchPattern = [WKWebExtensionMatchPattern allURLsMatchPattern];
@@ -602,7 +602,7 @@ TEST(WKWebExtensionAPIPermissions, AllHostsAndURLsHostPermissions)
         @"host_permissions": @[ @"*://*/*", @"<all_urls>" ],
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.onMessage.addListener(async (message, data) => {",
         @"  if (message != 'Run test') return",
 
@@ -617,7 +617,7 @@ TEST(WKWebExtensionAPIPermissions, AllHostsAndURLsHostPermissions)
         @"browser.test.sendMessage('Loaded')",
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     WKWebExtensionMatchPattern *allHostsMatchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*/*"];
     WKWebExtensionMatchPattern *allURLsMatchPattern = [WKWebExtensionMatchPattern allURLsMatchPattern];
@@ -647,7 +647,7 @@ TEST(WKWebExtensionAPIPermissions, AllHostsAndURLsOptionalHostPermissions)
         @"optional_host_permissions": @[ @"*://*/*", @"<all_urls>" ],
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.onMessage.addListener(async (message, data) => {",
         @"  if (message != 'Run test') return",
 
@@ -662,7 +662,7 @@ TEST(WKWebExtensionAPIPermissions, AllHostsAndURLsOptionalHostPermissions)
         @"browser.test.sendMessage('Loaded')",
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     WKWebExtensionMatchPattern *allHostsMatchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*/*"];
     WKWebExtensionMatchPattern *allURLsMatchPattern = [WKWebExtensionMatchPattern allURLsMatchPattern];
@@ -693,7 +693,7 @@ TEST(WKWebExtensionAPIPermissions, AllHostsAndURLsOptionalAndHostPermissions)
         @"optional_host_permissions": @[ @"<all_urls>" ],
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.onMessage.addListener(async (message, data) => {",
         @"  if (message != 'Run test') return",
 
@@ -708,7 +708,7 @@ TEST(WKWebExtensionAPIPermissions, AllHostsAndURLsOptionalAndHostPermissions)
         @"browser.test.sendMessage('Loaded')",
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     WKWebExtensionMatchPattern *allHostsMatchPattern = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*/*"];
     WKWebExtensionMatchPattern *allURLsMatchPattern = [WKWebExtensionMatchPattern allURLsMatchPattern];
@@ -739,13 +739,13 @@ TEST(WKWebExtensionAPIPermissions, GrantOnlySomePermissions)
         @"optional_host_permissions": @[ @"*://*.apple.com/*" ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.runWithUserGesture(async () => {",
         @"  browser.test.assertFalse(await browser.permissions.request({'permissions': ['alarms', 'declarativeNetRequest']}))",
         @"})"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -780,13 +780,13 @@ TEST(WKWebExtensionAPIPermissions, GrantOnlySomeMatchPatterns)
         @"optional_host_permissions": @[ @"*://*.apple.com/*", @"*://*.example.com/*" ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"browser.test.runWithUserGesture(async () => {",
         @"  browser.test.assertFalse(await browser.permissions.request({'origins': ['*://*.apple.com/*', '*://*.example.com/*']}))",
         @"})"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     auto configuration = adoptNS([[WKWebViewConfiguration alloc] init]);
     configuration.get().webExtensionController = manager.get().controller;
@@ -820,7 +820,7 @@ TEST(WKWebExtensionAPIPermissions, ValidMatchPatterns)
         @"host_permissions": @[ @"*://*.example.com/*" ]
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         // Supported Schemes
         @"await browser.test.assertSafeResolve(() => browser.permissions.contains({ origins: [ '*://*.example.com/*' ] }))",
         @"await browser.test.assertSafeResolve(() => browser.permissions.contains({ origins: [ 'http://*.example.com/*' ] }))",
@@ -844,7 +844,7 @@ TEST(WKWebExtensionAPIPermissions, ValidMatchPatterns)
     [WKWebExtensionMatchPattern registerCustomURLScheme:@"test-extension"];
     [WKWebExtensionMatchPattern registerCustomURLScheme:@"other-extension"];
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     WKWebExtensionMatchPattern *matchPatternApple = [WKWebExtensionMatchPattern matchPatternWithString:@"*://*.example.com/*"];
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forMatchPattern:matchPatternApple];
@@ -870,13 +870,13 @@ TEST(WKWebExtensionAPIPermissions, ClipboardWrite)
         @"permissions": @[ @"clipboardWrite" ],
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"await navigator.clipboard.writeText('Test Clipboard Write')",
 
         @"browser.test.sendMessage('Clipboard Written')",
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forPermission:WKWebExtensionPermissionClipboardWrite];
 
@@ -907,7 +907,7 @@ TEST(WKWebExtensionAPIPermissions, ClipboardWriteWithoutPermission)
         },
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"try {",
         @"  await navigator.clipboard.writeText('Attempt Without Permission')",
 
@@ -925,7 +925,7 @@ TEST(WKWebExtensionAPIPermissions, ClipboardWriteWithoutPermission)
     auto *clipboardContentBefore = [NSPasteboard.generalPasteboard stringForType:NSPasteboardTypeString];
 #endif
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     [manager run];
 
@@ -956,7 +956,7 @@ TEST(WKWebExtensionAPIPermissions, ClipboardWriteWithRequest)
         @"optional_permissions": @[ @"clipboardWrite" ],
     };
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         @"try {",
         @"  await navigator.clipboard.writeText('Initial Attempt Without Permission')",
         @"} catch (error) {",
@@ -976,7 +976,7 @@ TEST(WKWebExtensionAPIPermissions, ClipboardWriteWithRequest)
         @"}"
     ]);
 
-    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(manifest, @{ @"background.js": backgroundScript.get() });
 
     auto requestDelegate = adoptNS([[TestWebExtensionsDelegate alloc] init]);
 
@@ -1022,7 +1022,7 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingFetchWithPermissions)
         { "/subresource"_s, { {{ "Content-Type"_s, "application/json"_s }, { "headerName"_s, "headerValue"_s }}, "{ \"testKey\": \"testValue\" }"_s } }
     });
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         [NSString stringWithFormat:@"const subresourceURL = 'http://127.0.0.1:%d/subresource'", server.port()],
 
         @"try {",
@@ -1040,10 +1040,10 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingFetchWithPermissions)
         @"}"
     ]);
 
-    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript.get() });
 
-    auto *urlRequest = server.request();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.request();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager run];
 }
@@ -1056,7 +1056,7 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingFetchWithoutPermissions)
 
     auto *subresourceURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://127.0.0.1:%d/subresource", server.port()]];
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         [NSString stringWithFormat:@"const subresourceURL = '%@'", subresourceURL],
 
         @"browser.permissions.onAdded.addListener(async () => {",
@@ -1083,7 +1083,7 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingFetchWithoutPermissions)
         @"}",
     ]);
 
-    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript.get() });
 
     __block size_t promptCount = 0;
 
@@ -1109,7 +1109,7 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingFetchWithoutGrantingPermission)
 
     auto *subresourceURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://127.0.0.1:%d/subresource", server.port()]];
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         [NSString stringWithFormat:@"const subresourceURL = '%@'", subresourceURL],
 
         @"let fetchAttempt = 0",
@@ -1129,7 +1129,7 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingFetchWithoutGrantingPermission)
         @"performFetch()"
     ]);
 
-    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript.get() });
 
     __block size_t promptCount = 0;
 
@@ -1153,7 +1153,7 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingXHRWithPermissions)
         { "/subresource"_s, { {{ "Content-Type"_s, "application/json"_s }, { "headerName"_s, "headerValue"_s }}, "{ \"testKey\": \"testValue\" }"_s } }
     });
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         [NSString stringWithFormat:@"const subresourceURL = 'http://127.0.0.1:%d/subresource'", server.port()],
 
         @"const xhr = new XMLHttpRequest()",
@@ -1179,10 +1179,10 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingXHRWithPermissions)
         @"xhr.send()"
     ]);
 
-    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript.get() });
 
-    auto *urlRequest = server.request();
-    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.URL];
+    RetainPtr urlRequest = server.request();
+    [manager.get().context setPermissionStatus:WKWebExtensionContextPermissionStatusGrantedExplicitly forURL:urlRequest.get().URL];
 
     [manager run];
 }
@@ -1195,7 +1195,7 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingXHRWithoutPermissions)
 
     auto *subresourceURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://127.0.0.1:%d/subresource", server.port()]];
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         [NSString stringWithFormat:@"const subresourceURL = '%@'", subresourceURL],
 
         @"browser.permissions.onAdded.addListener(() => {",
@@ -1234,7 +1234,7 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingXHRWithoutPermissions)
         @"xhr.send()"
     ]);
 
-    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript.get() });
 
     __block size_t promptCount = 0;
 
@@ -1260,7 +1260,7 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingXHRWithoutGrantingPermission)
 
     auto *subresourceURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://127.0.0.1:%d/subresource", server.port()]];
 
-    auto *backgroundScript = Util::constructScript(@[
+    RetainPtr backgroundScript = Util::constructScript(@[
         [NSString stringWithFormat:@"const subresourceURL = '%@'", subresourceURL],
 
         @"let fetchAttempt = 0",
@@ -1286,7 +1286,7 @@ TEST(WKWebExtensionAPIPermissions, CORSUsingXHRWithoutGrantingPermission)
         @"performXHR()"
     ]);
 
-    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript });
+    auto manager = Util::loadExtension(corsManifest, @{ @"background.js": backgroundScript.get() });
 
     __block size_t promptCount = 0;
 

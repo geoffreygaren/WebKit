@@ -185,9 +185,9 @@ private:
         if (!description)
             return emptyString();
         FourCC originalCodec = PAL::softLink_CoreMedia_CMFormatDescriptionGetMediaSubType(description);
-        CFStringRef originalFormatKey = PAL::canLoad_CoreMedia_kCMFormatDescriptionExtension_ProtectedContentOriginalFormat() ? PAL::kCMFormatDescriptionExtension_ProtectedContentOriginalFormat : CFSTR("CommonEncryptionOriginalFormat");
-        if (auto originalFormat = dynamic_cf_cast<CFNumberRef>(PAL::CMFormatDescriptionGetExtension(description, originalFormatKey)))
-            CFNumberGetValue(originalFormat, kCFNumberSInt32Type, &originalCodec.value);
+        RetainPtr<CFStringRef> originalFormatKey = PAL::canLoad_CoreMedia_kCMFormatDescriptionExtension_ProtectedContentOriginalFormat() ? PAL::kCMFormatDescriptionExtension_ProtectedContentOriginalFormat : CFSTR("CommonEncryptionOriginalFormat");
+        if (RetainPtr originalFormat = dynamic_cf_cast<CFNumberRef>(PAL::CMFormatDescriptionGetExtension(description, originalFormatKey.get())))
+            CFNumberGetValue(originalFormat.get(), kCFNumberSInt32Type, &originalCodec.value);
         return String::fromLatin1(originalCodec.string().data());
     }
     bool m_isVideo { false };

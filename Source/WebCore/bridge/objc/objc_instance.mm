@@ -236,20 +236,20 @@ JSC::JSValue ObjcInstance::invokeObjcMethod(JSGlobalObject* lexicalGlobalObject,
     setGlobalException(nil);
     
 @try {
-    NSMethodSignature* signature = method->getMethodSignature();
-    NSInvocation* invocation = [NSInvocation invocationWithMethodSignature:signature];
+    RetainPtr signature = method->getMethodSignature();
+    NSInvocation* invocation = [NSInvocation invocationWithMethodSignature:signature.get()];
     [invocation setSelector:method->selector()];
     [invocation setTarget:_instance.get()];
 
     if (method->isFallbackMethod()) {
-        if (objcValueTypeForType([signature methodReturnType]) != ObjcObjectType) {
+        if (objcValueTypeForType([signature.get() methodReturnType]) != ObjcObjectType) {
             NSLog(@"Incorrect signature for invokeUndefinedMethodFromWebScript:withArguments: -- return type must be object.");
             return result;
         }
 
         // Invoke invokeUndefinedMethodFromWebScript:withArguments:, pass JavaScript function
         // name as first (actually at 2) argument and array of args as second.
-        NSString* jsName = (__bridge NSString *)method->javaScriptName();
+        RetainPtr jsName = (__bridge NSString *)method->javaScriptName();
         [invocation setArgument:&jsName atIndex:2];
 
         NSMutableArray* objcArgs = [NSMutableArray array];
@@ -260,9 +260,9 @@ JSC::JSValue ObjcInstance::invokeObjcMethod(JSGlobalObject* lexicalGlobalObject,
         }
         [invocation setArgument:&objcArgs atIndex:3];
     } else {
-        unsigned count = [signature numberOfArguments];
+        unsigned count = [signature.get() numberOfArguments];
         for (unsigned i = 2; i < count; ++i) {
-            const char* type = [signature getArgumentTypeAtIndex:i];
+            const char* type = [signature.get() getArgumentTypeAtIndex:i];
             ObjcValueType objcValueType = objcValueTypeForType(type);
 
             // Must have a valid argument type.  This method signature should have
@@ -318,7 +318,7 @@ JSC::JSValue ObjcInstance::invokeObjcMethod(JSGlobalObject* lexicalGlobalObject,
     [invocation invoke];
 
     // Get the return value type.
-    const char* type = [signature methodReturnType];
+    const char* type = [signature.get() methodReturnType];
     ObjcValueType objcValueType = objcValueTypeForType(type);
 
     // Must have a valid return type.  This method signature should have
@@ -330,7 +330,7 @@ JSC::JSValue ObjcInstance::invokeObjcMethod(JSGlobalObject* lexicalGlobalObject,
     // of return value will never exceed the size of largest scalar
     // or a pointer.
     char buffer[1024];
-    ASSERT([signature methodReturnLength] < 1024);
+    ASSERT([signature.get() methodReturnLength] < 1024);
 
     if (*type != 'v') {
         [invocation getReturnValue:buffer];
@@ -398,20 +398,20 @@ bool ObjcInstance::setValueOfUndefinedField(JSGlobalObject* lexicalGlobalObject,
     if (name.isNull())
         return false;
 
-    id targetObject = getObject();
-    if (![targetObject respondsToSelector:@selector(setValue:forUndefinedKey:)])
+    RetainPtr targetObject = getObject();
+    if (![targetObject.get() respondsToSelector:@selector(setValue:forUndefinedKey:)])
         return false;
 
     JSLock::DropAllLocks dropAllLocks(lexicalGlobalObject); // Can't put this inside the @try scope because it unwinds incorrectly.
 
-    if ([targetObject respondsToSelector:@selector(setValue:forUndefinedKey:)]){
+    if ([targetObject.get() respondsToSelector:@selector(setValue:forUndefinedKey:)]){
         setGlobalException(nil);
-    
+
         ObjcValue objcValue = convertValueToObjcValue(lexicalGlobalObject, aValue, ObjcObjectType);
 
         // Default implementation throws an exception.
         @try {
-            [targetObject setValue:(__bridge id)objcValue.objectValue forUndefinedKey:[NSString stringWithCString:name.ascii().data() encoding:NSASCIIStringEncoding]];
+            [targetObject.get() setValue:(__bridge id)objcValue.objectValue forUndefinedKey:[NSString stringWithCString:name.ascii().data() encoding:NSASCIIStringEncoding]];
         } @catch(NSException* localException) {
             // Do nothing.  Class did not override valueForUndefinedKey:.
         }
@@ -429,16 +429,16 @@ JSC::JSValue ObjcInstance::getValueOfUndefinedField(JSGlobalObject* lexicalGloba
         return jsUndefined();
 
     JSValue result = jsUndefined();
-    
-    id targetObject = getObject();
+
+    RetainPtr targetObject = getObject();
 
     JSLock::DropAllLocks dropAllLocks(lexicalGlobalObject); // Can't put this inside the @try scope because it unwinds incorrectly.
 
-    if ([targetObject respondsToSelector:@selector(valueForUndefinedKey:)]){
+    if ([targetObject.get() respondsToSelector:@selector(valueForUndefinedKey:)]){
         setGlobalException(nil);
         // Default implementaion throws an exception.
         @try {
-            id objcValue = [targetObject valueForUndefinedKey:[NSString stringWithCString:name.ascii().data() encoding:NSASCIIStringEncoding]];
+            RetainPtr objcValue = [targetObject.get() valueForUndefinedKey:[NSString stringWithCString:name.ascii().data() encoding:NSASCIIStringEncoding]];
             result = convertObjcValueToValue(lexicalGlobalObject, &objcValue, ObjcObjectType, m_rootObject.get());
         } @catch(NSException* localException) {
             // Do nothing.  Class did not override valueForUndefinedKey:.

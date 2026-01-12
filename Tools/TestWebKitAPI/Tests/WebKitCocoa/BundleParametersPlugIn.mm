@@ -64,8 +64,8 @@ static NSString * const testParameter2 = @"TestParameter2";
     WKBundlePageLoaderClientV6 loaderClient = { };
     loaderClient.base.version = 6;
     loaderClient.willLoadDataRequest = [] (WKBundlePageRef page, WKURLRequestRef, WKDataRef, WKStringRef, WKStringRef, WKURLRef, WKTypeRef userData, const void*) {
-        id data = WKObjCTypeWrapperGetObject((WKObjCTypeWrapperRef)userData);
-        RELEASE_ASSERT([data isKindOfClass:NSData.class]);
+        RetainPtr data = WKObjCTypeWrapperGetObject((WKObjCTypeWrapperRef)userData);
+        RELEASE_ASSERT([data.get() isKindOfClass:NSData.class]);
     };
     WKBundlePageSetPageLoaderClient(static_cast<WKBundlePageRef>(browserContextController), &loaderClient.base);
 #endif

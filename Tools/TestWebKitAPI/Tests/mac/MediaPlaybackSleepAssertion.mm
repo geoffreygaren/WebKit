@@ -128,14 +128,14 @@ static bool hasAssertionType(CFStringRef type)
 
     auto assertionsByPID = adoptCF(bareAssertionsByPID);
 
-    CFArrayRef assertions = (CFArrayRef)CFDictionaryGetValue(assertionsByPID.get(), cfPid.get());
+    RetainPtr assertions = (CFArrayRef)CFDictionaryGetValue(assertionsByPID.get(), cfPid.get());
     if (!assertions)
         return false;
 
-    for (CFIndex i = 0, count = CFArrayGetCount(assertions); i < count; ++i) {
-        CFDictionaryRef assertion = (CFDictionaryRef)CFArrayGetValueAtIndex(assertions, i);
-        CFStringRef assertionType = (CFStringRef)CFDictionaryGetValue(assertion, kIOPMAssertionTypeKey);
-        if (CFEqual(type, assertionType))
+    for (CFIndex i = 0, count = CFArrayGetCount(assertions.get()); i < count; ++i) {
+        RetainPtr assertion = (CFDictionaryRef)CFArrayGetValueAtIndex(assertions.get(), i);
+        RetainPtr assertionType = (CFStringRef)CFDictionaryGetValue(assertion.get(), kIOPMAssertionTypeKey);
+        if (CFEqual(type, assertionType.get()))
             return true;
     }
     return false;

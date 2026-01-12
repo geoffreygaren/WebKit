@@ -116,17 +116,17 @@ static NSURL *copyFile(NSURL *sourceURL, NSURL *destinationDirectory, NSError **
 {
     [queue addOperationWithBlock:^{
         NSError *error = nil;
-        NSURL *destination = nil;
+        RetainPtr<NSURL> destination = nil;
         if ([_promisedFileURL isFileURL])
             destination = copyFile(_promisedFileURL.get(), destinationDirectory, &error);
         else
             destination = writeToWebLoc(_promisedFileURL.get(), destinationDirectory, &error);
         if (destination) {
             dispatch_async(mainDispatchQueueSingleton(), ^{
-                _destinationURL = destination;
+                _destinationURL = destination.get();
             });
         }
-        reader(destination, error);
+        reader(destination.get(), error);
     }];
 }
 

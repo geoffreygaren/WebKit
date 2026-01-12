@@ -62,8 +62,8 @@ uint64_t InjectedBundlePage::responseHeaderCount(WKURLResponseRef response)
     if (![nsURLResponse isKindOfClass:[NSHTTPURLResponse class]])
         return { };
 
-    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)nsURLResponse.get();
-    return [[httpResponse allHeaderFields] count];
+    RetainPtr httpResponse = (NSHTTPURLResponse *)nsURLResponse.get();
+    return [[httpResponse.get() allHeaderFields] count];
 }
 
 } // namespace WTR

@@ -79,10 +79,10 @@ void UIScriptControllerMac::zoomToScale(double scale, JSValueRef callback)
 {
     unsigned callbackID = m_context->prepareForAsyncTask(callback, CallbackTypeNonPersistent);
 
-    auto* webView = this->webView();
-    [webView _setPageScale:scale withOrigin:CGPointZero];
+    RetainPtr webView = this->webView();
+    [webView.get() _setPageScale:scale withOrigin:CGPointZero];
 
-    [webView _doAfterNextPresentationUpdate:makeBlockPtr([this, protectedThis = Ref { *this }, callbackID] {
+    [webView.get() _doAfterNextPresentationUpdate:makeBlockPtr([this, protectedThis = Ref { *this }, callbackID] {
         if (!m_context)
             return;
         m_context->asyncTaskComplete(callbackID);
@@ -103,11 +103,11 @@ void UIScriptControllerMac::simulateAccessibilitySettingsChangeNotification(JSVa
 {
     unsigned callbackID = m_context->prepareForAsyncTask(callback, CallbackTypeNonPersistent);
 
-    auto* webView = this->webView();
+    RetainPtr webView = this->webView();
     NSNotificationCenter *center = [[NSWorkspace sharedWorkspace] notificationCenter];
-    [center postNotificationName:NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification object:webView];
+    [center postNotificationName:NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification object:webView.get()];
 
-    [webView _doAfterNextPresentationUpdate:makeBlockPtr([this, protectedThis = Ref { *this }, callbackID] {
+    [webView.get() _doAfterNextPresentationUpdate:makeBlockPtr([this, protectedThis = Ref { *this }, callbackID] {
         if (!m_context)
             return;
         m_context->asyncTaskComplete(callbackID);
@@ -142,8 +142,8 @@ void UIScriptControllerMac::chooseDateTimePickerValue()
         if ([childWindow isKindOfClass:NSClassFromString(@"WKDateTimePickerWindow")]) {
             for (NSView *subview in childWindow.contentView.subviews) {
                 if ([subview isKindOfClass:[NSDatePicker class]]) {
-                    NSDatePicker *datePicker = (NSDatePicker *)subview;
-                    [datePicker.target performSelector:datePicker.action withObject:datePicker];
+                    RetainPtr datePicker = (NSDatePicker *)subview;
+                    [datePicker.get().target performSelector:datePicker.get().action withObject:datePicker.get()];
                     return;
                 }
             }
@@ -280,15 +280,15 @@ bool UIScriptControllerMac::isWindowContentViewFirstResponder() const
 
 void UIScriptControllerMac::becomeFirstResponder()
 {
-    auto *webView = this->webView();
-    [webView.window makeFirstResponder:webView];
+    RetainPtr webView = this->webView();
+    [webView.get().window makeFirstResponder:webView.get()];
 }
 
 void UIScriptControllerMac::resignFirstResponder()
 {
-    auto *webView = this->webView();
-    if (webView.window.firstResponder == webView)
-        [webView.window makeFirstResponder:nil];
+    RetainPtr webView = this->webView();
+    if (webView.get().window.firstResponder == webView.get())
+        [webView.get().window makeFirstResponder:nil];
 }
 
 void UIScriptControllerMac::toggleCapsLock(JSValueRef callback)
@@ -388,13 +388,13 @@ void UIScriptControllerMac::sendEventStream(JSStringRef eventsJSON, JSValueRef c
     unsigned callbackID = m_context->prepareForAsyncTask(callback, CallbackTypeNonPersistent);
 
     auto jsonString = eventsJSON->string();
-    auto eventInfo = dynamic_objc_cast<NSDictionary>([NSJSONSerialization JSONObjectWithData:[jsonString.createNSString() dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers | NSJSONReadingMutableLeaves error:nil]);
-    if (!eventInfo || ![eventInfo isKindOfClass:[NSDictionary class]]) {
+    RetainPtr eventInfo = dynamic_objc_cast<NSDictionary>([NSJSONSerialization JSONObjectWithData:[jsonString.createNSString() dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers | NSJSONReadingMutableLeaves error:nil]);
+    if (!eventInfo || ![eventInfo.get() isKindOfClass:[NSDictionary class]]) {
         WTFLogAlways("JSON is not convertible to a dictionary");
         return;
     }
 
-    auto *webView = this->webView();
+    RetainPtr webView = this->webView();
 
     double currentViewRelativeX = 0;
     double currentViewRelativeY = 0;
@@ -404,7 +404,7 @@ void UIScriptControllerMac::sendEventStream(JSStringRef eventsJSON, JSValueRef c
 
     auto currentTime = mach_absolute_time();
 
-    for (NSMutableDictionary *event in eventInfo[TopLevelEventInfoKey]) {
+    for (NSMutableDictionary *event in eventInfo.get()[TopLevelEventInfoKey]) {
 
         id eventType = event[EventTypeKey];
         if (!event[EventTypeKey]) {
@@ -450,7 +450,7 @@ void UIScriptControllerMac::sendEventStream(JSStringRef eventsJSON, JSValueRef c
             if (event[DeltaYKey])
                 deltaY = [event[DeltaYKey] floatValue];
 
-            auto windowPoint = [webView convertPoint:CGPointMake(currentViewRelativeX, currentViewRelativeY) toView:nil];
+            auto windowPoint = [webView.get() convertPoint:CGPointMake(currentViewRelativeX, currentViewRelativeY) toView:nil];
             eventSender->sendWheelEvent(currentTime, windowPoint.x, windowPoint.y, deltaX, deltaY, phase, momentumPhase);
         }
 

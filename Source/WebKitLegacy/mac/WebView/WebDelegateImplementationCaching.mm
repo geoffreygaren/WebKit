@@ -98,16 +98,16 @@ static inline id CallDelegate(WebView *self, id delegate, SEL selector)
     if (!delegate || ![delegate respondsToSelector:selector])
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -131,17 +131,17 @@ static inline id CallDelegate(WebView *self, id delegate, SEL selector, id objec
     if (!delegate || ![delegate respondsToSelector:selector])
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object atIndex:3];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object atIndex:3];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -165,17 +165,17 @@ static inline id CallDelegate(WebView *self, id delegate, SEL selector, NSRect r
     if (!delegate || ![delegate respondsToSelector:selector])
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&rect atIndex:3];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&rect atIndex:3];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -199,18 +199,18 @@ static inline id CallDelegate(WebView *self, id delegate, SEL selector, id objec
     if (!delegate || ![delegate respondsToSelector:selector])
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object1 atIndex:3];
-    [invocation setArgument:&object2 atIndex:4];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object1 atIndex:3];
+    [invocation.get() setArgument:&object2 atIndex:4];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -234,18 +234,18 @@ static inline id CallDelegate(WebView *self, id delegate, SEL selector, id objec
     if (!delegate || ![delegate respondsToSelector:selector])
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object atIndex:3];
-    [invocation setArgument:&boolean atIndex:4];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object atIndex:3];
+    [invocation.get() setArgument:&boolean atIndex:4];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -269,19 +269,19 @@ static inline id CallDelegate(WebView *self, id delegate, SEL selector, id objec
     if (!delegate || ![delegate respondsToSelector:selector])
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object1 atIndex:3];
-    [invocation setArgument:&object2 atIndex:4];
-    [invocation setArgument:&object3 atIndex:5];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object1 atIndex:3];
+    [invocation.get() setArgument:&object2 atIndex:4];
+    [invocation.get() setArgument:&object3 atIndex:5];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -305,18 +305,18 @@ static inline id CallDelegate(WebView *self, id delegate, SEL selector, id objec
     if (!delegate || ![delegate respondsToSelector:selector])
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object atIndex:3];
-    [invocation setArgument:&integer atIndex:4];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object atIndex:3];
+    [invocation.get() setArgument:&integer atIndex:4];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -340,13 +340,13 @@ static inline float CallDelegateReturningFloat(WebView *self, id delegate, SEL s
     if (!delegate || ![delegate respondsToSelector:selector])
         return 0.0f;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
 
     float returnValue = 0.0f;
     @try {
-        WebThreadCallDelegate(invocation);
-        [invocation getReturnValue:&returnValue];
+        WebThreadCallDelegate(invocation.get());
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -370,13 +370,13 @@ static inline BOOL CallDelegateReturningBoolean(BOOL result, WebView *self, id d
     if (!delegate || ![delegate respondsToSelector:selector])
         return result;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
 
     BOOL returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        [invocation getReturnValue:&returnValue];
+        WebThreadCallDelegate(invocation.get());
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -400,14 +400,14 @@ static inline BOOL CallDelegateReturningBoolean(BOOL result, WebView *self, id d
     if (!delegate || ![delegate respondsToSelector:selector])
         return result;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object atIndex:3];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object atIndex:3];
 
     BOOL returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        [invocation getReturnValue:&returnValue];
+        WebThreadCallDelegate(invocation.get());
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -431,15 +431,15 @@ static inline BOOL CallDelegateReturningBoolean(BOOL result, WebView *self, id d
     if (!delegate || ![delegate respondsToSelector:selector])
         return result;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object atIndex:3];
-    [invocation setArgument:&boolean atIndex:4];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object atIndex:3];
+    [invocation.get() setArgument:&boolean atIndex:4];
 
     BOOL returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        [invocation getReturnValue:&returnValue];
+        WebThreadCallDelegate(invocation.get());
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -475,15 +475,15 @@ static inline BOOL CallDelegateReturningBoolean(BOOL result, WebView *self, id d
     if (!delegate || ![delegate respondsToSelector:selector])
         return result;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object1 atIndex:3];
-    [invocation setArgument:&object2 atIndex:4];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object1 atIndex:3];
+    [invocation.get() setArgument:&object2 atIndex:4];
 
     BOOL returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        [invocation getReturnValue:&returnValue];
+        WebThreadCallDelegate(invocation.get());
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -497,17 +497,17 @@ static inline BOOL CallDelegateReturningBoolean(BOOL result, WebView *self, id d
 {
     if (!delegate || ![delegate respondsToSelector:selector])
         return result;
-    
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object1 atIndex:3];
-    [invocation setArgument:&object2 atIndex:4];
-    [invocation setArgument:&boolean atIndex:5];
-    
+
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object1 atIndex:3];
+    [invocation.get() setArgument:&object2 atIndex:4];
+    [invocation.get() setArgument:&boolean atIndex:5];
+
     BOOL returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        [invocation getReturnValue:&returnValue];
+        WebThreadCallDelegate(invocation.get());
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -531,16 +531,16 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -564,17 +564,17 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
     if (!delegate || ![delegate respondsToSelector:selector])
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&integer atIndex:3];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&integer atIndex:3];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -598,17 +598,17 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object atIndex:3];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object atIndex:3];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -683,18 +683,18 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object1 atIndex:3];
-    [invocation setArgument:&object2 atIndex:4];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object1 atIndex:3];
+    [invocation.get() setArgument:&object2 atIndex:4];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -709,18 +709,18 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object atIndex:3];
-    [invocation setArgument:&double1 atIndex:4];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object atIndex:3];
+    [invocation.get() setArgument:&double1 atIndex:4];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -744,19 +744,19 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object1 atIndex:3];
-    [invocation setArgument:&object2 atIndex:4];
-    [invocation setArgument:&object3 atIndex:5];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object1 atIndex:3];
+    [invocation.get() setArgument:&object2 atIndex:4];
+    [invocation.get() setArgument:&object3 atIndex:5];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -780,20 +780,20 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object1 atIndex:3];
-    [invocation setArgument:&object2 atIndex:4];
-    [invocation setArgument:&object3 atIndex:5];
-    [invocation setArgument:&object4 atIndex:6];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object1 atIndex:3];
+    [invocation.get() setArgument:&object2 atIndex:4];
+    [invocation.get() setArgument:&object3 atIndex:5];
+    [invocation.get() setArgument:&object4 atIndex:6];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -817,19 +817,19 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object1 atIndex:3];
-    [invocation setArgument:&integer atIndex:4];
-    [invocation setArgument:&object2 atIndex:5];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object1 atIndex:3];
+    [invocation.get() setArgument:&integer atIndex:4];
+    [invocation.get() setArgument:&object2 atIndex:5];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -881,20 +881,20 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object1 atIndex:3];
-    [invocation setArgument:&object2 atIndex:4];
-    [invocation setArgument:&integer atIndex:5];
-    [invocation setArgument:&object3 atIndex:6];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object1 atIndex:3];
+    [invocation.get() setArgument:&object2 atIndex:4];
+    [invocation.get() setArgument:&integer atIndex:5];
+    [invocation.get() setArgument:&object3 atIndex:6];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -975,20 +975,20 @@ static inline id CallDelegate(IMP implementation, WebView *self, id delegate, SE
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&self atIndex:2];
-    [invocation setArgument:&object1 atIndex:3];
-    [invocation setArgument:&interval atIndex:4];
-    [invocation setArgument:&object2 atIndex:5];
-    [invocation setArgument:&object3 atIndex:6];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate, selector);
+    [invocation.get() setArgument:&self atIndex:2];
+    [invocation.get() setArgument:&object1 atIndex:3];
+    [invocation.get() setArgument:&interval atIndex:4];
+    [invocation.get() setArgument:&object2 atIndex:5];
+    [invocation.get() setArgument:&object3 atIndex:6];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -1373,31 +1373,31 @@ id CallHistoryDelegate(IMP implementation, WebView *self, SEL selector, id objec
 id CallFormDelegate(WebView *self, SEL selector, id object1, id object2)
 {
 #if !PLATFORM(IOS_FAMILY)
-    id delegate = self->_private->formDelegate;
-    if (!delegate || ![delegate respondsToSelector:selector])
+    RetainPtr delegate = self->_private->formDelegate;
+    if (!delegate || ![(id)delegate.get() respondsToSelector:selector])
         return nil;
     @try {
-        return wtfObjCMsgSend<id>(delegate, selector, object1, object2);
+        return wtfObjCMsgSend<id>(delegate.get(), selector, object1, object2);
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
     }
     return nil;
 #else
-    id delegate = [self _formDelegateForSelector:selector];
+    RetainPtr delegate = [self _formDelegateForSelector:selector];
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&object1 atIndex:2];
-    [invocation setArgument:&object2 atIndex:3];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate.get(), selector);
+    [invocation.get() setArgument:&object1 atIndex:2];
+    [invocation.get() setArgument:&object2 atIndex:3];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -1409,32 +1409,32 @@ id CallFormDelegate(WebView *self, SEL selector, id object1, id object2)
 id CallFormDelegate(WebView *self, SEL selector, id object1, id object2, id object3)
 {
 #if !PLATFORM(IOS_FAMILY)
-    id delegate = self->_private->formDelegate;
-    if (!delegate || ![delegate respondsToSelector:selector])
+    RetainPtr delegate = self->_private->formDelegate;
+    if (!delegate || ![(id)delegate.get() respondsToSelector:selector])
         return nil;
     @try {
-        return wtfObjCMsgSend<id>(delegate, selector, object1, object2, object3);
+        return wtfObjCMsgSend<id>(delegate.get(), selector, object1, object2, object3);
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
     }
     return nil;
 #else
-    id delegate = [self _formDelegateForSelector:selector];
+    RetainPtr delegate = [self _formDelegateForSelector:selector];
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&object1 atIndex:2];
-    [invocation setArgument:&object2 atIndex:3];
-    [invocation setArgument:&object3 atIndex:4];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate.get(), selector);
+    [invocation.get() setArgument:&object1 atIndex:2];
+    [invocation.get() setArgument:&object2 atIndex:3];
+    [invocation.get() setArgument:&object3 atIndex:4];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -1446,34 +1446,34 @@ id CallFormDelegate(WebView *self, SEL selector, id object1, id object2, id obje
 id CallFormDelegate(WebView *self, SEL selector, id object1, id object2, id object3, id object4, id object5)
 {
 #if !PLATFORM(IOS_FAMILY)
-    id delegate = self->_private->formDelegate;
-    if (!delegate || ![delegate respondsToSelector:selector])
+    RetainPtr delegate = self->_private->formDelegate;
+    if (!delegate || ![(id)delegate.get() respondsToSelector:selector])
         return nil;
     @try {
-        return wtfObjCMsgSend<id>(delegate, selector, object1, object2, object3, object4, object5);
+        return wtfObjCMsgSend<id>(delegate.get(), selector, object1, object2, object3, object4, object5);
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
     }
     return nil;
 #else
-    id delegate = [self _formDelegateForSelector:selector];
+    RetainPtr delegate = [self _formDelegateForSelector:selector];
     if (!delegate)
         return nil;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&object1 atIndex:2];
-    [invocation setArgument:&object2 atIndex:3];
-    [invocation setArgument:&object3 atIndex:4];
-    [invocation setArgument:&object4 atIndex:5];
-    [invocation setArgument:&object5 atIndex:6];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate.get(), selector);
+    [invocation.get() setArgument:&object1 atIndex:2];
+    [invocation.get() setArgument:&object2 atIndex:3];
+    [invocation.get() setArgument:&object3 atIndex:4];
+    [invocation.get() setArgument:&object4 atIndex:5];
+    [invocation.get() setArgument:&object5 atIndex:6];
 
     id returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        if ([[invocation methodSignature] methodReturnLength] == 0) {
+        WebThreadCallDelegate(invocation.get());
+        if ([[invocation.get() methodSignature] methodReturnLength] == 0) {
             return nil;
         }
-        [invocation getReturnValue:&returnValue];
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
@@ -1485,29 +1485,29 @@ id CallFormDelegate(WebView *self, SEL selector, id object1, id object2, id obje
 BOOL CallFormDelegateReturningBoolean(BOOL result, WebView *self, SEL selector, id object1, SEL selectorArg, id object2)
 {
 #if !PLATFORM(IOS_FAMILY)
-    id delegate = self->_private->formDelegate;
-    if (!delegate || ![delegate respondsToSelector:selector])
+    RetainPtr delegate = self->_private->formDelegate;
+    if (!delegate || ![(id)delegate.get() respondsToSelector:selector])
         return result;
     @try {
-        return wtfObjCMsgSend<BOOL>(delegate, selector, object1, selectorArg, object2);
+        return wtfObjCMsgSend<BOOL>(delegate.get(), selector, object1, selectorArg, object2);
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
     }
     return result;
 #else
-    id delegate = [self _formDelegateForSelector:selector];
+    RetainPtr delegate = [self _formDelegateForSelector:selector];
     if (!delegate)
         return result;
 
-    NSInvocation *invocation = WebThreadMakeNSInvocation(delegate, selector);
-    [invocation setArgument:&object1 atIndex:2];
-    [invocation setArgument:&selectorArg atIndex:3];
-    [invocation setArgument:&object2 atIndex:4];
+    RetainPtr invocation = WebThreadMakeNSInvocation(delegate.get(), selector);
+    [invocation.get() setArgument:&object1 atIndex:2];
+    [invocation.get() setArgument:&selectorArg atIndex:3];
+    [invocation.get() setArgument:&object2 atIndex:4];
 
     BOOL returnValue;
     @try {
-        WebThreadCallDelegate(invocation);
-        [invocation getReturnValue:&returnValue];
+        WebThreadCallDelegate(invocation.get());
+        [invocation.get() getReturnValue:&returnValue];
         return returnValue;
     } @catch(id exception) {
         ReportDiscardedDelegateException(selector, exception);
